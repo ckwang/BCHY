@@ -1,5 +1,6 @@
 package team017.AI;
 
+import battlecode.common.Clock;
 import battlecode.common.RobotController;
 
 public class GroundAI extends AI {
@@ -9,6 +10,10 @@ public class GroundAI extends AI {
 	}
 
 	public void proceed() {
+		
+		if (Clock.getRoundNum() == 0)
+			init();
+		
 		while (true) {
 
 			try {
@@ -32,6 +37,10 @@ public class GroundAI extends AI {
 			}
 		}
 
+	}
+	
+	private void init() {
+		
 	}
 
 }
