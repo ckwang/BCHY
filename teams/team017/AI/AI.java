@@ -1,5 +1,7 @@
 package team017.AI;
 
-public interface AI {
+public abstract class AI {
+	
+	abstract public void proceed();
 
 }
