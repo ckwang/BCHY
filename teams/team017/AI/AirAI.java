@@ -1,9 +1,5 @@
 package team017.AI;
 
-import battlecode.common.BuilderController;
-import battlecode.common.Chassis;
-import battlecode.common.ComponentController;
-import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 
 public class AirAI {

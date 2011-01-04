@@ -1,22 +1,20 @@
 package team017.AI;
 
-import battlecode.common.BuilderController;
-import battlecode.common.Chassis;
 import battlecode.common.ComponentController;
 import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 
 public class GroundAI {
 	private RobotController myRC;
+	private MovementController motor;
 
 	public GroundAI(RobotController rc) {
 		myRC = rc;
+		ComponentController[] components = myRC.newComponents();
+		motor = (MovementController) components[0];
 	}
 
 	public void proceed() {
-		ComponentController[] components = myRC.newComponents();
-		MovementController motor = (MovementController) components[0];
-
 		while (true) {
 
 			try {

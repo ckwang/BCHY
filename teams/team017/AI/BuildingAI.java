@@ -9,15 +9,18 @@ import battlecode.common.RobotController;
 public class BuildingAI {
 
 	private RobotController myRC;
+	MovementController motor;
+	BuilderController builder;
 
 	public BuildingAI(RobotController rc) {
 		myRC = rc;
+		
+		ComponentController[] components = myRC.newComponents();
+		motor = (MovementController) components[0];
+		builder = (BuilderController) components[2];
 	}
 
 	public void proceed() {
-		ComponentController[] components = myRC.newComponents();
-		MovementController motor = (MovementController) components[0];
-		BuilderController builder = (BuilderController) components[2];
 
 		while (true) {
 			try {
