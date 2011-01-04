@@ -1,5 +1,9 @@
 package team017.AI;
 
+import team017.message.MessageDecoder;
+import team017.message.MessageEncoder;
+import team017.navigation.Navigator;
+import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.ComponentController;
 import battlecode.common.MovementController;
@@ -12,6 +16,10 @@ public abstract class AI {
 	protected MovementController motor;
 	protected BuilderController builder;
 	protected SensorController sensor;
+	protected Navigator navigator;
+	protected BroadcastController comm;
+	protected MessageEncoder msgEncoder;
+	protected MessageDecoder msgDecoder;
 	
 	public AI(RobotController rc) {
 		myRC = rc;
@@ -27,9 +35,16 @@ public abstract class AI {
 				break;
 			case SENSOR:
 				sensor = (SensorController) com;
+				navigator = new Navigator(rc, sensor);
+				break;
+			case COMM:
+				comm = (BroadcastController) com;
+				msgEncoder = new MessageEncoder(rc, comm);
 				break;
 			}
 		}
+		
+		msgDecoder = new MessageDecoder();
 	}
 	
 	abstract public void proceed();

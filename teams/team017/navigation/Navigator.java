@@ -3,8 +3,6 @@ package team017.navigation;
 import java.util.LinkedList;
 import java.util.List;
 
-import battlecode.common.ComponentClass;
-import battlecode.common.ComponentController;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -21,15 +19,10 @@ public class Navigator {
 	private RobotController myRC;
 	private SensorController sensor;
 	private List<MapLocation> subDestinations;
-	private String indicator;
 	
-	public Navigator(RobotController rc) {
+	public Navigator(RobotController rc, SensorController sensor) {
 		myRC = rc;
-		ComponentController[] components = myRC.components();
-		for (ComponentController cc: components) {
-			if (cc.componentClass() == ComponentClass.SENSOR)
-				sensor = (SensorController)cc;
-		}
+		this.sensor = sensor;
 		subDestinations = new LinkedList<MapLocation>();
 	}
 	
@@ -56,17 +49,11 @@ public class Navigator {
 		// dead reckoning
 		do {
 			nextDir = currentLoc.directionTo(t);
-			if ( step++ > THRESHOLD || nextDir == Direction.OMNI )	{
-				myRC.setIndicatorString(0, "DEAD RECKONING!");
-				indicator += currentLoc.toString();
-				myRC.setIndicatorString(2, indicator);
+			if ( step++ > THRESHOLD || nextDir == Direction.OMNI )
 				return initDir;
-			}
 			currentLoc = currentLoc.add(nextDir);
 		} while ( isWalkable(currentLoc) );
 		currentLoc = currentLoc.subtract(nextDir);
-		indicator += currentLoc.toString();
-		myRC.setIndicatorString(2, indicator);
 		
 		MapLocation traceLoc[] = {currentLoc, currentLoc};
 		Direction initTraceDir[] = {Direction.NONE, Direction.NONE};
@@ -74,7 +61,6 @@ public class Navigator {
 		// tracing
 		boolean isCW = true; 
 		do {
-			//nextDir = currentLoc.directionTo(t);
 			if ( isCW ) {
 				traceLoc[1] = traceNext( traceLoc[1], nextDir, isCW );
 				if (initTraceDir[1].equals(Direction.NONE))	initTraceDir[1] = currentLoc.directionTo(traceLoc[1]);
@@ -87,18 +73,8 @@ public class Navigator {
 			
 			isCW = !isCW;
 		} while ( !isOpen(s, t, traceLoc[isCW ? 0 : 1]) );
-		
-		myRC.setIndicatorString(0, !isCW ? "CW!" : "CCW!");
-		myRC.setIndicatorString(1, s.directionTo(traceLoc[isCW ? 0 : 1]).toString());
-		indicator += traceLoc[isCW ? 0 : 1].toString();
-		myRC.setIndicatorString(2, indicator);
 
 		return tangentBug(s, traceLoc[isCW ? 0 : 1]);
-	}
-	
-	public Direction newTangentBug(MapLocation s, MapLocation t) throws GameActionException{
-		indicator = s.toString()+",";
-		return tangentBug(s, t);
 	}
 	
 	private boolean isOpen(MapLocation sourceLoc, MapLocation destLoc, MapLocation bugLoc) throws GameActionException {
@@ -132,7 +108,6 @@ public class Navigator {
 	private boolean isWalkable( MapLocation loc ) throws GameActionException {
 		TerrainTile tile = myRC.senseTerrainTile( loc );
 		return ((tile == null) || (tile.isTraversableAtHeight(RobotLevel.ON_GROUND))) &&
-		(sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) != null);
-//		(!myRC.canSenseSquare(loc) || myRC.senseAirRobotAtLocation(loc) == null);
+		(!sensor.withinRange(loc) || sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) != null);
 	}	
 }
