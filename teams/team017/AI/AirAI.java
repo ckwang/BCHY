@@ -2,11 +2,10 @@ package team017.AI;
 
 import battlecode.common.RobotController;
 
-public class AirAI {
-	private RobotController myRC;
-
+public class AirAI extends AI {
+	
 	public AirAI(RobotController rc) {
-		myRC = rc;
+		super(rc);
 	}
 
 	public void proceed() {

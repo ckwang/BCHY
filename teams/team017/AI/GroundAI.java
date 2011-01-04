@@ -1,17 +1,11 @@
 package team017.AI;
 
-import battlecode.common.ComponentController;
-import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 
-public class GroundAI {
-	private RobotController myRC;
-	private MovementController motor;
+public class GroundAI extends AI {
 
 	public GroundAI(RobotController rc) {
-		myRC = rc;
-		ComponentController[] components = myRC.newComponents();
-		motor = (MovementController) components[0];
+		super(rc);
 	}
 
 	public void proceed() {

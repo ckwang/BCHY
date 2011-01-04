@@ -1,23 +1,12 @@
 package team017.AI;
 
-import battlecode.common.BuilderController;
 import battlecode.common.Chassis;
-import battlecode.common.ComponentController;
-import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 
-public class BuildingAI {
-
-	private RobotController myRC;
-	MovementController motor;
-	BuilderController builder;
+public class BuildingAI extends AI {
 
 	public BuildingAI(RobotController rc) {
-		myRC = rc;
-		
-		ComponentController[] components = myRC.newComponents();
-		motor = (MovementController) components[0];
-		builder = (BuilderController) components[2];
+		super(rc);
 	}
 
 	public void proceed() {
