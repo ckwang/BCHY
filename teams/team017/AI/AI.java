@@ -25,6 +25,14 @@ public abstract class AI {
 		myRC = rc;
 		ComponentController[] components = myRC.newComponents();
 		
+		sortComponents(components);
+		
+		msgDecoder = new MessageDecoder();
+	}
+	
+	abstract public void proceed();
+
+	protected void sortComponents(ComponentController[] components) {
 		for ( ComponentController com : components ) {
 			switch ( com.componentClass() ) {
 			case MOTOR:
@@ -35,21 +43,13 @@ public abstract class AI {
 				break;
 			case SENSOR:
 				sensor = (SensorController) com;
-				navigator = new Navigator(rc, sensor);
+				navigator = new Navigator(myRC, sensor);
 				break;
 			case COMM:
 				comm = (BroadcastController) com;
-				msgEncoder = new MessageEncoder(rc, comm);
+				msgEncoder = new MessageEncoder(myRC, comm);
 				break;
 			}
 		}
-		
-		msgDecoder = new MessageDecoder();
-	}
-	
-	abstract public void proceed();
-
-	protected void sortComponents() {
-		
 	}
 }
