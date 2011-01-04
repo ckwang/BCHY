@@ -23,16 +23,16 @@ public abstract class AI {
 	
 	public AI(RobotController rc) {
 		myRC = rc;
-		ComponentController[] components = myRC.newComponents();
-		
-		sortComponents(components);
+		updateComponents();
 		
 		msgDecoder = new MessageDecoder();
 	}
 	
 	abstract public void proceed();
 
-	protected void sortComponents(ComponentController[] components) {
+	protected void updateComponents() {
+		ComponentController[] components = myRC.newComponents();
+		
 		for ( ComponentController com : components ) {
 			switch ( com.componentClass() ) {
 			case MOTOR:
