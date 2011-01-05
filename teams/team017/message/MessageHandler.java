@@ -20,12 +20,12 @@ public abstract class MessageHandler {
 	
 	protected Message msg;
 	
-	protected MessageHandler(RobotController rc, BroadcastController comm) {
+	protected MessageHandler(RobotController rc, BroadcastController comm, MessageType type) {
 		myRC = rc;
 		this.comm = comm;
 		
 		msg = new Message();
-		writeTag();
+		writeTag(type);
 	}
 	
 	protected MessageHandler(Message msg) {
@@ -47,7 +47,7 @@ public abstract class MessageHandler {
 		return MessageType.valueOf( msg.strings[0] );
 	}
 	
-	private void writeTag() {
+	private void writeTag(MessageType type) {
 		int round = Clock.getRoundNum();
 		int sourceID = myRC.getRobot().getID();
 		MapLocation sourceLocation = myRC.getLocation();
@@ -55,6 +55,7 @@ public abstract class MessageHandler {
 		msg.ints[intCounter++] = round;
 		msg.ints[intCounter++] = sourceID;
 		msg.locations[locCounter++] = sourceLocation;
+		msg.strings[stringCounter++] = type.toString();
 		
 		// checksum
 		msg.ints[intCounter++] = round + sourceID + sourceLocation.x + sourceLocation.y; 

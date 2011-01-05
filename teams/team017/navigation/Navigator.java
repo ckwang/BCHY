@@ -150,7 +150,7 @@ public class Navigator {
 
 	private boolean isWalkable( MapLocation loc ) throws GameActionException {
 		TerrainTile tile = myRC.senseTerrainTile( loc );
-		return ((tile == null) || (tile.isTraversableAtHeight(RobotLevel.ON_GROUND)));
+		return ( (tile == null) || (tile == TerrainTile.LAND) );
 		//&& (!sensor.canSenseSquare(loc) || sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) != null);
 	}	
 }

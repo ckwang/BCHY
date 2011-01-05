@@ -10,8 +10,7 @@ public class BorderMessage extends MessageHandler {
 	private Direction borderDir;
 	
 	public BorderMessage(RobotController rc, BroadcastController comm, Direction borderDirection) {
-		super(rc, comm);
-		msg.strings[0] = MessageType.BORDER.toString();
+		super(rc, comm, MessageType.BORDER);
 		
 		borderDir = borderDirection;
 		msg.strings[stringCounter++] = borderDir.toString();
