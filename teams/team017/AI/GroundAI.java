@@ -128,6 +128,35 @@ public class GroundAI extends AI {
 						break;
 					}
 				}
+				for (int j = 1; j < 4; ++j) {
+					temploclist[j] = temploclist[j - 1].add(myRC
+							.getDirection().rotateRight());
+				}
+				tempterrain = TerrainTile.LAND;
+
+				do {
+					i = i - 1;
+					tempterrain = myRC.senseTerrainTile(temploclist[i]);
+				} while (i > 0 && tempterrain == TerrainTile.OFF_MAP);
+
+				// i = 3 means no OFF_MAP sensed
+				if (i != 3) {
+					switch (myRC.getDirection().rotateRight()) {
+					case NORTH:
+						borders[0] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						break;
+					case EAST:
+						borders[1] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						break;
+					case SOUTH:
+						borders[2] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						break;
+					case WEST:
+						borders[3] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						break;
+					}
+				}
+
 			}
 			else {
 				// Sense whether the farthest sensible place is OFF_MAP
