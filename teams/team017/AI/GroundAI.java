@@ -74,22 +74,28 @@ public class GroundAI extends AI {
 	}
 
 	private void init() {
-		for (int i = 0; i < 4; ++i){
-			init_rotation();
-			updateMineSet(mineLocations);
-			myRC.yield();
-		}
+			try {
+				for (int i = 0; i < 4; ++i){
+				sense_border();
+				// Rotate twice Right for a 90 degrees turn
+				motor.setDirection(myRC.getDirection().rotateRight().rotateRight());
+				updateMineSet(mineLocations);
+				myRC.yield();
+				myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+				myRC.setIndicatorString(1,myRC.getLocation() + "");
+				}
+			} catch (GameActionException e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
+			}
+		
 
 	}
 
-	private void init_rotation() {
-		// Initial Rotation
-		// Turn around and search for borders
-		int [] temp = new int[4];
+	private void sense_border(){
 		try {
 			MapLocation[] temploclist = new MapLocation[4];
 			TerrainTile tempterrain = TerrainTile.LAND;
-
 			int i = 4;
 			if (myRC.getDirection().isDiagonal()) {
 				// Sense whether the farthest sensible place is OFF_MAP
@@ -122,7 +128,6 @@ public class GroundAI extends AI {
 						break;
 					}
 				}
-				motor.setDirection(myRC.getDirection().rotateRight());
 			}
 			else {
 				// Sense whether the farthest sensible place is OFF_MAP
@@ -153,14 +158,12 @@ public class GroundAI extends AI {
 						break;
 					}
 				}
-				motor.setDirection(myRC.getDirection().rotateRight()
-						.rotateRight());
-				// Rotate twice Right for a 90 degrees turn
 			}
 			} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
+		
 	}
 	
 	
