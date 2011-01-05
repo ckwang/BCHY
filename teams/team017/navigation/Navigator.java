@@ -17,13 +17,48 @@ import battlecode.common.TerrainTile;
 
 public class Navigator {
 	private RobotController myRC;
-	private SensorController sensor;
 	private List<MapLocation> subDestinations;
+	private MapLocation destination;
 	
-	public Navigator(RobotController rc, SensorController sensor) {
+	public Navigator(RobotController rc) {
 		myRC = rc;
-		this.sensor = sensor;
 		subDestinations = new LinkedList<MapLocation>();
+		destination = null;
+	}
+	
+	public void setDestination (int x, int y){
+		destination = new MapLocation( x, y );
+		//myRC.setIndicatorString(1, destination.toString());
+	}
+	
+	public MapLocation getDestination(){
+		return destination;
+	}
+	
+	public Direction getNextDir() throws GameActionException {
+		myRC.setIndicatorString(1, subDestinations.toString());
+		if (destination == null)
+			return Direction.NONE;
+		else if (subDestinations.size() == 0){
+			return tangentBug(myRC.getLocation(), destination);
+		}
+		else {
+			MapLocation currentDes;
+			currentDes = subDestinations.get(0);
+			if ( currentDes.equals(myRC.getLocation()) ){
+				subDestinations.remove(0);
+				if (subDestinations.size() == 0){
+					return tangentBug(myRC.getLocation(), destination);
+				}
+				else {
+					currentDes = subDestinations.get(0);
+					return myRC.getLocation().directionTo(currentDes);
+				}
+			}
+			else {
+				return myRC.getLocation().directionTo(currentDes);
+			}
+		}
 	}
 	
 	public Direction tangentBug(MapLocation s, MapLocation t) throws GameActionException {
@@ -44,13 +79,17 @@ public class Navigator {
 		MapLocation currentLoc = s;
 		
 		int step = 0;
-		int THRESHOLD = 10;
+		int THRESHOLD = 5;
 		
 		// dead reckoning
 		do {
 			nextDir = currentLoc.directionTo(t);
-			if ( step++ > THRESHOLD || nextDir == Direction.OMNI )
+			if ( step++ > THRESHOLD || nextDir == Direction.OMNI ){
+				myRC.setIndicatorString(1, subDestinations.toString());
+				if(myRC.senseTerrainTile( currentLoc ) != null)
+					subDestinations.add(0,currentLoc);
 				return initDir;
+			}
 			currentLoc = currentLoc.add(nextDir);
 		} while ( isWalkable(currentLoc) );
 		currentLoc = currentLoc.subtract(nextDir);
@@ -62,11 +101,11 @@ public class Navigator {
 		boolean isCW = true; 
 		do {
 			if ( isCW ) {
-				traceLoc[1] = traceNext( traceLoc[1], nextDir, isCW );
+				traceLoc[1] = traceNext( traceLoc[1], initDir, isCW );
 				if (initTraceDir[1].equals(Direction.NONE))	initTraceDir[1] = currentLoc.directionTo(traceLoc[1]);
 				if (traceLoc[1].equals(t))	return initTraceDir[1];
 			} else {
-				traceLoc[0] = traceNext( traceLoc[0], nextDir, isCW );
+				traceLoc[0] = traceNext( traceLoc[0], initDir, isCW );
 				if (initTraceDir[0].equals(Direction.NONE))	initTraceDir[0] = currentLoc.directionTo(traceLoc[0]);
 				if (traceLoc[0].equals(t))	return initTraceDir[0];
 			} 
@@ -74,7 +113,11 @@ public class Navigator {
 			isCW = !isCW;
 		} while ( !isOpen(s, t, traceLoc[isCW ? 0 : 1]) );
 
-		return tangentBug(s, traceLoc[isCW ? 0 : 1]);
+		if (s.equals(traceLoc[isCW ? 0 : 1]))
+			return myRC.getDirection();
+		else {
+			return tangentBug(s, traceLoc[isCW ? 0 : 1]);
+		}
 	}
 	
 	private boolean isOpen(MapLocation sourceLoc, MapLocation destLoc, MapLocation bugLoc) throws GameActionException {
@@ -107,7 +150,7 @@ public class Navigator {
 
 	private boolean isWalkable( MapLocation loc ) throws GameActionException {
 		TerrainTile tile = myRC.senseTerrainTile( loc );
-		return ((tile == null) || (tile.isTraversableAtHeight(RobotLevel.ON_GROUND))) &&
-		(!sensor.withinRange(loc) || sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) != null);
+		return ((tile == null) || (tile.isTraversableAtHeight(RobotLevel.ON_GROUND)));
+		//&& (!sensor.canSenseSquare(loc) || sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) != null);
 	}	
 }
