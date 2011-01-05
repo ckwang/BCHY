@@ -15,12 +15,16 @@ import battlecode.common.TerrainTile;
 
 public class GroundAI extends AI {
 
+	private boolean isSoldier;
+	private boolean isConstructor;
+	
 	public GroundAI(RobotController rc) {
 		super(rc);
 	}
 
 	public void proceed() {
 
+		//Initial movement
 		if (Clock.getRoundNum() == 0)
 			init();
 
@@ -38,16 +42,26 @@ public class GroundAI extends AI {
 			try {
 
 				/*** beginning of main loop ***/
-				while (motor.isActive()) {
-					myRC.yield();
+				if (!motor.isActive()) {
+					// navigate();
+					if (motor.canMove(myRC.getDirection())) {
+						// System.out.println("about to move");
+						motor.moveForward();
+					} else {
+						motor.setDirection(myRC.getDirection().rotateRight());
+					}
+				}
+				
+				if (isSoldier){
+					//attack();
+				}
+				
+				if (isConstructor){
+					//build();
 				}
 
-				if (motor.canMove(myRC.getDirection())) {
-					// System.out.println("about to move");
-					motor.moveForward();
-				} else {
-					motor.setDirection(myRC.getDirection().rotateRight());
-				}
+				evaluateNextState();
+				myRC.yield();
 
 				/*** end of main loop ***/
 			} catch (Exception e) {
@@ -173,6 +187,18 @@ public class GroundAI extends AI {
 			tempminelocations.add(minelist[i].getLocation());
 		}
 		return tempminelocations;
+	}
+	
+	private void evaluateNextState(){
+		
+	}
+	
+	private void attack(){
+		
+	}
+	
+	private void naviagate(){
+		
 	}
 }
 
