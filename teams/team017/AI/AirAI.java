@@ -1,5 +1,6 @@
 package team017.AI;
 
+import battlecode.common.Clock;
 import battlecode.common.RobotController;
 
 public class AirAI extends AI {
@@ -9,6 +10,10 @@ public class AirAI extends AI {
 	}
 
 	public void proceed() {
+		
+		if (Clock.getRoundNum() == 0)
+			init();
+		
 		while (true) {
 			try {
 				myRC.yield();
@@ -17,5 +22,9 @@ public class AirAI extends AI {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private void init() {
+		
 	}
 }

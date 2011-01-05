@@ -1,7 +1,5 @@
 package team017.AI;
 
-import team017.message.MessageDecoder;
-import team017.message.MessageEncoder;
 import team017.navigation.Navigator;
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
@@ -18,21 +16,17 @@ public abstract class AI {
 	protected SensorController sensor;
 	protected Navigator navigator;
 	protected BroadcastController comm;
-	protected MessageEncoder msgEncoder;
-	protected MessageDecoder msgDecoder;
 	
 	public AI(RobotController rc) {
 		myRC = rc;
-		ComponentController[] components = myRC.newComponents();
-		
-		sortComponents(components);
-		
-		msgDecoder = new MessageDecoder();
+		updateComponents();
 	}
 	
 	abstract public void proceed();
 
-	protected void sortComponents(ComponentController[] components) {
+	protected void updateComponents() {
+		ComponentController[] components = myRC.newComponents();
+		
 		for ( ComponentController com : components ) {
 			switch ( com.componentClass() ) {
 			case MOTOR:
@@ -47,7 +41,6 @@ public abstract class AI {
 				break;
 			case COMM:
 				comm = (BroadcastController) com;
-				msgEncoder = new MessageEncoder(myRC, comm);
 				break;
 			}
 		}
