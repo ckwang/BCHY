@@ -20,6 +20,7 @@ public abstract class AI {
 	public AI(RobotController rc) {
 		myRC = rc;
 		updateComponents();
+		navigator = new Navigator(myRC);
 	}
 	
 	abstract public void proceed();
@@ -37,7 +38,6 @@ public abstract class AI {
 				break;
 			case SENSOR:
 				sensor = (SensorController) com;
-				navigator = new Navigator(myRC, sensor);
 				break;
 			case COMM:
 				comm = (BroadcastController) com;
