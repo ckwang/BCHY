@@ -4,6 +4,7 @@ import team017.navigation.Navigator;
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.ComponentController;
+import battlecode.common.MapLocation;
 import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 import battlecode.common.SensorController;
@@ -17,10 +18,15 @@ public abstract class AI {
 	protected Navigator navigator;
 	protected BroadcastController comm;
 	
+	// {NORTH, EAST, SOUTH, WEST}
+	protected int [] borders = {-1, -1, -1, -1};
+	protected MapLocation homeLocation;
+	
 	public AI(RobotController rc) {
 		myRC = rc;
 		updateComponents();
 		navigator = new Navigator(myRC);
+		homeLocation = rc.getLocation();
 	}
 	
 	abstract public void proceed();

@@ -1,6 +1,7 @@
 package team017.AI;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import team017.message.BorderMessage;
 import team017.message.MessageHandler;
@@ -15,6 +16,8 @@ import battlecode.common.TerrainTile;
 
 public class GroundAI extends AI {
 
+	Set<MapLocation> mineLocations = new HashSet<MapLocation>();
+	
 	public GroundAI(RobotController rc) {
 		super(rc);
 	}
@@ -25,7 +28,7 @@ public class GroundAI extends AI {
 			init();
 
 		while (true) {
-
+			
 			// MessageHandler encoder = new BorderMessage(myRC, comm,
 			// Direction.NORTH);
 			// encoder.send();
@@ -58,35 +61,22 @@ public class GroundAI extends AI {
 	}
 
 	private void init() {
-	HashSet<MapLocation> minelocations = new HashSet<MapLocation>();
-	int borderx = -1, bordery = -1;
-	int bordirx = 0, bordiry = 0;
-	int[] temp_border = new int[4];
-	for (int trytimes = 0; trytimes < 4; ++trytimes){
-		temp_border = init_rotation(borderx,bordery,bordirx,bordiry);
-		borderx = temp_border[0];
-		bordery = temp_border[1];
-		bordirx = temp_border[2];
-		bordiry = temp_border[3];
-		minelocations.addAll(sense_mine());
-//		myRC.setIndicatorString(1, "(" + borderx + "," + bordery + ")");
-//		myRC.setIndicatorString(0, myRC.getLocation() + "");
-//		myRC.setIndicatorString(2,minelocations.toString() + "");
-		myRC.yield();
+		for (int i = 0; i < 4; ++i){
+			init_rotation();
+			updateMineSet(mineLocations);
+			myRC.yield();
 		}
 
 	}
 
-	private int[] init_rotation(int borderx, int bordery, int bordirx, int bordiry) {
-	// Initial Rotation
-	// Turn around and search for borders
+	private void init_rotation() {
+		// Initial Rotation
+		// Turn around and search for borders
 		int [] temp = new int[4];
 		try {
 			MapLocation[] temploclist = new MapLocation[4];
 			TerrainTile tempterrain = TerrainTile.LAND;
-			// bordir : 1 if up/right border, -1 if down/left border
-//			int borderx = -1, bordery = -1;
-//			int bordirx, bordiry;
+
 			int i = 4;
 			if (myRC.getDirection().isDiagonal()) {
 				// Sense whether the farthest sensible place is OFF_MAP
@@ -106,21 +96,21 @@ public class GroundAI extends AI {
 				if (i != 3) {
 					switch (myRC.getDirection().rotateLeft()) {
 					case NORTH:
-					case SOUTH:
-						bordiry = myRC.getDirection().rotateLeft().dy;
-						bordery = myRC.getLocation().y + bordiry * (i + 1);
+						borders[0] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
 						break;
-
-					case WEST:
 					case EAST:
-						bordirx = myRC.getDirection().rotateLeft().dx;
-						borderx = myRC.getLocation().x + bordirx * (i + 1);
+						borders[1] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						break;
+					case SOUTH:
+						borders[2] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						break;
+					case WEST:
+						borders[3] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
 						break;
 					}
 				}
 				motor.setDirection(myRC.getDirection().rotateRight());
 			}
-
 			else {
 				// Sense whether the farthest sensible place is OFF_MAP
 				temploclist[0] = myRC.getLocation();
@@ -129,50 +119,41 @@ public class GroundAI extends AI {
 							.getDirection());
 				}
 				tempterrain = TerrainTile.LAND;
-
 				do {
 					i = i - 1;
 					tempterrain = myRC.senseTerrainTile(temploclist[i]);
 				} while (i > 0 && tempterrain == TerrainTile.OFF_MAP);
-
 				// i = 3 means no OFF_MAP sensed
 				if (i != 3) {
 					switch (myRC.getDirection()) {
 					case NORTH:
-					case SOUTH:
-						bordiry = myRC.getDirection().dy;
-						bordery = myRC.getLocation().y + bordiry * (i + 1);
+						borders[0] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
 						break;
-
 					case EAST:
+						borders[1] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						break;
+					case SOUTH:
+						borders[2] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						break;
 					case WEST:
-						bordirx = myRC.getDirection().dx;
-						borderx = myRC.getLocation().x + bordirx * (i + 1);
+						borders[3] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
 						break;
 					}
 				}
 				motor.setDirection(myRC.getDirection().rotateRight()
 						.rotateRight());
 				// Rotate twice Right for a 90 degrees turn
-				temp[0] = borderx;
-				temp[1] = bordery;
-				temp[2] = bordirx;
-				temp[3] = bordiry;
 			}
-			
 			} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
-		return temp;
 	}
-	private HashSet<MapLocation> sense_mine(){
-		HashSet<MapLocation> tempminelocations = new HashSet<MapLocation>();
+	private void updateMineSet(Set<MapLocation> mineSet) {
+		
 		Mine[] minelist = sensor.senseNearbyGameObjects(Mine.class);
-		for (int i = 0; i < minelist.length; ++i){
-			tempminelocations.add(minelist[i].getLocation());
+		for (Mine mine : minelist){
+			mineSet.add(mine.getLocation());
 		}
-		return tempminelocations;
 	}
 }
-
