@@ -162,6 +162,37 @@ public class GroundAI extends AI {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	private void init_revolve() {
+		
+		MapLocation[] locationList = {
+				homeLocation.add(Direction.NORTH_EAST, 2),
+				homeLocation.add(Direction.SOUTH_EAST, 2),
+				homeLocation.add(Direction.SOUTH_WEST, 2),
+				homeLocation.add(Direction.NORTH_WEST, 2)};
+		int index = 0;
+		
+		while (true) {
+			try {
+				
+				Direction nextDir = navigator.tangentBug(myRC.getLocation(), locationList[0]);
+				
+				if (!motor.isActive() || motor.canMove(nextDir) ) {
+					if ( myRC.getDirection() == nextDir ) {
+						// System.out.println("about to move");
+						motor.moveForward();
+					} else {
+						motor.setDirection(myRC.getDirection().rotateRight());
+					}
+				}
+			} catch (Exception e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	private void updateMineSet(Set<MapLocation> mineSet) {
 		
 		Mine[] minelist = sensor.senseNearbyGameObjects(Mine.class);
