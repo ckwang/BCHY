@@ -41,8 +41,8 @@ public class GroundAI extends AI {
 		if (Clock.getRoundNum() == 0) {
 			init();
 			init_revolve();
-			updateComponents();
-			init_return();
+//			updateComponents();
+//			init_return();
 		} else {
 			myRC.turnOff();
 		}
@@ -61,14 +61,8 @@ public class GroundAI extends AI {
 				updateComponents();
 				
 				/*** beginning of main loop ***/
-				if (!motor.isActive()) {
-					// navigate();
-					if (motor.canMove(myRC.getDirection())) {
-						// System.out.println("about to move");
-						motor.moveForward();
-					} else {
-						motor.setDirection(myRC.getDirection().rotateRight());
-					}
+				if (motor != null) {
+					navigate();
 				}
 				
 				if (isSoldier){
@@ -82,8 +76,8 @@ public class GroundAI extends AI {
 
 				evaluateNextState();
 				sense_border();
-				myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
-				myRC.setIndicatorString(1,myRC.getLocation() + "");
+//				myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+//				myRC.setIndicatorString(1,myRC.getLocation() + "");
 
 				myRC.yield();
 
@@ -352,7 +346,50 @@ public class GroundAI extends AI {
 //		}
 //	}
 	
-	private void navigate(){
+	private void navigate() throws GameActionException{
 		
+		if (!motor.isActive()) {
+			if (isConstructor) {
+				if (!mineLocations.isEmpty()) {
+					MapLocation currentLoc = myRC.getLocation();
+					MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
+					for (MapLocation loc : mineLocations) {
+						if (currentLoc.distanceSquaredTo(loc) < currentLoc.distanceSquaredTo(nearest))
+							nearest = loc;
+					}
+					
+					myRC.setIndicatorString(0, currentLoc + "," + nearest);
+					
+					navigator.setDestination(nearest);
+					Direction nextDir = navigator.getNextDir(0);
+					
+					if (nextDir != Direction.OMNI) {
+						if (myRC.getDirection() == nextDir) {
+							if (motor.canMove(nextDir)) {
+								motor.moveForward();
+							}
+						} else {
+							motor.setDirection(nextDir);
+						}	
+					}
+					
+				} else {
+					roachNavigate();
+				}
+			} else {
+				roachNavigate();
+			}
+		}
+			
+	}
+	
+	private void roachNavigate() throws GameActionException {
+		// navigate();
+		if (motor.canMove(myRC.getDirection())) {
+			// System.out.println("about to move");
+			motor.moveForward();
+		} else {
+			motor.setDirection(myRC.getDirection().rotateRight());
+		}
 	}
 }
