@@ -29,9 +29,10 @@ public class GroundAI extends AI {
 		//Initial movement
 		if (Clock.getRoundNum() == 0)
 			init();
+		else
+			myRC.turnOff();
 
 		while (true) {
-			
 			// MessageHandler encoder = new BorderMessage(myRC, comm,
 			// Direction.NORTH);
 			// encoder.send();
@@ -63,6 +64,10 @@ public class GroundAI extends AI {
 				}
 
 				evaluateNextState();
+				sense_border();
+				myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+				myRC.setIndicatorString(1,myRC.getLocation() + "");
+
 				myRC.yield();
 
 				/*** end of main loop ***/
@@ -128,6 +133,8 @@ public class GroundAI extends AI {
 						break;
 					}
 				}
+				
+				i = 4;
 				for (int j = 1; j < 4; ++j) {
 					temploclist[j] = temploclist[j - 1].add(myRC
 							.getDirection().rotateRight());
