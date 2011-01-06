@@ -27,19 +27,15 @@ public class BuildingAI extends AI {
 
 		while (true) {
 			try {
-				if(myRC.getTeamResources() > 100){
-//					if(Clock.getRoundNum()%2 == 0)
-//					updateFluxRate();
-					if(Clock.getRoundNum()%3 == 0)
-					
-					constructUnit(turnToAvailableSquare(UnitType.CONSTRUCTOR.chassis),UnitType.CONSTRUCTOR);
+				if (myRC.getTeamResources() > 100) {
+					if (Clock.getRoundNum() % 3 == 0)
+						constructUnit(
+								turnToAvailableSquare(UnitType.CONSTRUCTOR.chassis),
+								UnitType.CONSTRUCTOR);
 					else
-						constructUnit(turnToAvailableSquare(UnitType.GRIZZLY.chassis),UnitType.GRIZZLY);	
-//					else
-//					if(builder.type() == ComponentType.RECYCLER && fluxRate > 1)
-//						constructUnit(findAvailableSquare(UnitType.HAMMER.chassis),UnitType.HAMMER_TANK);				
-//					if(builder.type() == ComponentType.FACTORY)
-//						constructUnit(findAvailableSquare(UnitType.TANK_KILLER.chassis),UnitType.TANK_KILLER);		
+						constructUnit(
+								turnToAvailableSquare(UnitType.GRIZZLY.chassis),
+								UnitType.GRIZZLY);
 				}
 				updateFluxRate();
 				updateComponents();
@@ -110,8 +106,5 @@ public class BuildingAI extends AI {
 		}
 		return false;
 	}
-
-
-
 
 }
