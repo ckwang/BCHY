@@ -1,6 +1,6 @@
 package team017.AI;
 
-import team017.util.UnitType;
+import team017.construction.UnitType;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentController;
@@ -27,26 +27,16 @@ public class BuildingAI extends AI {
 
 		while (true) {
 			try {
-				if (myRC.getTeamResources() > 100) {
-					if (Clock.getRoundNum() % 3 == 0)
-						constructUnit(
-								turnToAvailableSquare(UnitType.CONSTRUCTOR.chassis),
-								UnitType.CONSTRUCTOR);
-					else
-						constructUnit(
-								turnToAvailableSquare(UnitType.GRIZZLY.chassis),
-								UnitType.GRIZZLY);
+				if(builder != null){
+					if (builder.type() == ComponentType.RECYCLER)
+						recyclerBuild();
+					if (builder.type() == ComponentType.FACTORY)
+						factoryBuild();	
 				}
+				
 				updateFluxRate();
 				updateComponents();
 				myRC.yield();
-
-				// if (!motor.canMove(myRC.getDirection()))
-				// motor.setDirection(myRC.getDirection().rotateRight());
-				// else if (myRC.getTeamResources() >= 2 * Chassis.LIGHT.cost)
-				// builder.build(Chassis.LIGHT,
-				// myRC.getLocation().add(myRC.getDirection()));
-
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
@@ -107,4 +97,48 @@ public class BuildingAI extends AI {
 		return false;
 	}
 
+	private void recyclerBuild() {
+		while (true) {
+			try {
+				if (myRC.getTeamResources() > 200) {
+					if (Clock.getRoundNum() < 1000) {
+						if (Clock.getRoundNum() % 3 == 0)
+							constructUnit(
+									turnToAvailableSquare(UnitType.CONSTRUCTOR.chassis),
+									UnitType.CONSTRUCTOR);
+						else
+							constructUnit(
+									turnToAvailableSquare(UnitType.GRIZZLY.chassis),
+									UnitType.GRIZZLY);
+
+					} else {
+						if (Clock.getRoundNum() % 5 == 0)
+							constructUnit(
+									turnToAvailableSquare(UnitType.CONSTRUCTOR.chassis),
+									UnitType.CONSTRUCTOR);
+						else
+							constructUnit(
+									turnToAvailableSquare(UnitType.GRIZZLY.chassis),
+									UnitType.GRIZZLY);
+					}
+				}
+			} catch (Exception e) {
+
+			}
+
+		}
+	}
+
+	private void factoryBuild() {
+		while (true) {
+			try {
+				if (myRC.getTeamResources() > 120)
+					constructUnit(
+							turnToAvailableSquare(UnitType.TANK_KILLER.chassis),
+							UnitType.TANK_KILLER);
+
+			} catch (Exception e) {
+			}
+		}
+	}
 }

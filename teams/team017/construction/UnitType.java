@@ -1,4 +1,4 @@
-package team017.util;
+package team017.construction;
 
 import battlecode.common.Chassis;
 import battlecode.common.ComponentType;
@@ -16,6 +16,7 @@ public enum UnitType {
 	public final Chassis chassis;
 	public final ComponentType[] coms;
 	public final double totalCost;
+	public boolean shouldBuild;
 	
 	UnitType(Chassis chassis, ComponentType...coms) {
 		this.chassis = chassis;
@@ -25,6 +26,7 @@ public enum UnitType {
 			t += com.cost;
 		}
 		totalCost = t;
+		shouldBuild = false;
 	}
 	
 	

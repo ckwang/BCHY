@@ -3,8 +3,8 @@ package team017.AI;
 import java.util.ArrayList;
 import java.util.List;
 
+import team017.construction.UnitType;
 import team017.navigation.Navigator;
-import team017.util.UnitType;
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.Chassis;
