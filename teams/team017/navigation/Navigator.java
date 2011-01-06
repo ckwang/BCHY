@@ -5,7 +5,9 @@ import java.util.List;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
+import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
 import battlecode.common.SensorController;
@@ -20,10 +22,21 @@ public class Navigator {
 	private List<MapLocation> subDestinations;
 	private MapLocation destination;
 	
+	private SensorController sensor;
+	private MovementController motor;
+	
 	public Navigator(RobotController rc) {
 		myRC = rc;
 		subDestinations = new LinkedList<MapLocation>();
 		destination = null;
+	}
+	
+	public void setSensor(SensorController s) {
+		sensor = s;
+	}
+	
+	public void setMotor(MovementController m) {
+		motor = m;
 	}
 	
 	public void setDestination(MapLocation loc) {
@@ -32,19 +45,19 @@ public class Navigator {
 	
 	public void setDestination (int x, int y){
 		destination = new MapLocation( x, y );
-		//myRC.setIndicatorString(1, destination.toString());
+		myRC.setIndicatorString(1, destination.toString());
 	}
 	
 	public MapLocation getDestination(){
 		return destination;
 	}
 	
-	public Direction getNextDir() throws GameActionException {
-		myRC.setIndicatorString(1, subDestinations.toString());
+	public Direction getNextDir(int tolerance) throws GameActionException {
+		myRC.setIndicatorString(2, subDestinations.toString());
 		if (destination == null)
-			return Direction.NONE;
+			return Direction.OMNI;
 		else if (subDestinations.size() == 0){
-			return tangentBug(myRC.getLocation(), destination);
+			return tangentBug(myRC.getLocation(), destination, tolerance);
 		}
 		else {
 			MapLocation currentDes;
@@ -52,7 +65,7 @@ public class Navigator {
 			if ( currentDes.equals(myRC.getLocation()) ){
 				subDestinations.remove(0);
 				if (subDestinations.size() == 0){
-					return tangentBug(myRC.getLocation(), destination);
+					return tangentBug(myRC.getLocation(), destination, tolerance);
 				}
 				else {
 					currentDes = subDestinations.get(0);
@@ -65,16 +78,17 @@ public class Navigator {
 		}
 	}
 	
-	public Direction tangentBug(MapLocation s, MapLocation t) throws GameActionException {
-		if ( s.equals(t) ) {
+	public Direction tangentBug(MapLocation s, MapLocation t, int tolerance) throws GameActionException {
+		if ( s.distanceSquaredTo(t) <= tolerance ) {
+			destination = null;
 			return Direction.OMNI;
 		}
 		
 		Direction initDir;
 		Direction nextDir;
 		
-		// if target is not walkable
-		while ( !isWalkable(t) ) {
+		// if target is not traversable
+		while ( !isTraversable(t) ) {
 			nextDir = s.directionTo(t);
 			
 			if ( nextDir == Direction.OMNI ) {
@@ -94,13 +108,13 @@ public class Navigator {
 		do {
 			nextDir = currentLoc.directionTo(t);
 			if ( step++ > THRESHOLD || nextDir == Direction.OMNI ){
-				myRC.setIndicatorString(1, subDestinations.toString());
+				//myRC.setIndicatorString(1, subDestinations.toString());
 				if(myRC.senseTerrainTile( currentLoc ) != null)
 					subDestinations.add(0,currentLoc);
 				return initDir;
 			}
 			currentLoc = currentLoc.add(nextDir);
-		} while ( isWalkable(currentLoc) );
+		} while ( isTraversable(currentLoc) );
 		currentLoc = currentLoc.subtract(nextDir);
 		
 		MapLocation traceLoc[] = {currentLoc, currentLoc};
@@ -125,31 +139,31 @@ public class Navigator {
 		if (s.equals(traceLoc[isCW ? 0 : 1]))
 			return myRC.getDirection();
 		else {
-			return tangentBug(s, traceLoc[isCW ? 0 : 1]);
+			return tangentBug(s, traceLoc[isCW ? 0 : 1], tolerance);
 		}
 	}
 	
 	private boolean isOpen(MapLocation sourceLoc, MapLocation destLoc, MapLocation bugLoc) throws GameActionException {
-		return isWalkable( bugLoc.add(sourceLoc.directionTo(bugLoc)) ) && isWalkable( bugLoc.add(bugLoc.directionTo(destLoc)));
+		return isTraversable( bugLoc.add(sourceLoc.directionTo(bugLoc)) ) && isTraversable( bugLoc.add(bugLoc.directionTo(destLoc)));
 	}
 	
 	private MapLocation traceNext(MapLocation currentLoc, Direction faceDir, boolean cw) throws GameActionException {
 		
-		// Put Walkable first so that the second while loop will rotate the direction to walkable position
+		// Put isTraversable first so that the second while loop will rotate the direction to walkable position
 		// Try code reuse in the future
 		if (cw){
-			while ( isWalkable(currentLoc.add(faceDir)) ) {
+			while ( isTraversable(currentLoc.add(faceDir)) ) {
 				faceDir = faceDir.rotateRight();
 			}
-			while ( !isWalkable(currentLoc.add(faceDir)) ) {
+			while ( !isTraversable(currentLoc.add(faceDir)) ) {
 				faceDir = faceDir.rotateLeft();
 			}
 		}
 		else {
-			while ( isWalkable(currentLoc.add(faceDir)) ) {
+			while ( isTraversable(currentLoc.add(faceDir)) ) {
 				faceDir = faceDir.rotateLeft();
 			}
-			while ( !isWalkable(currentLoc.add(faceDir)) ) {
+			while ( !isTraversable(currentLoc.add(faceDir)) ) {
 				faceDir = faceDir.rotateRight();
 			}
 		}
@@ -157,9 +171,13 @@ public class Navigator {
 		return currentLoc.add(faceDir);
 	}
 
-	private boolean isWalkable( MapLocation loc ) throws GameActionException {
+	private boolean isTraversable( MapLocation loc ) throws GameActionException {
 		TerrainTile tile = myRC.senseTerrainTile( loc );
-		return ( (tile == null) || (tile == TerrainTile.LAND) );
-		//&& (!sensor.canSenseSquare(loc) || sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) != null);
+		
+		if (sensor != null && sensor.canSenseSquare(loc)){
+			return ( (tile == null) || (tile == TerrainTile.LAND) ) && (sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) == null);
+		}
+		else
+			return (tile == null) || (tile == TerrainTile.LAND) ;
 	}	
 }
