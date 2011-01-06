@@ -20,6 +20,12 @@ public class BuildingAI extends AI {
 		super(rc);
 	}
 
+	public void yield() throws GameActionException {
+		myRC.yield();
+		updateComponents();
+		updateFluxRate();
+	}
+	
 	public void proceed() {
 
 		if (Clock.getRoundNum() == 0)
@@ -34,9 +40,7 @@ public class BuildingAI extends AI {
 						factoryBuild();	
 				}
 				
-				updateFluxRate();
-				updateComponents();
-				myRC.yield();
+				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();

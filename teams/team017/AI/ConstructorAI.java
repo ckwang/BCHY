@@ -23,7 +23,14 @@ public class ConstructorAI extends AI {
 	public ConstructorAI(RobotController rc) {
 		super(rc);
 	}
-
+	
+	public void yield() throws GameActionException {
+		myRC.yield();
+		updateComponents();
+		updateMineSet();
+		updateFluxRate();
+		sense_border();
+	}
 
 	public void proceed() {
 
@@ -38,18 +45,12 @@ public class ConstructorAI extends AI {
 		while (true) {
 
 			try {
-				updateComponents();
-				
 				if (motor != null) {
 					navigate();
 				}
-				
-				updateMineSet();
 				build();
 				
-				sense_border();
-
-				myRC.yield();
+				yield();
 
 			} catch (Exception e) {
 				System.out.println("caught exception:");
@@ -61,13 +62,11 @@ public class ConstructorAI extends AI {
 	private void init() {
 			try {
 				for (int i = 0; i < 4; ++i){
-					sense_border();
 					// Rotate twice Right for a 90 degrees turn
 					motor.setDirection(myRC.getDirection().rotateRight().rotateRight());
-					updateMineSet();
-					myRC.yield();
-					myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
-					myRC.setIndicatorString(1,myRC.getLocation() + "");
+					yield();
+//					myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+//					myRC.setIndicatorString(1,myRC.getLocation() + "");
 				}
 			} catch (GameActionException e) {
 				System.out.println("caught exception:");
@@ -138,7 +137,7 @@ public class ConstructorAI extends AI {
 			try {
 				
 				navigator.setDestination(locationList[index]);
-				myRC.setIndicatorString(2, myRC.getLocation().toString()+locationList[index].toString());
+//				myRC.setIndicatorString(2, myRC.getLocation().toString()+locationList[index].toString());
 				
 				Direction nextDir = navigator.getNextDir(0);
 				if (nextDir == Direction.OMNI) {
@@ -156,7 +155,7 @@ public class ConstructorAI extends AI {
 					}
 				}
 				
-				myRC.yield();
+				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
@@ -179,7 +178,7 @@ public class ConstructorAI extends AI {
 					else 
 						motor.setDirection(nextDir);
 				}
-				myRC.yield();
+				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
@@ -229,14 +228,6 @@ public class ConstructorAI extends AI {
 		if(myRC.getTeamResources() > 120)
 			constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.FACTORY);
 	}
-//	private void buildRecycler() throws GameActionException{
-//		MapLocation buildLoc = myRC.getLocation().add(myRC.getDirection());
-//		if (sensor.senseObjectAtLocation(buildLoc,RobotLevel.ON_GROUND) == null && myRC.senseTerrainTile(buildLoc) == TerrainTile.LAND) {
-//			builder.build(Chassis.BUILDING, buildLoc);
-//			myRC.yield();
-//			builder.build(ComponentType.RECYCLER, buildLoc, RobotLevel.ON_GROUND);
-//		}
-//	}
 	
 	private void navigate() throws GameActionException{
 		
