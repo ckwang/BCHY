@@ -4,8 +4,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import team017.util.UnitType;
+
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
+import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -13,6 +16,7 @@ import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import battlecode.common.RobotLevel;
 import battlecode.common.TerrainTile;
 import battlecode.common.WeaponController;
 
@@ -31,7 +35,7 @@ public class GroundAI extends AI {
 		//Initial movement
 		if (Clock.getRoundNum() == 0) {
 			init();
-			init_revolve();
+//			init_revolve();
 		} else {
 			myRC.turnOff();
 		}
@@ -65,7 +69,8 @@ public class GroundAI extends AI {
 				}
 				
 				if (isConstructor){
-					//build();
+					updateMineSet();
+					build();
 				}
 
 				evaluateNextState();
@@ -89,7 +94,7 @@ public class GroundAI extends AI {
 					sense_border();
 					// Rotate twice Right for a 90 degrees turn
 					motor.setDirection(myRC.getDirection().rotateRight().rotateRight());
-					updateMineSet(mineLocations);
+					updateMineSet();
 					myRC.yield();
 					myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
 					myRC.setIndicatorString(1,myRC.getLocation() + "");
@@ -190,17 +195,24 @@ public class GroundAI extends AI {
 		}
 	}
 	
-	private void updateMineSet(Set<MapLocation> mineSet) {
-		
+	private void updateMineSet() throws GameActionException {
 		Mine[] minelist = sensor.senseNearbyGameObjects(Mine.class);
 		for (Mine mine : minelist){
-			mineSet.add(mine.getLocation());
+			if(sensor.senseObjectAtLocation(mine.getLocation(), RobotLevel.ON_GROUND) != null){
+				if (mineLocations.contains(mine.getLocation()))
+					mineLocations.remove(mine.getLocation());	
+			} else {
+				mineLocations.add(mine.getLocation());
+			}
+			
 		}
 	}
 	
 	private void evaluateNextState(){
 		if(weapons != null)
 			isSoldier = true;
+		if(builder != null)
+			isConstructor = true;
 	}
 	
 	private boolean attack(){
@@ -240,6 +252,37 @@ public class GroundAI extends AI {
 		}
 		return false;
 	}
+	
+	private void build() throws GameActionException{
+		myRC.setIndicatorString(0, mineLocations.toString());
+		
+		for (MapLocation mineLoc : mineLocations){
+			if(myRC.getLocation().isAdjacentTo(mineLoc)){
+				if(sensor.canSenseSquare(mineLoc)){
+					 if(sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
+						 continue;
+				}
+				if(myRC.getDirection()!=myRC.getLocation().directionTo(mineLoc)){
+					while(motor.isActive())
+						myRC.yield();
+					motor.setDirection(myRC.getLocation().directionTo(mineLoc));
+					myRC.yield();
+				}
+				if(sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) == null){
+					while(!constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.RECYCLER))
+						myRC.yield();					
+				}
+			}	
+		}
+	}
+//	private void buildRecycler() throws GameActionException{
+//		MapLocation buildLoc = myRC.getLocation().add(myRC.getDirection());
+//		if (sensor.senseObjectAtLocation(buildLoc,RobotLevel.ON_GROUND) == null && myRC.senseTerrainTile(buildLoc) == TerrainTile.LAND) {
+//			builder.build(Chassis.BUILDING, buildLoc);
+//			myRC.yield();
+//			builder.build(ComponentType.RECYCLER, buildLoc, RobotLevel.ON_GROUND);
+//		}
+//	}
 	
 	private void navigate(){
 		

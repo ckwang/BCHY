@@ -1,5 +1,6 @@
 package team017.AI;
 
+import team017.util.UnitType;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentController;
@@ -26,12 +27,12 @@ public class BuildingAI extends AI {
 
 		while (true) {
 			try {
-				ComponentType[] grizzlyTank = { ComponentType.BLASTER,
-						ComponentType.BLASTER, ComponentType.PROCESSOR,
-						ComponentType.SIGHT };
-				constructUnit(Chassis.LIGHT, grizzlyTank);
-				myRC.yield();
+				if(myRC.getTeamResources() > 100){
+					constructUnit(findAvailableSquare(UnitType.GRIZZLY.chassis),UnitType.GRIZZLY);				
+				}
+				updateFluxRate();
 				updateComponents();
+				myRC.yield();
 
 				// if (!motor.canMove(myRC.getDirection()))
 				// motor.setDirection(myRC.getDirection().rotateRight());
@@ -99,49 +100,7 @@ public class BuildingAI extends AI {
 		return false;
 	}
 
-	private void constructUnit(Chassis chassis, ComponentType[] components)
-			throws GameActionException {
-		double totalCost = calculateUnitCost(chassis, components);
-		MapLocation buildLoc;
-		updateFluxRate();
-		buildLoc = turnToAvailableSquare(chassis);
 
-		if (myRC.getTeamResources() > totalCost + 10
-				&& fluxRate > chassis.upkeep) {
-			if (buildLoc.equals(turnToAvailableSquare(chassis))) {
-				builder.build(chassis, buildLoc);
-				myRC.yield();
-				for (ComponentType com : components) {
-					builder.build(com, buildLoc, chassis.level);
-					myRC.yield();
-				}
-				myRC.turnOn(buildLoc, chassis.level);
 
-			}
-		}
-	}
 
-	private double calculateUnitCost(Chassis chassis, ComponentType[] components) {
-		double totalCost = chassis.cost;
-		for (ComponentType com : components) {
-			totalCost += com.cost;
-		}
-		return totalCost;
-	}
-
-	private MapLocation turnToAvailableSquare(Chassis chassis)
-			throws GameActionException {
-		Direction buildDir = myRC.getDirection();
-		for (int i = 1; i < 8; ++i) {
-			if (sensor.senseObjectAtLocation(myRC.getLocation().add(buildDir),
-					chassis.level) == null
-					&& myRC.senseTerrainTile(myRC.getLocation().add(buildDir)) == TerrainTile.LAND) {
-				if (myRC.getDirection() != buildDir)
-					motor.setDirection(buildDir);
-				break;
-			}
-			buildDir = buildDir.rotateLeft();
-		}
-		return myRC.getLocation().add(buildDir);
-	}
 }
