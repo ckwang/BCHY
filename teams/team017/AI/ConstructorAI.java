@@ -5,7 +5,7 @@ import java.util.Set;
 
 import team017.message.BorderMessage;
 import team017.message.MessageHandler;
-import team017.util.UnitType;
+import team017.construction.UnitType;
 
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -277,7 +277,10 @@ public class ConstructorAI extends AI {
 			// System.out.println("about to move");
 			motor.moveForward();
 		} else {
-			motor.setDirection(myRC.getDirection().rotateRight());
+			if((Clock.getRoundNum()/10) % 2 == 0)
+				motor.setDirection(myRC.getDirection().rotateRight());
+			else
+				motor.setDirection(myRC.getDirection().rotateLeft());
 		}
 	}
 }

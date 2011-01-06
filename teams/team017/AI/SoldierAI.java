@@ -3,19 +3,14 @@ package team017.AI;
 import java.util.ArrayList;
 import java.util.List;
 
-import team017.message.BorderMessage;
-import team017.message.MessageHandler;
-import team017.util.UnitType;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
-import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
-import battlecode.common.RobotLevel;
 import battlecode.common.Team;
 import battlecode.common.TerrainTile;
 import battlecode.common.WeaponController;
@@ -25,9 +20,9 @@ public class SoldierAI extends AI {
 	public SoldierAI(RobotController rc) {
 		super(rc);
 	}
-	
+
 	public void proceed() {
-		
+
 		while (true) {
 			// MessageHandler encoder = new BorderMessage(myRC, comm,
 			// Direction.NORTH);
@@ -40,12 +35,12 @@ public class SoldierAI extends AI {
 
 			try {
 				updateComponents();
-				
+
 				/*** beginning of main loop ***/
 				if (motor != null) {
 					navigate();
 				}
-				
+
 				attack();
 
 				sense_border();
@@ -60,25 +55,25 @@ public class SoldierAI extends AI {
 		}
 	}
 
-	private void sense_border(){
+	private void sense_border() {
 		try {
-			
+
 			Direction[] addDirs = new Direction[3];
-			
+
 			if (myRC.getDirection().isDiagonal()) {
 				addDirs[0] = myRC.getDirection().rotateLeft();
 				addDirs[1] = myRC.getDirection().rotateRight();
 			} else {
 				addDirs[0] = myRC.getDirection();
 			}
-			
+
 			int j = -1;
 			while (addDirs[++j] != null) {
 				MapLocation currentLoc = myRC.getLocation();
 
 				int i;
 				for (i = 3; i > 0; i--) {
-					if (myRC.senseTerrainTile(currentLoc.add(addDirs[j],i)) != TerrainTile.OFF_MAP)
+					if (myRC.senseTerrainTile(currentLoc.add(addDirs[j], i)) != TerrainTile.OFF_MAP)
 						break;
 				}
 
@@ -104,10 +99,10 @@ public class SoldierAI extends AI {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
-		
+
 	}
-	
-	private boolean attack(){
+
+	private boolean attack() {
 		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
 		List<MapLocation> enemylocs = new ArrayList<MapLocation>(robots.length);
 		List<MapLocation> allylocs = new ArrayList<MapLocation>(robots.length);
@@ -124,14 +119,14 @@ public class SoldierAI extends AI {
 					e.printStackTrace();
 					continue;
 				}
-				
-			} 
-			else if (r.getTeam() != Team.NEUTRAL) {
+
+			} else if (r.getTeam() != Team.NEUTRAL) {
 				try {
 					RobotInfo info = sensor.senseRobotInfo(r);
 					MapLocation loc = sensor.senseLocationOf(r);
 					enemylocs.add(loc);
-					if (!info.on) continue;
+					if (!info.on)
+						continue;
 					if (info.hitpoints < leasthp1) {
 						leasthp2 = leasthp1;
 						index2 = index1;
@@ -151,8 +146,9 @@ public class SoldierAI extends AI {
 		boolean canfire = false, attacked = false;
 		if (enemylocs.size() == 0)
 			return false;
-		for (WeaponController w: weapons) {
-			if (w.isActive()) continue;
+		for (WeaponController w : weapons) {
+			if (w.isActive())
+				continue;
 			try {
 				MapLocation weakest = sensor.senseLocationOf(robots[index1]);
 				w.attackSquare(weakest, robots[index1].getRobotLevel());
@@ -163,10 +159,12 @@ public class SoldierAI extends AI {
 			}
 		}
 		if (enemylocs.size() > 1 && canfire) {
-			for (WeaponController w: weapons) {
-				if (w.isActive()) continue;
+			for (WeaponController w : weapons) {
+				if (w.isActive())
+					continue;
 				try {
-					MapLocation weakest = sensor.senseLocationOf(robots[index2]);
+					MapLocation weakest = sensor
+							.senseLocationOf(robots[index2]);
 					w.attackSquare(weakest, robots[index2].getRobotLevel());
 					attacked = true;
 				} catch (GameActionException e) {
@@ -176,22 +174,25 @@ public class SoldierAI extends AI {
 		}
 		return attacked;
 	}
-	
-	private void navigate() throws GameActionException{
-		
+
+	private void navigate() throws GameActionException {
+
 		if (!motor.isActive()) {
 			roachNavigate();
 		}
-			
+
 	}
-	
+
 	private void roachNavigate() throws GameActionException {
 		// navigate();
 		if (motor.canMove(myRC.getDirection())) {
 			// System.out.println("about to move");
 			motor.moveForward();
 		} else {
-			motor.setDirection(myRC.getDirection().rotateRight());
+			if ((Clock.getRoundNum() / 10) % 2 == 0)
+				motor.setDirection(myRC.getDirection().rotateRight());
+			else
+				motor.setDirection(myRC.getDirection().rotateLeft());
 		}
 	}
 
