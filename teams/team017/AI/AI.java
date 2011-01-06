@@ -113,6 +113,24 @@ public abstract class AI {
 			return false;
 		}
 	}
+	
+	protected boolean constructComponent(MapLocation buildLoc, Chassis chassis, ComponentType[] coms){
+		try{
+			updateFluxRate();
+			for (ComponentType com : coms) {
+				while(myRC.getTeamResources() < com.cost * 1.1)
+					myRC.yield();
+				while(builder.isActive())
+					myRC.yield();
+				builder.build(com, buildLoc, chassis.level);
+			}
+			return true;
+		}catch (Exception e){
+			return false;
+		}
+	}
+	
+	
 
 	protected boolean canConstruct(RobotLevel level) throws GameActionException {
 		if (sensor.senseObjectAtLocation(
@@ -123,16 +141,19 @@ public abstract class AI {
 		return false;
 	}
 
-	protected MapLocation findAvailableSquare(Chassis chassis)
+	protected MapLocation turnToAvailableSquare(Chassis chassis)
 			throws GameActionException {
 		Direction buildDir = myRC.getDirection();
 		for (int i = 1; i < 8; ++i) {
 			if (sensor.senseObjectAtLocation(myRC.getLocation().add(buildDir),
 					chassis.level) == null
 					&& myRC.senseTerrainTile(myRC.getLocation().add(buildDir)) == TerrainTile.LAND) {
-				if (myRC.getDirection() != buildDir)
+				if (myRC.getDirection() != buildDir){
+					while(motor.isActive())
+						myRC.yield();
 					motor.setDirection(buildDir);
-				break;
+				}
+					break;
 			}
 			buildDir = buildDir.rotateLeft();
 		}
