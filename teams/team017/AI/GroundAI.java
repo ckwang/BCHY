@@ -1,20 +1,24 @@
 package team017.AI;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
 
-import team017.message.BorderMessage;
-import team017.message.MessageHandler;
-import team017.message.MessageType;
+import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Mine;
+import battlecode.common.Robot;
 import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
 import battlecode.common.TerrainTile;
+import battlecode.common.WeaponController;
 
 public class GroundAI extends AI {
 
+	Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private boolean isSoldier;
 	private boolean isConstructor;
 	
@@ -25,11 +29,14 @@ public class GroundAI extends AI {
 	public void proceed() {
 
 		//Initial movement
-		if (Clock.getRoundNum() == 0)
+		if (Clock.getRoundNum() == 0) {
 			init();
-
+			init_revolve();
+		} else {
+			myRC.turnOff();
+		}
+		
 		while (true) {
-
 			// MessageHandler encoder = new BorderMessage(myRC, comm,
 			// Direction.NORTH);
 			// encoder.send();
@@ -40,7 +47,8 @@ public class GroundAI extends AI {
 			// ((BorderMessage) decoder).getBorderDirection();
 
 			try {
-
+				updateComponents();
+				
 				/*** beginning of main loop ***/
 				if (!motor.isActive()) {
 					// navigate();
@@ -53,7 +61,7 @@ public class GroundAI extends AI {
 				}
 				
 				if (isSoldier){
-					//attack();
+					attack();
 				}
 				
 				if (isConstructor){
@@ -61,6 +69,10 @@ public class GroundAI extends AI {
 				}
 
 				evaluateNextState();
+				sense_border();
+				myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+				myRC.setIndicatorString(1,myRC.getLocation() + "");
+
 				myRC.yield();
 
 				/*** end of main loop ***/
@@ -72,133 +84,164 @@ public class GroundAI extends AI {
 	}
 
 	private void init() {
-	HashSet<MapLocation> minelocations = new HashSet<MapLocation>();
-	int borderx = -1, bordery = -1;
-	int bordirx = 0, bordiry = 0;
-	int[] temp_border = new int[4];
-	for (int trytimes = 0; trytimes < 4; ++trytimes){
-		temp_border = init_rotation(borderx,bordery,bordirx,bordiry);
-		borderx = temp_border[0];
-		bordery = temp_border[1];
-		bordirx = temp_border[2];
-		bordiry = temp_border[3];
-		minelocations.addAll(sense_mine());
-//		myRC.setIndicatorString(1, "(" + borderx + "," + bordery + ")");
-//		myRC.setIndicatorString(0, myRC.getLocation() + "");
-//		myRC.setIndicatorString(2,minelocations.toString() + "");
-		myRC.yield();
-		}
+			try {
+				for (int i = 0; i < 4; ++i){
+					sense_border();
+					// Rotate twice Right for a 90 degrees turn
+					motor.setDirection(myRC.getDirection().rotateRight().rotateRight());
+					updateMineSet(mineLocations);
+					myRC.yield();
+					myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+					myRC.setIndicatorString(1,myRC.getLocation() + "");
+				}
+			} catch (GameActionException e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
+			}
+		
 
 	}
 
-	private int[] init_rotation(int borderx, int bordery, int bordirx, int bordiry) {
-	// Initial Rotation
-	// Turn around and search for borders
-		int [] temp = new int[4];
+	private void sense_border(){
 		try {
-			MapLocation[] temploclist = new MapLocation[4];
-			TerrainTile tempterrain = TerrainTile.LAND;
-			// bordir : 1 if up/right border, -1 if down/left border
-//			int borderx = -1, bordery = -1;
-//			int bordirx, bordiry;
-			int i = 4;
+			
+			Direction[] addDirs = new Direction[3];
+			
 			if (myRC.getDirection().isDiagonal()) {
-				// Sense whether the farthest sensible place is OFF_MAP
-				temploclist[0] = myRC.getLocation();
-				for (int j = 1; j < 4; ++j) {
-					temploclist[j] = temploclist[j - 1].add(myRC
-							.getDirection().rotateLeft());
-				}
-				tempterrain = TerrainTile.LAND;
-
-				do {
-					i = i - 1;
-					tempterrain = myRC.senseTerrainTile(temploclist[i]);
-				} while (i > 0 && tempterrain == TerrainTile.OFF_MAP);
-
-				// i = 3 means no OFF_MAP sensed
-				if (i != 3) {
-					switch (myRC.getDirection().rotateLeft()) {
-					case NORTH:
-					case SOUTH:
-						bordiry = myRC.getDirection().rotateLeft().dy;
-						bordery = myRC.getLocation().y + bordiry * (i + 1);
-						break;
-
-					case WEST:
-					case EAST:
-						bordirx = myRC.getDirection().rotateLeft().dx;
-						borderx = myRC.getLocation().x + bordirx * (i + 1);
-						break;
-					}
-				}
-				motor.setDirection(myRC.getDirection().rotateRight());
-			}
-
-			else {
-				// Sense whether the farthest sensible place is OFF_MAP
-				temploclist[0] = myRC.getLocation();
-				for (int j = 1; j < 4; ++j) {
-					temploclist[j] = temploclist[j - 1].add(myRC
-							.getDirection());
-				}
-				tempterrain = TerrainTile.LAND;
-
-				do {
-					i = i - 1;
-					tempterrain = myRC.senseTerrainTile(temploclist[i]);
-				} while (i > 0 && tempterrain == TerrainTile.OFF_MAP);
-
-				// i = 3 means no OFF_MAP sensed
-				if (i != 3) {
-					switch (myRC.getDirection()) {
-					case NORTH:
-					case SOUTH:
-						bordiry = myRC.getDirection().dy;
-						bordery = myRC.getLocation().y + bordiry * (i + 1);
-						break;
-
-					case EAST:
-					case WEST:
-						bordirx = myRC.getDirection().dx;
-						borderx = myRC.getLocation().x + bordirx * (i + 1);
-						break;
-					}
-				}
-				motor.setDirection(myRC.getDirection().rotateRight()
-						.rotateRight());
-				// Rotate twice Right for a 90 degrees turn
-				temp[0] = borderx;
-				temp[1] = bordery;
-				temp[2] = bordirx;
-				temp[3] = bordiry;
+				addDirs[0] = myRC.getDirection().rotateLeft();
+				addDirs[1] = myRC.getDirection().rotateRight();
+			} else {
+				addDirs[0] = myRC.getDirection();
 			}
 			
-			} catch (Exception e) {
+			int j = -1;
+			while (addDirs[++j] != null) {
+				MapLocation currentLoc = myRC.getLocation();
+
+				int i;
+				for (i = 3; i > 0; i--) {
+					if (myRC.senseTerrainTile(currentLoc.add(addDirs[j],i)) != TerrainTile.OFF_MAP)
+						break;
+				}
+
+				// i == 3 means no OFF_MAP sensed
+				if (i != 3) {
+					switch (addDirs[j]) {
+					case NORTH:
+						borders[0] = currentLoc.y - (i + 1);
+						break;
+					case EAST:
+						borders[1] = currentLoc.x + (i + 1);
+						break;
+					case SOUTH:
+						borders[2] = currentLoc.y + (i + 1);
+						break;
+					case WEST:
+						borders[3] = currentLoc.x - (i + 1);
+						break;
+					}
+				}
+			}
+		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
-		return temp;
+		
 	}
-	private HashSet<MapLocation> sense_mine(){
-		HashSet<MapLocation> tempminelocations = new HashSet<MapLocation>();
-		Mine[] minelist = sensor.senseNearbyGameObjects(Mine.class);
-		for (int i = 0; i < minelist.length; ++i){
-			tempminelocations.add(minelist[i].getLocation());
+	
+	
+	private void init_revolve() {
+		
+		MapLocation[] locationList = {
+				homeLocation.add(Direction.NORTH_EAST, 2),
+				homeLocation.add(Direction.SOUTH_EAST, 2),
+				homeLocation.add(Direction.SOUTH_WEST, 2),
+				homeLocation.add(Direction.NORTH_WEST, 2)};
+		int index = 0;
+		
+		while (true) {
+			try {
+				
+				navigator.setDestination(locationList[index]);
+				myRC.setIndicatorString(2, myRC.getLocation().toString()+locationList[index].toString());
+				
+				Direction nextDir = navigator.getNextDir(0);
+				if (nextDir == Direction.OMNI) {
+					index++;
+					if (index == 4)	return;
+				
+					continue;
+				}
+				
+				if (!motor.isActive() && motor.canMove(nextDir) ) {
+					if ( myRC.getDirection() == nextDir ) {
+						// System.out.println("about to move");
+						motor.moveForward();
+					} else {
+						motor.setDirection(myRC.getDirection().rotateRight());
+					}
+				}
+				
+				myRC.yield();
+			} catch (Exception e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
+			}
 		}
-		return tempminelocations;
+	}
+	
+	private void updateMineSet(Set<MapLocation> mineSet) {
+		
+		Mine[] minelist = sensor.senseNearbyGameObjects(Mine.class);
+		for (Mine mine : minelist){
+			mineSet.add(mine.getLocation());
+		}
 	}
 	
 	private void evaluateNextState(){
-		
+		if(weapons != null)
+			isSoldier = true;
 	}
 	
-	private void attack(){
-		
+	private boolean attack(){
+		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
+		LinkedList<Robot> robotlist = new LinkedList<Robot>();
+		RobotInfo info;
+		double remainhp = Chassis.HEAVY.maxHp;
+		for (Robot r: robots) {
+			if (r.getTeam() == myRC.getTeam())
+				continue;
+			try {
+				info = sensor.senseRobotInfo(r);
+				if (!info.on)
+					continue;
+				if (info.maxHp - info.hitpoints < remainhp) {
+					remainhp = info.maxHp - info.hitpoints;
+					robotlist.addFirst(r);
+				} else {
+					robotlist.addLast(r);
+				}
+			} catch (GameActionException e) {
+				System.out.println("cannot sense nearby in attack");
+				e.printStackTrace();
+			}
+		}
+		if (robotlist.size() == 0)
+			return false;
+		MapLocation enemyloc;
+		for (Robot r: robotlist) {
+			try {
+				enemyloc = sensor.senseLocationOf(r);
+				for (WeaponController weapon : weapons){
+					weapon.attackSquare(enemyloc, r.getRobotLevel());
+				}
+				return true;
+			} catch (GameActionException e) {continue;}		
+		}
+		return false;
 	}
 	
-	private void naviagate(){
+	private void navigate(){
 		
 	}
 }
-

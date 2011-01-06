@@ -24,16 +24,17 @@ public class BuildingAI extends AI {
 			init();
 		
 		while (true) {
-
 			try {
+				ComponentType[] grizzlyTank = {ComponentType.BLASTER,ComponentType.BLASTER,ComponentType.PROCESSOR,ComponentType.SIGHT};
+				constructUnit(Chassis.LIGHT, grizzlyTank);
 				myRC.yield();
 				updateComponents();
 
-				if (!motor.canMove(myRC.getDirection()))
-					motor.setDirection(myRC.getDirection().rotateRight());
-				else if (myRC.getTeamResources() >= 2 * Chassis.LIGHT.cost)
-					builder.build(Chassis.LIGHT,
-							myRC.getLocation().add(myRC.getDirection()));
+//				if (!motor.canMove(myRC.getDirection()))
+//					motor.setDirection(myRC.getDirection().rotateRight());
+//				else if (myRC.getTeamResources() >= 2 * Chassis.LIGHT.cost)
+//					builder.build(Chassis.LIGHT,
+//							myRC.getLocation().add(myRC.getDirection()));
 
 			} catch (Exception e) {
 				System.out.println("caught exception:");
@@ -77,7 +78,6 @@ public class BuildingAI extends AI {
 					return info;
 			}
 		}
-		
 		return null;
 	}
 	
@@ -87,5 +87,39 @@ public class BuildingAI extends AI {
 		}
 		return false;
 	}
-
+	
+	private void constructUnit(Chassis chassis, ComponentType [] components) throws GameActionException{
+		double totalCost = calculateUnitCost(chassis, components);
+		MapLocation buildLoc;
+		Direction buildDir = myRC.getDirection();
+		updateFluxRate();
+		
+		for(int i = 1; i < 8; ++i){
+			if(sensor.senseObjectAtLocation(myRC.getLocation().add(buildDir), chassis.level) == null){
+				motor.setDirection(buildDir);
+				myRC.yield();
+				break;
+			}
+			buildDir = buildDir.rotateLeft();
+		}
+		buildLoc = myRC.getLocation().add(buildDir);
+		
+		if(myRC.getTeamResources() > totalCost + 10 && fluxRate > chassis.upkeep){
+			
+			builder.build(chassis, buildLoc);
+			myRC.yield();
+			for (ComponentType com : components){
+				builder.build(com, buildLoc, chassis.level);
+				myRC.yield();
+			}
+			myRC.turnOn(buildLoc, chassis.level);
+		}
+	}
+	private double calculateUnitCost(Chassis chassis, ComponentType [] components){
+		double totalCost = chassis.cost;
+		for (ComponentType com : components){
+			totalCost+= com.cost; 
+		}
+		return totalCost;
+}
 }
