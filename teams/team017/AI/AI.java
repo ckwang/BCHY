@@ -23,6 +23,9 @@ public abstract class AI {
 	// {NORTH, EAST, SOUTH, WEST}
 	protected int [] borders = {-1, -1, -1, -1};
 	protected MapLocation homeLocation;
+	protected double fluxRate;
+	protected double [] fluxRecord = new double[10];
+	
 	
 	public AI(RobotController rc) {
 		myRC = rc;
@@ -53,4 +56,14 @@ public abstract class AI {
 			}
 		}
 	}
+	
+	protected void updateFluxRate(){
+		for (int i = 9; i > 0; --i){
+			fluxRecord[i] = fluxRecord[i - 1];
+		}
+		fluxRecord[0] = myRC.getTeamResources();
+		fluxRate = fluxRecord[0] - fluxRecord[1];
+	}
+	
+	
 }

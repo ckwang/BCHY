@@ -1,17 +1,18 @@
 package team017.AI;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
-import team017.message.BorderMessage;
-import team017.message.MessageHandler;
-import team017.message.MessageType;
+import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Mine;
+import battlecode.common.Robot;
 import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
 import battlecode.common.TerrainTile;
 
 public class GroundAI extends AI {
@@ -30,10 +31,11 @@ public class GroundAI extends AI {
 		if (Clock.getRoundNum() == 0) {
 			init();
 			init_revolve();
+		} else {
+			myRC.turnOff();
 		}
-
+		
 		while (true) {
-			
 			// MessageHandler encoder = new BorderMessage(myRC, comm,
 			// Direction.NORTH);
 			// encoder.send();
@@ -65,6 +67,10 @@ public class GroundAI extends AI {
 				}
 
 				evaluateNextState();
+				sense_border();
+				myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+				myRC.setIndicatorString(1,myRC.getLocation() + "");
+
 				myRC.yield();
 
 				/*** end of main loop ***/
@@ -96,76 +102,29 @@ public class GroundAI extends AI {
 
 	private void sense_border(){
 		try {
-			int i = 4;
+			
+			Direction[] addDirs = new Direction[3];
 			
 			if (myRC.getDirection().isDiagonal()) {
-				// Sense whether the farthest sensible place is OFF_MAP
-				Direction addDir = myRC.getDirection().rotateLeft();
-				MapLocation currentLoc = myRC.getLocation();
-
-				for (i = 3; i > 0; i--) {
-					if (myRC.senseTerrainTile(currentLoc.add(addDir,i)) != TerrainTile.OFF_MAP)
-						break;
-				}
-
-				// i == 3 means no OFF_MAP sensed
-				if (i != 3) {
-					switch (addDir) {
-					case NORTH:
-						borders[0] = currentLoc.y - (i + 1);
-						break;
-					case EAST:
-						borders[1] = currentLoc.x + (i + 1);
-						break;
-					case SOUTH:
-						borders[2] = currentLoc.y + (i + 1);
-						break;
-					case WEST:
-						borders[3] = currentLoc.x - (i + 1);
-						break;
-					}
-				}
-				
-				addDir = myRC.getDirection().rotateRight();
-				
-				for (i = 3; i > 0; i--) {
-					if (myRC.senseTerrainTile(currentLoc.add(addDir,i)) != TerrainTile.OFF_MAP)
-						break;
-				}
-
-				// i = 3 means no OFF_MAP sensed
-				if (i != 3) {
-					switch (addDir) {
-					case NORTH:
-						borders[0] = currentLoc.y - (i + 1);
-						break;
-					case EAST:
-						borders[1] = currentLoc.x + (i + 1);
-						break;
-					case SOUTH:
-						borders[2] = currentLoc.y + (i + 1);
-						break;
-					case WEST:
-						borders[3] = currentLoc.x - (i + 1);
-						break;
-					}
-				}
-
+				addDirs[0] = myRC.getDirection().rotateLeft();
+				addDirs[1] = myRC.getDirection().rotateRight();
+			} else {
+				addDirs[0] = myRC.getDirection();
 			}
-			else {
-				
-				// Sense whether the farthest sensible place is OFF_MAP
-				Direction addDir = myRC.getDirection();
+			
+			int j = -1;
+			while (addDirs[++j] != null) {
 				MapLocation currentLoc = myRC.getLocation();
 
+				int i;
 				for (i = 3; i > 0; i--) {
-					if (myRC.senseTerrainTile(currentLoc.add(addDir,i)) != TerrainTile.OFF_MAP)
+					if (myRC.senseTerrainTile(currentLoc.add(addDirs[j],i)) != TerrainTile.OFF_MAP)
 						break;
 				}
 
 				// i == 3 means no OFF_MAP sensed
 				if (i != 3) {
-					switch (addDir) {
+					switch (addDirs[j]) {
 					case NORTH:
 						borders[0] = currentLoc.y - (i + 1);
 						break;
@@ -241,11 +200,43 @@ public class GroundAI extends AI {
 		
 	}
 	
-	private void attack(){
-		
+	private boolean attack(){
+		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
+		LinkedList<Robot> robotlist = new LinkedList<Robot>();
+		RobotInfo info;
+		double remainhp = Chassis.HEAVY.maxHp;
+		for (Robot r: robots) {
+			if (r.getTeam() == myRC.getTeam())
+				continue;
+			try {
+				info = sensor.senseRobotInfo(r);
+				if (!info.on)
+					continue;
+				if (info.maxHp - info.hitpoints < remainhp) {
+					remainhp = info.maxHp - info.hitpoints;
+					robotlist.addFirst(r);
+				} else {
+					robotlist.addLast(r);
+				}
+			} catch (GameActionException e) {
+				System.out.println("cannot sense nearby in attack");
+				e.printStackTrace();
+			}
+		}
+		if (robotlist.size() == 0)
+			return false;
+		MapLocation enemyloc;
+		for (Robot r: robotlist) {
+			try {
+				enemyloc = sensor.senseLocationOf(r);
+				weapon.attackSquare(enemyloc, r.getRobotLevel());
+				return true;
+			} catch (GameActionException e) {continue;}		
+		}
+		return false;
 	}
 	
-	private void naviagate(){
+	private void navigate(){
 		
 	}
 }
