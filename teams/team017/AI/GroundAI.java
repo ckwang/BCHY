@@ -14,6 +14,7 @@ import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.TerrainTile;
+import battlecode.common.WeaponController;
 
 public class GroundAI extends AI {
 
@@ -46,7 +47,8 @@ public class GroundAI extends AI {
 			// ((BorderMessage) decoder).getBorderDirection();
 
 			try {
-
+				updateComponents();
+				
 				/*** beginning of main loop ***/
 				if (!motor.isActive()) {
 					// navigate();
@@ -59,7 +61,7 @@ public class GroundAI extends AI {
 				}
 				
 				if (isSoldier){
-					//attack();
+					attack();
 				}
 				
 				if (isConstructor){
@@ -197,7 +199,8 @@ public class GroundAI extends AI {
 	}
 	
 	private void evaluateNextState(){
-		
+		if(weapons != null)
+			isSoldier = true;
 	}
 	
 	private boolean attack(){
@@ -229,7 +232,9 @@ public class GroundAI extends AI {
 		for (Robot r: robotlist) {
 			try {
 				enemyloc = sensor.senseLocationOf(r);
-				weapon.attackSquare(enemyloc, r.getRobotLevel());
+				for (WeaponController weapon : weapons){
+					weapon.attackSquare(enemyloc, r.getRobotLevel());
+				}
 				return true;
 			} catch (GameActionException e) {continue;}		
 		}
