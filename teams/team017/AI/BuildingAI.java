@@ -60,7 +60,7 @@ public class BuildingAI extends AI {
 				builder.build(ComponentType.ANTENNA, info.location,
 						RobotLevel.ON_GROUND);
 			}
-			myRC.yield();
+			yield();
 
 			info = senseAdjacentChassis(Chassis.BUILDING);
 			if (info != null
@@ -104,7 +104,7 @@ public class BuildingAI extends AI {
 	private void recyclerBuild() {
 		while (true) {
 			try {
-				if (myRC.getTeamResources() > 200) {
+				if (fluxRate > 0 && myRC.getTeamResources() > 100) {
 					if (Clock.getRoundNum() < 1000) {
 						if (Clock.getRoundNum() % 3 == 0)
 							buildingSystem.randomConstructUnit(UnitType.CONSTRUCTOR);
@@ -118,7 +118,10 @@ public class BuildingAI extends AI {
 							buildingSystem.randomConstructUnit(UnitType.GRIZZLY);
 					}
 				}
+			yield();
 			} catch (Exception e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
 
 			}
 
@@ -128,7 +131,7 @@ public class BuildingAI extends AI {
 	private void factoryBuild() {
 		while (true) {
 			try {
-				if (myRC.getTeamResources() > 120)
+				if (fluxRate > 0 && myRC.getTeamResources() > 120)
 					buildingSystem.randomConstructUnit(UnitType.TANK_KILLER);
 			} catch (Exception e) {
 			}

@@ -39,6 +39,12 @@ public class ConstructorAI extends AI {
 		if (Clock.getRoundNum() == 0) {
 			init();
 			init_revolve();
+			try {
+				yield();
+			} catch (GameActionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 //			updateComponents();
 //			init_return();
 		}
@@ -50,7 +56,6 @@ public class ConstructorAI extends AI {
 					navigate();
 				}
 				build();
-				
 				yield();
 
 			} catch (Exception e) {
@@ -223,8 +228,8 @@ public class ConstructorAI extends AI {
 				}
 			}	
 		}
-		if(myRC.getTeamResources() > 120)
-			buildingSystem.constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.FACTORY);
+//		if(fluxRate > 0  && myRC.getTeamResources() > 120)
+//			buildingSystem.constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.FACTORY);
 	}
 	
 	private void navigate() throws GameActionException{
