@@ -47,6 +47,8 @@ public abstract class AI {
 	}
 
 	abstract public void proceed();
+	
+	abstract public void yield() throws GameActionException;
 
 	protected void updateComponents() {
 		ComponentController[] components = myRC.newComponents();

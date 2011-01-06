@@ -21,6 +21,10 @@ public class SoldierAI extends AI {
 		super(rc);
 	}
 
+	public void yield() throws GameActionException {
+		
+	}
+	
 	public void proceed() {
 
 		while (true) {
