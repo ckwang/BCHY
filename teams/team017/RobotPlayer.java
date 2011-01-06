@@ -18,7 +18,12 @@ public class RobotPlayer implements Runnable {
 		
 		switch (myRC.getChassis()){
 			case BUILDING:
-				new BuildingAI(myRC).proceed();
+				if (containsComponent(ComponentType.RECYCLER)) {
+					new RecyclerAI(myRC).proceed();
+				} else {
+					new FactoryAI(myRC).proceed();
+				}
+				
 				break;
 			
 			case FLYING:
@@ -28,7 +33,7 @@ public class RobotPlayer implements Runnable {
 			case LIGHT:
 			case MEDIUM:
 			case HEAVY:
-				if (isConstructor()) {
+				if (containsComponent(ComponentType.CONSTRUCTOR)) {
 					new ConstructorAI(myRC).proceed();
 				} else {
 					new SoldierAI(myRC).proceed();
@@ -37,9 +42,9 @@ public class RobotPlayer implements Runnable {
 		}
 	}
 	
-	private boolean isConstructor() {
+	private boolean containsComponent(ComponentType type) {
 		for ( ComponentController com : myRC.components() ) {
-			if (com.type() == ComponentType.CONSTRUCTOR ) {
+			if (com.type() == type ) {
 				return true;
 			}
 		}
