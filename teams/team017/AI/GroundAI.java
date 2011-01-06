@@ -1,8 +1,12 @@
 package team017.AI;
 
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+
+import team017.message.BorderMessage;
+import team017.message.MessageHandler;
 
 import team017.util.UnitType;
 
@@ -17,6 +21,7 @@ import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
+import battlecode.common.Team;
 import battlecode.common.TerrainTile;
 import battlecode.common.WeaponController;
 
@@ -36,6 +41,7 @@ public class GroundAI extends AI {
 		if (Clock.getRoundNum() == 0) {
 			init();
 //			init_revolve();
+//			init_return();
 		} else {
 			myRC.turnOff();
 		}
@@ -180,10 +186,9 @@ public class GroundAI extends AI {
 				
 				if (!motor.isActive() && motor.canMove(nextDir) ) {
 					if ( myRC.getDirection() == nextDir ) {
-						// System.out.println("about to move");
 						motor.moveForward();
 					} else {
-						motor.setDirection(myRC.getDirection().rotateRight());
+						motor.setDirection(nextDir);
 					}
 				}
 				
@@ -193,6 +198,34 @@ public class GroundAI extends AI {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private void init_return() {
+		navigator.setDestination(homeLocation);
+		
+		while (true) {
+			try {
+				Direction nextDir = navigator.getNextDir(0);
+				
+				if (nextDir == Direction.OMNI)	break;
+				
+				if (!motor.isActive() && motor.canMove(nextDir)) {
+					if ( myRC.getDirection() == nextDir ) 
+						motor.moveForward();
+					else 
+						motor.setDirection(nextDir);
+				}
+				myRC.yield();
+			} catch (Exception e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
+			}
+		}
+		
+		MessageHandler msgHandler = new BorderMessage(myRC, comm, borders);
+		msgHandler.send();
+		myRC.yield();
+		
 	}
 	
 	private void updateMineSet() throws GameActionException {
@@ -209,7 +242,7 @@ public class GroundAI extends AI {
 	}
 	
 	private void evaluateNextState(){
-		if(weapons != null)
+		if (weapons != null)
 			isSoldier = true;
 		if(builder != null)
 			isConstructor = true;
@@ -217,40 +250,72 @@ public class GroundAI extends AI {
 	
 	private boolean attack(){
 		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
-		LinkedList<Robot> robotlist = new LinkedList<Robot>();
-		RobotInfo info;
-		double remainhp = Chassis.HEAVY.maxHp;
-		for (Robot r: robots) {
-			if (r.getTeam() == myRC.getTeam())
-				continue;
-			try {
-				info = sensor.senseRobotInfo(r);
-				if (!info.on)
+		List<MapLocation> enemylocs = new ArrayList<MapLocation>(robots.length);
+		List<MapLocation> allylocs = new ArrayList<MapLocation>(robots.length);
+		double leasthp1 = Chassis.HEAVY.maxHp, leasthp2 = Chassis.HEAVY.maxHp;
+		int index1 = 0, index2 = 0;
+		for (int i = 0; i < robots.length; ++i) {
+			Robot r = robots[i];
+			if (r.getTeam() == myRC.getTeam()) {
+				MapLocation loc;
+				try {
+					loc = sensor.senseLocationOf(r);
+					allylocs.add(loc);
+				} catch (GameActionException e) {
+					e.printStackTrace();
 					continue;
-				if (info.maxHp - info.hitpoints < remainhp) {
-					remainhp = info.maxHp - info.hitpoints;
-					robotlist.addFirst(r);
-				} else {
-					robotlist.addLast(r);
 				}
-			} catch (GameActionException e) {
-				System.out.println("cannot sense nearby in attack");
-				e.printStackTrace();
+				
+			} 
+			else if (r.getTeam() != Team.NEUTRAL) {
+				try {
+					RobotInfo info = sensor.senseRobotInfo(r);
+					MapLocation loc = sensor.senseLocationOf(r);
+					enemylocs.add(loc);
+					if (!info.on) continue;
+					if (info.hitpoints < leasthp1) {
+						leasthp2 = leasthp1;
+						index2 = index1;
+						index1 = i;
+						leasthp1 = info.hitpoints;
+					}
+					if (info.hitpoints < leasthp2) {
+						index2 = i;
+						leasthp2 = info.hitpoints;
+					}
+				} catch (GameActionException e) {
+					e.printStackTrace();
+					continue;
+				}
 			}
 		}
-		if (robotlist.size() == 0)
+		boolean canfire = false, attacked = false;
+		if (enemylocs.size() == 0)
 			return false;
-		MapLocation enemyloc;
-		for (Robot r: robotlist) {
+		for (WeaponController w: weapons) {
+			if (w.isActive()) continue;
 			try {
-				enemyloc = sensor.senseLocationOf(r);
-				for (WeaponController weapon : weapons){
-					weapon.attackSquare(enemyloc, r.getRobotLevel());
-				}
-				return true;
-			} catch (GameActionException e) {continue;}		
+				MapLocation weakest = sensor.senseLocationOf(robots[index1]);
+				w.attackSquare(weakest, robots[index1].getRobotLevel());
+				attacked = true;
+			} catch (GameActionException e) {
+				canfire = true;
+				break;
+			}
 		}
-		return false;
+		if (enemylocs.size() > 1 && canfire) {
+			for (WeaponController w: weapons) {
+				if (w.isActive()) continue;
+				try {
+					MapLocation weakest = sensor.senseLocationOf(robots[index2]);
+					w.attackSquare(weakest, robots[index2].getRobotLevel());
+					attacked = true;
+				} catch (GameActionException e) {
+					return attacked;
+				}
+			}
+		}
+		return attacked;
 	}
 	
 	private void build() throws GameActionException{

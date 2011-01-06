@@ -7,24 +7,28 @@ import battlecode.common.RobotController;
 
 public class BorderMessage extends MessageHandler {
 
-	private Direction borderDir;
+	private int[] borders;
 	
-	public BorderMessage(RobotController rc, BroadcastController comm, Direction borderDirection) {
+	public BorderMessage(RobotController rc, BroadcastController comm, int[] borders) {
 		super(rc, comm, MessageType.BORDER);
 		
-		borderDir = borderDirection;
-		msg.strings[stringCounter++] = borderDir.toString();
+		for (int i : borders) {
+			msg.ints[intCounter++] = i;
+		}
 	}
 	
 	public BorderMessage(Message msg) {
 		super(msg);
 		
-		if ( valid )
-			borderDir = Direction.valueOf( msg.strings[stringCounter] );
+		if ( valid ) {
+			for (int i = 0; i < 4; ++i) {
+				borders[i] = msg.ints[intCounter++];
+			}
+		}
 	}
 	
-	public Direction getBorderDirection() {
-		return borderDir;
+	public int[] getBorderDirection() {
+		return borders;
 	}
 
 }
