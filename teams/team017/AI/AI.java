@@ -34,10 +34,10 @@ public abstract class AI {
 	
 	public AI(RobotController rc) {
 		myRC = rc;
-		updateComponents();
 		navigator = new Navigator(myRC);
 		weapons = new ArrayList<WeaponController>();
 		homeLocation = rc.getLocation();
+		updateComponents();
 	}
 	
 	abstract public void proceed();
@@ -49,12 +49,14 @@ public abstract class AI {
 			switch ( com.componentClass() ) {
 			case MOTOR:
 				motor = (MovementController) com;
+				navigator.setMotor(motor);
 				break;
 			case BUILDER:
 				builder = (BuilderController) com;
 				break;
 			case SENSOR:
 				sensor = (SensorController) com;
+				navigator.setSensor(sensor);
 				break;
 			case COMM:
 				comm = (BroadcastController) com;
