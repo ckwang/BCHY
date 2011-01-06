@@ -5,6 +5,7 @@ import java.util.Set;
 
 import team017.message.BorderMessage;
 import team017.message.MessageHandler;
+import team017.construction.Builder;
 import team017.construction.UnitType;
 
 import battlecode.common.Clock;
@@ -73,8 +74,6 @@ public class ConstructorAI extends AI {
 				System.out.println("caught exception:");
 				e.printStackTrace();
 			}
-		
-
 	}
 
 	private void sense_border(){
@@ -123,7 +122,6 @@ public class ConstructorAI extends AI {
 		}
 		
 	}
-	
 	
 	private void init_revolve() {
 		
@@ -221,22 +219,14 @@ public class ConstructorAI extends AI {
 					myRC.yield();
 				}
 				if(sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) == null){
-					while(!constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.RECYCLER))
+					while(!buildingSystem.constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.RECYCLER))
 						myRC.yield();					
 				}
 			}	
 		}
 		if(myRC.getTeamResources() > 120)
-			constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.FACTORY);
+			buildingSystem.constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.FACTORY);
 	}
-//	private void buildRecycler() throws GameActionException{
-//		MapLocation buildLoc = myRC.getLocation().add(myRC.getDirection());
-//		if (sensor.senseObjectAtLocation(buildLoc,RobotLevel.ON_GROUND) == null && myRC.senseTerrainTile(buildLoc) == TerrainTile.LAND) {
-//			builder.build(Chassis.BUILDING, buildLoc);
-//			myRC.yield();
-//			builder.build(ComponentType.RECYCLER, buildLoc, RobotLevel.ON_GROUND);
-//		}
-//	}
 	
 	private void navigate() throws GameActionException{
 		

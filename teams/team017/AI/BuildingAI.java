@@ -103,23 +103,15 @@ public class BuildingAI extends AI {
 				if (myRC.getTeamResources() > 200) {
 					if (Clock.getRoundNum() < 1000) {
 						if (Clock.getRoundNum() % 3 == 0)
-							constructUnit(
-									turnToAvailableSquare(UnitType.CONSTRUCTOR.chassis),
-									UnitType.CONSTRUCTOR);
+							buildingSystem.randomConstructUnit(UnitType.CONSTRUCTOR);
 						else
-							constructUnit(
-									turnToAvailableSquare(UnitType.GRIZZLY.chassis),
-									UnitType.GRIZZLY);
+							buildingSystem.randomConstructUnit(UnitType.GRIZZLY);
 
 					} else {
 						if (Clock.getRoundNum() % 5 == 0)
-							constructUnit(
-									turnToAvailableSquare(UnitType.CONSTRUCTOR.chassis),
-									UnitType.CONSTRUCTOR);
+							buildingSystem.randomConstructUnit(UnitType.CONSTRUCTOR);
 						else
-							constructUnit(
-									turnToAvailableSquare(UnitType.GRIZZLY.chassis),
-									UnitType.GRIZZLY);
+							buildingSystem.randomConstructUnit(UnitType.GRIZZLY);
 					}
 				}
 			} catch (Exception e) {
@@ -133,10 +125,7 @@ public class BuildingAI extends AI {
 		while (true) {
 			try {
 				if (myRC.getTeamResources() > 120)
-					constructUnit(
-							turnToAvailableSquare(UnitType.TANK_KILLER.chassis),
-							UnitType.TANK_KILLER);
-
+					buildingSystem.randomConstructUnit(UnitType.TANK_KILLER);
 			} catch (Exception e) {
 			}
 		}
