@@ -5,7 +5,11 @@ import battlecode.common.ComponentType;
 
 public enum UnitType {
 	GRIZZLY (Chassis.LIGHT, ComponentType.BLASTER,ComponentType.BLASTER, ComponentType.PROCESSOR, ComponentType.SIGHT),
-	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER);
+	HAMMER_TANK (Chassis.LIGHT, ComponentType.HAMMER,ComponentType.HAMMER, ComponentType.PLATING, ComponentType.SIGHT),//weak!!!
+	TANK_KILLER (Chassis.MEDIUM, ComponentType.RAILGUN,ComponentType.TELESCOPE),
+	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER),
+	FACTORY (Chassis.BUILDING, ComponentType.FACTORY);
+
 	
 	public final Chassis chassis;
 	public final ComponentType[] coms;

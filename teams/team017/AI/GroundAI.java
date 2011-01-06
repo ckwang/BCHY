@@ -40,8 +40,9 @@ public class GroundAI extends AI {
 		//Initial movement
 		if (Clock.getRoundNum() == 0) {
 			init();
-//			init_revolve();
-//			init_return();
+			init_revolve();
+			updateComponents();
+			init_return();
 		} else {
 			myRC.turnOff();
 		}
@@ -339,6 +340,8 @@ public class GroundAI extends AI {
 				}
 			}	
 		}
+		if(myRC.getTeamResources() > 120)
+			constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.FACTORY);
 	}
 //	private void buildRecycler() throws GameActionException{
 //		MapLocation buildLoc = myRC.getLocation().add(myRC.getDirection());

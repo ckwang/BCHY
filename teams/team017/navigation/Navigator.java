@@ -25,10 +25,18 @@ public class Navigator {
 	private SensorController sensor;
 	private MovementController motor;
 	
+	private boolean isTracing;
+	
+	public MapLocation previousLoc;
+	
+	//private MapLocation previousLoc;
+	
 	public Navigator(RobotController rc) {
 		myRC = rc;
 		subDestinations = new LinkedList<MapLocation>();
 		destination = null;
+		previousLoc = rc.getLocation();
+		isTracing = false;
 	}
 	
 	public void setSensor(SensorController s) {
@@ -45,7 +53,7 @@ public class Navigator {
 	
 	public void setDestination (int x, int y){
 		destination = new MapLocation( x, y );
-		myRC.setIndicatorString(1, destination.toString());
+		//myRC.setIndicatorString(1, destination.toString());
 	}
 	
 	public MapLocation getDestination(){
@@ -53,27 +61,86 @@ public class Navigator {
 	}
 	
 	public Direction getNextDir(int tolerance) throws GameActionException {
-		myRC.setIndicatorString(2, subDestinations.toString());
+//		myRC.setIndicatorString(2, subDestinations.toString());
+		//previousLoc = myRC.getLocation();
+		
 		if (destination == null)
 			return Direction.OMNI;
-		else if (subDestinations.size() == 0){
-			return tangentBug(myRC.getLocation(), destination, tolerance);
+//		else if (subDestinations.size() == 0){
+//			return tangentBug(myRC.getLocation(), destination, tolerance);
+//		}
+//		else {
+//			MapLocation currentDes;
+//			currentDes = subDestinations.get(0);
+//			if ( currentDes.equals(myRC.getLocation()) ){
+//				subDestinations.remove(0);
+//				if (subDestinations.size() == 0){
+//					return tangentBug(myRC.getLocation(), destination, tolerance);
+//				}
+//				else {
+//					currentDes = subDestinations.get(0);
+//					return myRC.getLocation().directionTo(currentDes);
+//				}
+//			}
+//			else {
+//				return myRC.getLocation().directionTo(currentDes);
+//			}
+//		}
+		else
+			return Bug(myRC.getLocation(), destination, tolerance);
+	}
+	
+	public Direction Bug(MapLocation s, MapLocation t, int tolerance) throws GameActionException {
+		if ( s.distanceSquaredTo(t) <= tolerance ) {
+			destination = null;
+			return Direction.OMNI;
 		}
-		else {
-			MapLocation currentDes;
-			currentDes = subDestinations.get(0);
-			if ( currentDes.equals(myRC.getLocation()) ){
-				subDestinations.remove(0);
-				if (subDestinations.size() == 0){
-					return tangentBug(myRC.getLocation(), destination, tolerance);
-				}
-				else {
-					currentDes = subDestinations.get(0);
-					return myRC.getLocation().directionTo(currentDes);
-				}
+		
+		
+		Direction initDir;
+		Direction nextDir;
+		
+		// if target is not traversable
+		while ( !isTraversable(t) ) {
+			nextDir = s.directionTo(t);
+			
+			if ( nextDir == Direction.OMNI ) {
+				return Direction.OMNI;
 			}
-			else {
-				return myRC.getLocation().directionTo(currentDes);
+			
+			t = t.subtract(nextDir);
+		}
+
+		
+		initDir = s.directionTo(t);
+		if (!isTracing){
+			if ( isTraversable(s.add(initDir))  ){
+				isTracing = false;
+				myRC.setIndicatorString(1, initDir.toString()  );
+				return initDir;
+			}
+			else{
+				isTracing = true;
+				MapLocation nextLoc = traceNext( s, myRC.getDirection(), true );
+				myRC.setIndicatorString(1, nextLoc.toString()  );
+				return s.directionTo(nextLoc);
+			}
+		}
+		else{
+			if ( isTraversable(s.add(initDir)) 
+					&& !initDir.opposite().equals(myRC.getDirection())  
+					&& !initDir.opposite().equals(myRC.getDirection().rotateLeft())
+					&& !initDir.opposite().equals(myRC.getDirection().rotateRight())
+					){
+				isTracing = false;
+				myRC.setIndicatorString(1, initDir.toString()  );
+				return initDir;
+			}
+			else{
+				isTracing = true;
+				MapLocation nextLoc = traceNext( s, myRC.getDirection(), true );
+				myRC.setIndicatorString(1, nextLoc.toString()  );
+				return s.directionTo(nextLoc);
 			}
 		}
 	}
@@ -83,6 +150,7 @@ public class Navigator {
 			destination = null;
 			return Direction.OMNI;
 		}
+		myRC.setIndicatorString(1, t.toString()+destination.toString()  );
 		
 		Direction initDir;
 		Direction nextDir;
@@ -99,29 +167,31 @@ public class Navigator {
 		}
 
 		initDir = s.directionTo(t);
-		MapLocation currentLoc = s;
+		MapLocation currentLoc = new MapLocation(s.x, s.y);
 		
 		int step = 0;
-		int THRESHOLD = 5;
+		int THRESHOLD = 10;
 		
 		// dead reckoning
 		do {
 			nextDir = currentLoc.directionTo(t);
-			if ( step++ > THRESHOLD || nextDir == Direction.OMNI ){
-				//myRC.setIndicatorString(1, subDestinations.toString());
-				if(myRC.senseTerrainTile( currentLoc ) != null)
-					subDestinations.add(0,currentLoc);
+			if ( step++ > THRESHOLD || currentLoc.equals(t) ){
+				myRC.setIndicatorString(2, "dead reckoning");
+//				if(myRC.senseTerrainTile( currentLoc ) != null)
+//					subDestinations.add(0,currentLoc);
 				return initDir;
 			}
 			currentLoc = currentLoc.add(nextDir);
 		} while ( isTraversable(currentLoc) );
 		currentLoc = currentLoc.subtract(nextDir);
 		
-		MapLocation traceLoc[] = {currentLoc, currentLoc};
+		myRC.setIndicatorString(2, "tracing");
+/*		MapLocation traceLoc[] = {currentLoc, currentLoc};
 		Direction initTraceDir[] = {Direction.NONE, Direction.NONE};
 		
 		// tracing
 		boolean isCW = true; 
+
 		do {
 			if ( isCW ) {
 				traceLoc[1] = traceNext( traceLoc[1], initDir, isCW );
@@ -140,6 +210,15 @@ public class Navigator {
 			return myRC.getDirection();
 		else {
 			return tangentBug(s, traceLoc[isCW ? 0 : 1], tolerance);
+		}*/
+		do {
+			currentLoc = traceNext( currentLoc, nextDir, true );
+		} while ( !isOpen(s, t, currentLoc) );
+		
+		if (s.equals(currentLoc))
+			return myRC.getDirection();
+		else {
+			return tangentBug(s, currentLoc, tolerance);
 		}
 	}
 	

@@ -25,6 +25,11 @@ public abstract class MessageHandler {
 		this.comm = comm;
 		
 		msg = new Message();
+		msg.ints = new int[10];
+		msg.locations = new MapLocation[10];
+		msg.strings = new String[10];
+		
+		
 		writeTag(type);
 	}
 	
