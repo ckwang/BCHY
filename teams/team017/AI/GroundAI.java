@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import team017.message.BorderMessage;
+import team017.message.MessageHandler;
+
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -32,6 +35,7 @@ public class GroundAI extends AI {
 		if (Clock.getRoundNum() == 0) {
 			init();
 			init_revolve();
+			init_return();
 		} else {
 			myRC.turnOff();
 		}
@@ -175,10 +179,9 @@ public class GroundAI extends AI {
 				
 				if (!motor.isActive() && motor.canMove(nextDir) ) {
 					if ( myRC.getDirection() == nextDir ) {
-						// System.out.println("about to move");
 						motor.moveForward();
 					} else {
-						motor.setDirection(myRC.getDirection().rotateRight());
+						motor.setDirection(nextDir);
 					}
 				}
 				
@@ -188,6 +191,34 @@ public class GroundAI extends AI {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private void init_return() {
+		navigator.setDestination(homeLocation);
+		
+		while (true) {
+			try {
+				Direction nextDir = navigator.getNextDir(0);
+				
+				if (nextDir == Direction.OMNI)	break;
+				
+				if (!motor.isActive() && motor.canMove(nextDir)) {
+					if ( myRC.getDirection() == nextDir ) 
+						motor.moveForward();
+					else 
+						motor.setDirection(nextDir);
+				}
+				myRC.yield();
+			} catch (Exception e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
+			}
+		}
+		
+		MessageHandler msgHandler = new BorderMessage(myRC, comm, borders);
+		msgHandler.send();
+		myRC.yield();
+		
 	}
 	
 	private void updateMineSet(Set<MapLocation> mineSet) {
