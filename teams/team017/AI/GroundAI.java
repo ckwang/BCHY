@@ -1,7 +1,8 @@
 package team017.AI;
 
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import battlecode.common.Chassis;
@@ -205,40 +206,55 @@ public class GroundAI extends AI {
 	
 	private boolean attack(){
 		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
-		LinkedList<Robot> robotlist = new LinkedList<Robot>();
-		RobotInfo info;
+		List<Robot> ally = new ArrayList<Robot>(robots.length);
+		List<MapLocation> enemylocs = new ArrayList<MapLocation>(robots.length);
+		List<Robot> enemy = new ArrayList<Robot>(robots.length);
 		double remainhp = Chassis.HEAVY.maxHp;
-		for (Robot r: robots) {
-			if (r.getTeam() == myRC.getTeam())
-				continue;
-			try {
-				info = sensor.senseRobotInfo(r);
-				if (!info.on)
+		int index = 0;
+		for (int i = 0; i < robots.length; ++i) {
+			Robot r = robots[i];
+			if (r.getTeam() == myRC.getTeam()) {
+				ally.add(r);
+			} 
+			else if (r.getTeam() != myRC.getTeam()) {
+				enemy.add(r);
+				try {
+					RobotInfo info = sensor.senseRobotInfo(r);
+					MapLocation loc = sensor.senseLocationOf(r);
+					enemylocs.add(loc);
+					if (!info.on) continue;
+					if (info.maxHp - info.hitpoints < remainhp) {
+						remainhp = info.maxHp - info.hitpoints;
+						index = i;
+					}
+				} catch (GameActionException e) {
+					System.out.println("attack: cannot sense robot info");
+					e.printStackTrace();
 					continue;
-				if (info.maxHp - info.hitpoints < remainhp) {
-					remainhp = info.maxHp - info.hitpoints;
-					robotlist.addFirst(r);
-				} else {
-					robotlist.addLast(r);
 				}
-			} catch (GameActionException e) {
-				System.out.println("cannot sense nearby in attack");
-				e.printStackTrace();
 			}
 		}
-		if (robotlist.size() == 0)
+		if (enemy.size() == 0)
 			return false;
-		MapLocation enemyloc;
-		for (Robot r: robotlist) {
+		
+		boolean canfire = false, attacked = false;
+		for (WeaponController w: weapons) {
+			if (w.isActive()) continue;
 			try {
-				enemyloc = sensor.senseLocationOf(r);
-				for (WeaponController weapon : weapons){
-					weapon.attackSquare(enemyloc, r.getRobotLevel());
-				}
-				return true;
-			} catch (GameActionException e) {continue;}		
+				MapLocation weakest = sensor.senseLocationOf(robots[index]);
+				w.attackSquare(weakest, robots[index].getRobotLevel());
+				attacked = true;
+			} catch (GameActionException e) {
+				canfire = true;
+				break;
+			}
 		}
-		return false;
+		return attacked;
+//		if (!motor.isActive()) {
+//			MapLocation ecenter = Util.aveLocation(enemylocs);
+//			
+//		}
+		
 	}
 	
 	private void navigate(){
