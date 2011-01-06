@@ -1,5 +1,10 @@
 package team017.AI;
 
+
+
+import java.util.ArrayList;
+import java.util.List;
+
 import team017.navigation.Navigator;
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
@@ -18,7 +23,7 @@ public abstract class AI {
 	protected SensorController sensor;
 	protected Navigator navigator;
 	protected BroadcastController comm;
-	protected WeaponController weapon;
+	protected List<WeaponController> weapons;
 	
 	// {NORTH, EAST, SOUTH, WEST}
 	protected int [] borders = {-1, -1, -1, -1};
@@ -31,6 +36,7 @@ public abstract class AI {
 		myRC = rc;
 		updateComponents();
 		navigator = new Navigator(myRC);
+		weapons = new ArrayList<WeaponController>();
 		homeLocation = rc.getLocation();
 	}
 	
@@ -52,6 +58,9 @@ public abstract class AI {
 				break;
 			case COMM:
 				comm = (BroadcastController) com;
+				break;
+			case WEAPON:
+				weapons.add( (WeaponController) com );
 				break;
 			}
 		}
