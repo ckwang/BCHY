@@ -165,7 +165,7 @@ public class GroundAI extends AI {
 				navigator.setDestination(locationList[index]);
 				myRC.setIndicatorString(2, myRC.getLocation().toString()+locationList[index].toString());
 				
-				Direction nextDir = navigator.getNextDir();
+				Direction nextDir = navigator.getNextDir(0);
 				if (nextDir == Direction.OMNI) {
 					index++;
 					if (index == 4)	return;
