@@ -27,8 +27,10 @@ public class GroundAI extends AI {
 	public void proceed() {
 
 		//Initial movement
-		if (Clock.getRoundNum() == 0)
+		if (Clock.getRoundNum() == 0) {
 			init();
+			init_revolve();
+		}
 
 		while (true) {
 			
@@ -76,13 +78,13 @@ public class GroundAI extends AI {
 	private void init() {
 			try {
 				for (int i = 0; i < 4; ++i){
-				sense_border();
-				// Rotate twice Right for a 90 degrees turn
-				motor.setDirection(myRC.getDirection().rotateRight().rotateRight());
-				updateMineSet(mineLocations);
-				myRC.yield();
-				myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
-				myRC.setIndicatorString(1,myRC.getLocation() + "");
+					sense_border();
+					// Rotate twice Right for a 90 degrees turn
+					motor.setDirection(myRC.getDirection().rotateRight().rotateRight());
+					updateMineSet(mineLocations);
+					myRC.yield();
+					myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+					myRC.setIndicatorString(1,myRC.getLocation() + "");
 				}
 			} catch (GameActionException e) {
 				System.out.println("caught exception:");
@@ -94,101 +96,92 @@ public class GroundAI extends AI {
 
 	private void sense_border(){
 		try {
-			MapLocation[] temploclist = new MapLocation[4];
-			TerrainTile tempterrain = TerrainTile.LAND;
 			int i = 4;
+			
 			if (myRC.getDirection().isDiagonal()) {
 				// Sense whether the farthest sensible place is OFF_MAP
-				temploclist[0] = myRC.getLocation();
-				for (int j = 1; j < 4; ++j) {
-					temploclist[j] = temploclist[j - 1].add(myRC
-							.getDirection().rotateLeft());
+				Direction addDir = myRC.getDirection().rotateLeft();
+				MapLocation currentLoc = myRC.getLocation();
+
+				for (i = 3; i > 0; i--) {
+					if (myRC.senseTerrainTile(currentLoc.add(addDir,i)) != TerrainTile.OFF_MAP)
+						break;
 				}
-				tempterrain = TerrainTile.LAND;
 
-				do {
-					i = i - 1;
-					tempterrain = myRC.senseTerrainTile(temploclist[i]);
-				} while (i > 0 && tempterrain == TerrainTile.OFF_MAP);
-
-				// i = 3 means no OFF_MAP sensed
+				// i == 3 means no OFF_MAP sensed
 				if (i != 3) {
-					switch (myRC.getDirection().rotateLeft()) {
+					switch (addDir) {
 					case NORTH:
-						borders[0] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						borders[0] = currentLoc.y - (i + 1);
 						break;
 					case EAST:
-						borders[1] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						borders[1] = currentLoc.x + (i + 1);
 						break;
 					case SOUTH:
-						borders[2] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						borders[2] = currentLoc.y + (i + 1);
 						break;
 					case WEST:
-						borders[3] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						borders[3] = currentLoc.x - (i + 1);
 						break;
 					}
 				}
-				for (int j = 1; j < 4; ++j) {
-					temploclist[j] = temploclist[j - 1].add(myRC
-							.getDirection().rotateRight());
+				
+				addDir = myRC.getDirection().rotateRight();
+				
+				for (i = 3; i > 0; i--) {
+					if (myRC.senseTerrainTile(currentLoc.add(addDir,i)) != TerrainTile.OFF_MAP)
+						break;
 				}
-				tempterrain = TerrainTile.LAND;
-
-				do {
-					i = i - 1;
-					tempterrain = myRC.senseTerrainTile(temploclist[i]);
-				} while (i > 0 && tempterrain == TerrainTile.OFF_MAP);
 
 				// i = 3 means no OFF_MAP sensed
 				if (i != 3) {
-					switch (myRC.getDirection().rotateRight()) {
+					switch (addDir) {
 					case NORTH:
-						borders[0] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						borders[0] = currentLoc.y - (i + 1);
 						break;
 					case EAST:
-						borders[1] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						borders[1] = currentLoc.x + (i + 1);
 						break;
 					case SOUTH:
-						borders[2] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						borders[2] = currentLoc.y + (i + 1);
 						break;
 					case WEST:
-						borders[3] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						borders[3] = currentLoc.x - (i + 1);
 						break;
 					}
 				}
 
 			}
 			else {
+				
 				// Sense whether the farthest sensible place is OFF_MAP
-				temploclist[0] = myRC.getLocation();
-				for (int j = 1; j < 4; ++j) {
-					temploclist[j] = temploclist[j - 1].add(myRC
-							.getDirection());
+				Direction addDir = myRC.getDirection();
+				MapLocation currentLoc = myRC.getLocation();
+
+				for (i = 3; i > 0; i--) {
+					if (myRC.senseTerrainTile(currentLoc.add(addDir,i)) != TerrainTile.OFF_MAP)
+						break;
 				}
-				tempterrain = TerrainTile.LAND;
-				do {
-					i = i - 1;
-					tempterrain = myRC.senseTerrainTile(temploclist[i]);
-				} while (i > 0 && tempterrain == TerrainTile.OFF_MAP);
-				// i = 3 means no OFF_MAP sensed
+
+				// i == 3 means no OFF_MAP sensed
 				if (i != 3) {
-					switch (myRC.getDirection()) {
+					switch (addDir) {
 					case NORTH:
-						borders[0] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						borders[0] = currentLoc.y - (i + 1);
 						break;
 					case EAST:
-						borders[1] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						borders[1] = currentLoc.x + (i + 1);
 						break;
 					case SOUTH:
-						borders[2] = myRC.getLocation().y + myRC.getDirection().dy * (i + 1);
+						borders[2] = currentLoc.y + (i + 1);
 						break;
 					case WEST:
-						borders[3] = myRC.getLocation().x + myRC.getDirection().dx * (i + 1);
+						borders[3] = currentLoc.x - (i + 1);
 						break;
 					}
 				}
 			}
-			} catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
@@ -208,9 +201,18 @@ public class GroundAI extends AI {
 		while (true) {
 			try {
 				
-				Direction nextDir = navigator.tangentBug(myRC.getLocation(), locationList[0]);
+				navigator.setDestination(locationList[index]);
+				myRC.setIndicatorString(2, myRC.getLocation().toString()+locationList[index].toString());
 				
-				if (!motor.isActive() || motor.canMove(nextDir) ) {
+				Direction nextDir = navigator.getNextDir();
+				if (nextDir == Direction.OMNI) {
+					index++;
+					if (index == 4)	return;
+				
+					continue;
+				}
+				
+				if (!motor.isActive() && motor.canMove(nextDir) ) {
 					if ( myRC.getDirection() == nextDir ) {
 						// System.out.println("about to move");
 						motor.moveForward();
@@ -218,6 +220,8 @@ public class GroundAI extends AI {
 						motor.setDirection(myRC.getDirection().rotateRight());
 					}
 				}
+				
+				myRC.yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();

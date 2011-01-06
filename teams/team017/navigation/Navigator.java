@@ -26,6 +26,10 @@ public class Navigator {
 		destination = null;
 	}
 	
+	public void setDestination(MapLocation loc) {
+		setDestination(loc.x, loc.y);
+	}
+	
 	public void setDestination (int x, int y){
 		destination = new MapLocation( x, y );
 		//myRC.setIndicatorString(1, destination.toString());
@@ -72,6 +76,11 @@ public class Navigator {
 		// if target is not walkable
 		while ( !isWalkable(t) ) {
 			nextDir = s.directionTo(t);
+			
+			if ( nextDir == Direction.OMNI ) {
+				return Direction.OMNI;
+			}
+			
 			t = t.subtract(nextDir);
 		}
 
