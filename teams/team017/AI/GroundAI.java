@@ -1,17 +1,17 @@
 package team017.AI;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
-import team017.message.BorderMessage;
-import team017.message.MessageHandler;
-import team017.message.MessageType;
+import battlecode.common.Chassis;
 import battlecode.common.Clock;
-import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Mine;
+import battlecode.common.Robot;
 import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
 import battlecode.common.TerrainTile;
 
 public class GroundAI extends AI {
@@ -213,11 +213,43 @@ public class GroundAI extends AI {
 		
 	}
 	
-	private void attack(){
-		
+	private boolean attack(){
+		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
+		LinkedList<Robot> robotlist = new LinkedList<Robot>();
+		RobotInfo info;
+		double remainhp = Chassis.HEAVY.maxHp;
+		for (Robot r: robots) {
+			if (r.getTeam() == myRC.getTeam())
+				continue;
+			try {
+				info = sensor.senseRobotInfo(r);
+				if (!info.on)
+					continue;
+				if (info.maxHp - info.hitpoints < remainhp) {
+					remainhp = info.maxHp - info.hitpoints;
+					robotlist.addFirst(r);
+				} else {
+					robotlist.addLast(r);
+				}
+			} catch (GameActionException e) {
+				System.out.println("cannot sense nearby in attack");
+				e.printStackTrace();
+			}
+		}
+		if (robotlist.size() == 0)
+			return false;
+		MapLocation enemyloc;
+		for (Robot r: robotlist) {
+			try {
+				enemyloc = sensor.senseLocationOf(r);
+				weapon.attackSquare(enemyloc, r.getRobotLevel());
+				return true;
+			} catch (GameActionException e) {continue;}		
+		}
+		return false;
 	}
 	
-	private void naviagate(){
+	private void navigate(){
 		
 	}
 }

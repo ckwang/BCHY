@@ -8,6 +8,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 import battlecode.common.SensorController;
+import battlecode.common.WeaponController;
 
 public abstract class AI {
 	
@@ -17,6 +18,7 @@ public abstract class AI {
 	protected SensorController sensor;
 	protected Navigator navigator;
 	protected BroadcastController comm;
+	protected WeaponController weapon;
 	
 	// {NORTH, EAST, SOUTH, WEST}
 	protected int [] borders = {-1, -1, -1, -1};
