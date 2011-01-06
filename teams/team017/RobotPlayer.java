@@ -12,18 +12,42 @@ public class RobotPlayer implements Runnable {
     }
 
 	public void run() {
+		
+		if (Clock.getRoundNum() != 0)
+			myRC.turnOff();
+		
 		switch (myRC.getChassis()){
 			case BUILDING:
-				new BuildingAI(myRC).proceed();
+				if (containsComponent(ComponentType.RECYCLER)) {
+					new RecyclerAI(myRC).proceed();
+				} else {
+					new FactoryAI(myRC).proceed();
+				}
+				
 				break;
 			
 			case FLYING:
 				new AirAI(myRC).proceed();
 				break;
 			
-			default:
-				new GroundAI(myRC).proceed();
+			case LIGHT:
+			case MEDIUM:
+			case HEAVY:
+				if (containsComponent(ComponentType.CONSTRUCTOR)) {
+					new ConstructorAI(myRC).proceed();
+				} else {
+					new SoldierAI(myRC).proceed();
+				}
 				break;
 		}
+	}
+	
+	private boolean containsComponent(ComponentType type) {
+		for ( ComponentController com : myRC.components() ) {
+			if (com.type() == type ) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

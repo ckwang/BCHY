@@ -3,8 +3,9 @@ package team017.AI;
 import java.util.ArrayList;
 import java.util.List;
 
+import team017.construction.Builder;
+import team017.construction.UnitType;
 import team017.navigation.Navigator;
-import team017.util.UnitType;
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.Chassis;
@@ -27,6 +28,7 @@ public abstract class AI {
 	protected BuilderController builder;
 	protected SensorController sensor;
 	protected Navigator navigator;
+	protected Builder buildingSystem;
 	protected BroadcastController comm;
 	protected List<WeaponController> weapons;
 
@@ -45,9 +47,12 @@ public abstract class AI {
 	}
 
 	abstract public void proceed();
+	
+	abstract public void yield() throws GameActionException;
 
 	protected void updateComponents() {
 		ComponentController[] components = myRC.newComponents();
+		BuilderController newBuilder = null;
 
 		for (ComponentController com : components) {
 			switch (com.componentClass()) {
@@ -55,12 +60,12 @@ public abstract class AI {
 				motor = (MovementController) com;
 				navigator.setMotor(motor);
 				break;
-			case BUILDER:
-				builder = (BuilderController) com;
-				break;
 			case SENSOR:
 				sensor = (SensorController) com;
 				navigator.setSensor(sensor);
+				break;
+			case BUILDER:
+				newBuilder = (BuilderController) com;
 				break;
 			case COMM:
 				comm = (BroadcastController) com;
@@ -69,6 +74,11 @@ public abstract class AI {
 				weapons.add((WeaponController) com);
 				break;
 			}
+		}
+		
+		if ( newBuilder != null ) {
+			builder = newBuilder;
+			buildingSystem = new Builder(myRC, builder, motor, sensor);
 		}
 	}
 
@@ -80,62 +90,5 @@ public abstract class AI {
 		fluxRate = fluxRecord[0] - fluxRecord[1];
 	}
 
-	protected double calculateTotalCost(Chassis chassis,
-			ComponentType[] components) {
-		double totalCost = chassis.cost;
-		for (ComponentType com : components) {
-			totalCost += com.cost;
-		}
-		return totalCost;
-	}
 
-	protected boolean constructUnit(MapLocation buildLoc, UnitType type){
-		try{
-			updateFluxRate();
-			if (myRC.getTeamResources() > type.chassis.cost * 1.1
-					&& fluxRate > type.chassis.upkeep) {
-				if (canConstruct(type.chassis.level)) {
-					builder.build(type.chassis, buildLoc);
-					myRC.yield();
-					for (ComponentType com : type.coms) {
-						while(myRC.getTeamResources() < com.cost * 1.1)
-							myRC.yield();
-						while(builder.isActive())
-							myRC.yield();
-						builder.build(com, buildLoc, type.chassis.level);
-					}
-					myRC.turnOn(buildLoc, type.chassis.level);
-					return true;
-				}
-			}
-			return false;
-		}catch (Exception e){
-			return false;
-		}
-	}
-
-	protected boolean canConstruct(RobotLevel level) throws GameActionException {
-		if (sensor.senseObjectAtLocation(
-				myRC.getLocation().add(myRC.getDirection()), level) == null
-				&& myRC.senseTerrainTile(myRC.getLocation().add(
-						myRC.getDirection())) == TerrainTile.LAND)
-			return true;
-		return false;
-	}
-
-	protected MapLocation findAvailableSquare(Chassis chassis)
-			throws GameActionException {
-		Direction buildDir = myRC.getDirection();
-		for (int i = 1; i < 8; ++i) {
-			if (sensor.senseObjectAtLocation(myRC.getLocation().add(buildDir),
-					chassis.level) == null
-					&& myRC.senseTerrainTile(myRC.getLocation().add(buildDir)) == TerrainTile.LAND) {
-				if (myRC.getDirection() != buildDir)
-					motor.setDirection(buildDir);
-				break;
-			}
-			buildDir = buildDir.rotateLeft();
-		}
-		return myRC.getLocation().add(buildDir);
-	}
 }
