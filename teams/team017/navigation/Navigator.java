@@ -20,26 +20,14 @@ import team017.util.*;
  */
 
 public class Navigator {
-	private RobotController myRC;
+	private Controllers controllers;
 	private MapLocation destination;
 	private MapLocation backTrackDes;
-
-	private SensorController sensor;
-	private MovementController motor;
-
 	private boolean isTracing;
 
-	public Navigator(RobotController rc) {
-		myRC = rc;
+	public Navigator(Controllers cs) {
+		controllers = cs;
 		isTracing = false;
-	}
-
-	public void setSensor(SensorController s) {
-		sensor = s;
-	}
-
-	public void setMotor(MovementController m) {
-		motor = m;
 	}
 
 	public void setDestination(MapLocation loc) {
@@ -56,15 +44,15 @@ public class Navigator {
 	}
 
 	public Direction getNextDir(int tolerance) throws GameActionException {
-		myRC.setIndicatorString(0,"");
-		myRC.setIndicatorString(1,"");
-		myRC.setIndicatorString(2,"");
+		controllers.myRC.setIndicatorString(0,"");
+		controllers.myRC.setIndicatorString(1,"");
+		controllers.myRC.setIndicatorString(2,"");
 		
 		if (destination == null){
 			return Direction.OMNI;
 		}
 		else {
-			Direction nextDir = Bug(myRC.getLocation(), backTrackDes, tolerance);
+			Direction nextDir = Bug(controllers.myRC.getLocation(), backTrackDes, tolerance);
 			return nextDir;
 		}
 	}
@@ -94,27 +82,27 @@ public class Navigator {
 		backTrackDes = t;
 
 		if (!isTracing) {
-			if ( motor.canMove(initDir)/*isTraversable(s.add(initDir))*/ ) {
+			if ( controllers.motor.canMove(initDir)/*isTraversable(s.add(initDir))*/ ) {
 				isTracing = false;
-				myRC.setIndicatorString(1, initDir.toString());
+				controllers.myRC.setIndicatorString(1, initDir.toString());
 				return initDir;
 			} else {
 				isTracing = true;
 				MapLocation nextLoc = traceNext(s, initDir, true);
-				myRC.setIndicatorString(1, nextLoc.toString());
+				controllers.myRC.setIndicatorString(1, nextLoc.toString());
 				return s.directionTo(nextLoc);
 			}
 		} else {
-			if ( motor.canMove(initDir)/*isTraversable(s.add(initDir) )*/
-					&& Util.isNotTurningBackward(initDir, myRC.getDirection())
+			if ( controllers.motor.canMove(initDir)/*isTraversable(s.add(initDir) )*/
+					&& Util.isNotTurningBackward(initDir, controllers.myRC.getDirection())
 			) {
 				isTracing = false;
-				myRC.setIndicatorString(1, initDir.toString() + " Tracing" );
+				controllers.myRC.setIndicatorString(1, initDir.toString() + " Tracing" );
 				return initDir;
 			} else {
 				isTracing = true;
 				MapLocation nextLoc = traceNext(s, initDir, true);
-				myRC.setIndicatorString(1, nextLoc.toString() + " Tracing" );
+				controllers.myRC.setIndicatorString(1, nextLoc.toString() + " Tracing" );
 				return s.directionTo(nextLoc);
 			}
 		}
@@ -186,7 +174,7 @@ public class Navigator {
 		} while (!isOpen(s, t, traceLoc[isCW ? 0 : 1]));
 
 		if (s.equals(traceLoc[isCW ? 0 : 1]))
-			return myRC.getDirection();
+			return controllers.myRC.getDirection();
 		else {
 			return tangentBug(s, traceLoc[isCW ? 0 : 1], tolerance);
 		}
@@ -215,23 +203,23 @@ public class Navigator {
 		// Try code reuse in the future
 
 		if (cw) {
-			while (motor.canMove(faceDir)/*
+			while (controllers.motor.canMove(faceDir)/*
 										 * isTraversable(currentLoc.add(faceDir))
 										 */) {
 				faceDir = faceDir.rotateRight();
 			}
-			while (!motor.canMove(faceDir)/*
+			while (!controllers.motor.canMove(faceDir)/*
 										 * !isTraversable(currentLoc.add(faceDir)
 										 */) {
 				faceDir = faceDir.rotateLeft();
 			}
 		} else {
-			while (motor.canMove(faceDir)/*
+			while (controllers.motor.canMove(faceDir)/*
 										 * isTraversable(currentLoc.add(faceDir))
 										 */) {
 				faceDir = faceDir.rotateLeft();
 			}
-			while (motor.canMove(faceDir)/*
+			while (controllers.motor.canMove(faceDir)/*
 										 * !isTraversable(currentLoc.add(faceDir)
 										 */) {
 				faceDir = faceDir.rotateRight();
@@ -242,11 +230,11 @@ public class Navigator {
 	}
 
 	private boolean isTraversable(MapLocation loc) throws GameActionException {
-		TerrainTile tile = myRC.senseTerrainTile(loc);
+		TerrainTile tile = controllers.myRC.senseTerrainTile(loc);
 
-		if (sensor != null && sensor.canSenseSquare(loc)) {
+		if (controllers.sensor != null && controllers.sensor.canSenseSquare(loc)) {
 			return ((tile == null) || (tile == TerrainTile.LAND))
-					&& (sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) == null);
+					&& (controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) == null);
 		} else
 			return (tile == null) || (tile == TerrainTile.LAND);
 	}

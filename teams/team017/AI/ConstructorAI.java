@@ -7,14 +7,7 @@ import team017.message.BorderMessage;
 import team017.message.MessageHandler;
 import team017.construction.UnitType;
 
-import battlecode.common.Clock;
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.Mine;
-import battlecode.common.RobotController;
-import battlecode.common.RobotLevel;
-import battlecode.common.TerrainTile;
+import battlecode.common.*;
 
 public class ConstructorAI extends AI {
 	

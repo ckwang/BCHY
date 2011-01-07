@@ -32,7 +32,7 @@ public abstract class AI {
 		controllers = new Controllers();
 		
 		controllers.myRC = rc;
-		navigator = new Navigator(controllers.myRC);
+		navigator = new Navigator(controllers);
 		controllers.weapons= new ArrayList<WeaponController>();
 		homeLocation = rc.getLocation();
 		updateComponents();
@@ -50,11 +50,9 @@ public abstract class AI {
 			switch (com.componentClass()) {
 			case MOTOR:
 				controllers.motor = (MovementController) com;
-				navigator.setMotor(controllers.motor);
 				break;
 			case SENSOR:
 				controllers.sensor = (SensorController) com;
-				navigator.setSensor(controllers.sensor);
 				break;
 			case BUILDER:
 				newBuilder = (BuilderController) com;
