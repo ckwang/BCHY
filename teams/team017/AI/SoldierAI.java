@@ -14,7 +14,7 @@ public class SoldierAI extends AI {
 	
 	public SoldierAI(RobotController rc) {
 		super(rc);
-		combat = new CombatSystem(myRC, motor, sensor, weapons);
+		combat = new CombatSystem(controllers.myRC, controllers.motor, controllers.sensor, controllers.weapons);
 	}
 
 	public void yield() throws GameActionException {
@@ -24,7 +24,7 @@ public class SoldierAI extends AI {
 	public void proceed() {
 
 		while (true) {
-			// MessageHandler encoder = new BorderMessage(myRC, comm,
+			// MessageHandler encoder = new BorderMessage(controllers.myRC, comm,
 			// Direction.NORTH);
 			// encoder.send();
 			//
@@ -37,7 +37,7 @@ public class SoldierAI extends AI {
 				updateComponents();
 
 				/*** beginning of main loop ***/
-				if (motor != null) {
+				if (controllers.motor != null) {
 					navigate();
 				}
 
@@ -45,7 +45,7 @@ public class SoldierAI extends AI {
 
 				sense_border();
 
-				myRC.yield();
+				controllers.myRC.yield();
 
 				/*** end of main loop ***/
 			} catch (Exception e) {
@@ -60,20 +60,20 @@ public class SoldierAI extends AI {
 
 			Direction[] addDirs = new Direction[3];
 
-			if (myRC.getDirection().isDiagonal()) {
-				addDirs[0] = myRC.getDirection().rotateLeft();
-				addDirs[1] = myRC.getDirection().rotateRight();
+			if (controllers.myRC.getDirection().isDiagonal()) {
+				addDirs[0] = controllers.myRC.getDirection().rotateLeft();
+				addDirs[1] = controllers.myRC.getDirection().rotateRight();
 			} else {
-				addDirs[0] = myRC.getDirection();
+				addDirs[0] = controllers.myRC.getDirection();
 			}
 
 			int j = -1;
 			while (addDirs[++j] != null) {
-				MapLocation currentLoc = myRC.getLocation();
+				MapLocation currentLoc = controllers.myRC.getLocation();
 
 				int i;
 				for (i = 3; i > 0; i--) {
-					if (myRC.senseTerrainTile(currentLoc.add(addDirs[j], i)) != TerrainTile.OFF_MAP)
+					if (controllers.myRC.senseTerrainTile(currentLoc.add(addDirs[j], i)) != TerrainTile.OFF_MAP)
 						break;
 				}
 
@@ -104,7 +104,7 @@ public class SoldierAI extends AI {
 
 	private void navigate() throws GameActionException {
 
-		if (!motor.isActive()) {
+		if (!controllers.motor.isActive()) {
 			roachNavigate();
 		}
 
@@ -112,14 +112,16 @@ public class SoldierAI extends AI {
 
 	private void roachNavigate() throws GameActionException {
 		// navigate();
-		if (motor.canMove(myRC.getDirection())) {
+		if (controllers.motor.canMove(controllers.myRC.getDirection())) {
 			// System.out.println("about to move");
-			motor.moveForward();
+			controllers.motor.moveForward();
 		} else {
-			if ((Clock.getRoundNum() / 10) % 2 == 0)
-				motor.setDirection(myRC.getDirection().rotateRight());
-			else
-				motor.setDirection(myRC.getDirection().rotateLeft());
+			Direction tempDir = controllers.myRC.getDirection();
+			int rotationTimes = Clock.getRoundNum() % 7;
+			for (int i = 0; i <= rotationTimes; ++i){
+				tempDir = tempDir.rotateRight();
+			}
+				controllers.motor.setDirection(tempDir);
 		}
 	}
 

@@ -21,7 +21,7 @@ public class AirAI extends AI {
 		
 		while (true) {
 			try {
-				myRC.yield();
+				controllers.myRC.yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();

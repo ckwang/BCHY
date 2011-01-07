@@ -12,7 +12,7 @@ public class FactoryAI extends AI {
 
 	@Override
 	public void yield() throws GameActionException {
-		myRC.yield();
+		controllers.myRC.yield();
 		updateComponents();
 		updateFluxRate();
 	}
@@ -20,10 +20,11 @@ public class FactoryAI extends AI {
 	@Override
 	public void proceed() {
 
+
 		while (true) {
 			try {
-				if (fluxRate > 0 && myRC.getTeamResources() > 120)
-					buildingSystem.randomConstructUnit(UnitType.TANK_KILLER);
+				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 120)
+					buildingSystem.constructUnit(UnitType.TANK_KILLER);
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
