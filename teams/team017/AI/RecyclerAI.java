@@ -1,14 +1,17 @@
 package team017.AI;
 
+import team017.construction.BuilderDirections;
 import team017.construction.UnitType;
 import team017.message.BorderMessage;
 import team017.message.BuildingRequestMessage;
+import team017.message.ConstructionCompleteMessage;
 import team017.message.MessageHandler;
 import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
@@ -17,8 +20,12 @@ import battlecode.common.RobotLevel;
 
 public class RecyclerAI extends AI {
 
+	BuilderDirections builderDirs;
+	
 	public RecyclerAI(RobotController rc) {
 		super(rc);
+		
+		builderDirs = new BuilderDirections();
 	}
 
 	@Override
@@ -55,35 +62,48 @@ public class RecyclerAI extends AI {
 						break;
 					}
 					case BUILDING_REQUEST: {
-						BuildingRequestMessage handler = new BuildingRequestMessage(
-								msg);
-						if (handler.getBuilderLocation().equals(
-								controllers.myRC.getLocation())) {
-							buildingSystem.constructComponent(
-									handler.getBuildingLocation(),
-									handler.getUnitType());
+						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
+						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+							buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType());
 							yield();
 						}
+						break;
+					}
+					case CONSTRUCTION_COMPLETE: {
+						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
+						
+						MapLocation currentLoc = controllers.myRC.getLocation();
+						controllers.myRC.setIndicatorString(2, handler.getBuildingLocation() + "" + currentLoc);
+						if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
+							builderDirs.setDirections(handler.getBuilderType(), currentLoc.directionTo(handler.getBuildingLocation()));
+							if(controllers.myRC.getDirection() != controllers.myRC.getLocation().directionTo(handler.getBuildingLocation())){
+								controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(handler.getBuildingLocation()));
+								yield();
+							}
+							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
+
+						}
+						
 						break;
 					}
 
 					}
 				}
 
-				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 100) {
-					if (Clock.getRoundNum() < 1000) {
-						if (Clock.getRoundNum() % 3 == 0)
-							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-						else
-							buildingSystem.constructUnit(UnitType.GRIZZLY);
-
-					} else {
-						if (Clock.getRoundNum() % 5 == 0)
-							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-						else
-							buildingSystem.constructUnit(UnitType.GRIZZLY);
-					}
-				}
+//				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 100) {
+//					if (Clock.getRoundNum() < 1000) {
+//						if (Clock.getRoundNum() % 3 == 0)
+//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+//						else
+//							buildingSystem.constructUnit(UnitType.GRIZZLY);
+//
+//					} else {
+//						if (Clock.getRoundNum() % 5 == 0)
+//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+//						else
+//							buildingSystem.constructUnit(UnitType.GRIZZLY);
+//					}
+//				}
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");

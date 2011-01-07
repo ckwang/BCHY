@@ -68,7 +68,7 @@ public abstract class MessageHandler {
 	 */
 	private boolean isValid() {
 		intCounter += 4;
-		locCounter += 2;
+		locCounter += 1;
 		
 		return msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3]; 
 	}

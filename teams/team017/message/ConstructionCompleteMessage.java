@@ -1,6 +1,5 @@
 package team017.message;
 
-import team017.construction.UnitType;
 import team017.util.Controllers;
 import battlecode.common.ComponentType;
 import battlecode.common.MapLocation;
@@ -9,7 +8,7 @@ import battlecode.common.Message;
 public class ConstructionCompleteMessage extends MessageHandler {
 
 	private MapLocation buildingLocation;
-	private UnitType builderType;
+	private ComponentType builderType;
 	
 	public ConstructionCompleteMessage(Controllers controllers,
 			MapLocation buildingLocation, ComponentType builderType) {
@@ -24,7 +23,7 @@ public class ConstructionCompleteMessage extends MessageHandler {
 
 		if (valid) {
 			buildingLocation = msg.locations[locCounter++];
-			builderType = UnitType.values()[msg.ints[intCounter++]];
+			builderType = ComponentType.values()[msg.ints[intCounter++]];
 		}
 	}
 	
@@ -32,7 +31,7 @@ public class ConstructionCompleteMessage extends MessageHandler {
 		return buildingLocation;
 	}
 	
-	public UnitType getBuilderType() {
+	public ComponentType getBuilderType() {
 		return builderType;
 	}
 }
