@@ -1,6 +1,10 @@
 package team017.construction;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import team017.message.BorderMessage;
+import team017.message.BuildingRequestMessage;
 import team017.message.MessageHandler;
 import team017.util.Controllers;
 import battlecode.common.BroadcastController;
@@ -35,15 +39,16 @@ public class Builder {
 	public boolean constructUnit(MapLocation buildLoc, UnitType type, BuilderDirections builderDirs){
 		try{
 			ComponentType[] builderTypeList = {ComponentType.RECYCLER,ComponentType.ARMORY,ComponentType.FACTORY,ComponentType.CONSTRUCTOR}; 
+			List<ComponentType> otherBuilders = new ArrayList<ComponentType>();
+			
 			for(ComponentType com: builderTypeList){
 				if(!com.equals(builder.type())){
 					if(type.getComponentList(com).length != 0){
-						if(builderDirs == null){
+						if(builderDirs.getDirections(com) == null){
 							return false;
 						}
 						else{
-//							MessageHandler msgHandler = new BorderMessage(myRC, comm, buildLoc,type);
-//							msgHandler.send();
+							otherBuilders.add(com);
 						}
 					}
 				}
@@ -53,6 +58,11 @@ public class Builder {
 				if (canConstruct(type.chassis.level)) {
 					builder.build(type.chassis, buildLoc);
 					myRC.yield();
+					for(ComponentType otherBuilder: otherBuilders){
+						MessageHandler msgHandler = new BuildingRequestMessage(myRC, comm, buildLoc,type);
+						msgHandler.send();
+
+					}
 					for (ComponentType com : type.getComponentList(builder.type())) {
 						while(myRC.getTeamResources() < com.cost * 1.1)
 							myRC.yield();
@@ -107,14 +117,14 @@ public class Builder {
 		}
 	}
 
-	public boolean constructComponent(MapLocation buildLoc, Chassis chassis, ComponentType[] coms){
+	public boolean constructComponent(MapLocation buildLoc, UnitType type){
 		try{
-			for (ComponentType com : coms) {
+			for (ComponentType com : type.getComponentList(builder.type())) {
 				while(myRC.getTeamResources() < com.cost * 1.1)
 					myRC.yield();
 				while(builder.isActive())
 					myRC.yield();
-				builder.build(com, buildLoc, chassis.level);
+				builder.build(com, buildLoc, type.chassis.level);
 			}
 			return true;
 		}catch (Exception e){
