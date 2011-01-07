@@ -19,7 +19,7 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 
-public class RecyclerAI extends AI {
+public class RecyclerAI extends BuildingAI {
 
 	BuilderDirections builderDirs;
 	
@@ -27,13 +27,6 @@ public class RecyclerAI extends AI {
 		super(rc);
 		
 		builderDirs = new BuilderDirections();
-	}
-
-	@Override
-	public void yield() throws GameActionException {
-		controllers.myRC.yield();
-		updateComponents();
-		updateFluxRate();
 	}
 
 	@Override

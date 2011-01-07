@@ -7,6 +7,16 @@ public class BuilderDirections {
 	public Direction recyclerDirection;
 	public Direction armoryDirection;
 	public Direction factoryDirection;
+	/*
+	 * 7 0 1
+	 * 6 * 2
+	 * 5 4 3
+	 */
+	public ComponentType[] adjacentComponents;
+	
+	public BuilderDirections() {
+		adjacentComponents = new ComponentType[8];
+	}
 	
 	public Direction getDirections(ComponentType type){
 		switch(type){

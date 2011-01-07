@@ -44,8 +44,7 @@ public abstract class AI {
 
 	protected void updateComponents() {
 		ComponentController[] components = controllers.myRC.newComponents();
-		BuilderController newBuilder = null;
-
+		
 		for (ComponentController com : components) {
 			switch (com.componentClass()) {
 			case MOTOR:
@@ -55,7 +54,8 @@ public abstract class AI {
 				controllers.sensor = (SensorController) com;
 				break;
 			case BUILDER:
-				newBuilder = (BuilderController) com;
+				controllers.builder = (BuilderController) com;
+				buildingSystem = new Builder(controllers);
 				break;
 			case COMM:
 				controllers.comm = (BroadcastController) com;
@@ -64,11 +64,6 @@ public abstract class AI {
 				controllers.weapons.add((WeaponController) com);
 				break;
 			}
-		}
-		
-		if ( newBuilder != null ) {
-			controllers.builder = newBuilder;
-			buildingSystem = new Builder(controllers);
 		}
 	}
 
