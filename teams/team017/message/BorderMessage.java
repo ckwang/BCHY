@@ -1,15 +1,14 @@
 package team017.message;
 
-import battlecode.common.BroadcastController;
+import team017.util.Controllers;
 import battlecode.common.Message;
-import battlecode.common.RobotController;
 
 public class BorderMessage extends MessageHandler {
 
 	private int[] borders;
 	
-	public BorderMessage(RobotController rc, BroadcastController comm, int[] borders) {
-		super(rc, comm, MessageType.BORDER);
+	public BorderMessage(Controllers controllers, int[] borders) {
+		super(controllers, MessageType.BORDER);
 		
 		for (int i : borders) {
 			msg.ints[intCounter++] = i;
