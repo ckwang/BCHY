@@ -4,21 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import team017.construction.Builder;
-import team017.construction.UnitType;
 import team017.navigation.Navigator;
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
-import battlecode.common.Chassis;
 import battlecode.common.ComponentController;
-import battlecode.common.ComponentType;
-import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.MovementController;
 import battlecode.common.RobotController;
-import battlecode.common.RobotLevel;
 import battlecode.common.SensorController;
-import battlecode.common.TerrainTile;
 import battlecode.common.WeaponController;
 
 public abstract class AI {

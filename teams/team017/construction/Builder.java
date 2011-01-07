@@ -53,28 +53,13 @@ public class Builder {
 	public boolean randomConstructUnit(UnitType type){
 		try{
 			MapLocation buildLoc = turnToAvailableSquare(type.chassis);
-			if (myRC.getTeamResources() > type.chassis.cost * 1.1) {
-				if (canConstruct(type.chassis.level)) {
-					builder.build(type.chassis, buildLoc);
-					myRC.yield();
-					for (ComponentType com : type.coms) {
-						while(myRC.getTeamResources() < com.cost * 1.1)
-							myRC.yield();
-						while(builder.isActive())
-							myRC.yield();
-						builder.build(com, buildLoc, type.chassis.level);
-					}
-					myRC.turnOn(buildLoc, type.chassis.level);
-					return true;
-				}
-			}
-			return false;
-		}catch (Exception e){
+			return constructUnit(buildLoc, type);
+		} catch (Exception e){
 			return false;
 		}
 	}
 
-	protected boolean constructComponent(MapLocation buildLoc, Chassis chassis, ComponentType[] coms){
+	public boolean constructComponent(MapLocation buildLoc, Chassis chassis, ComponentType[] coms){
 		try{
 			for (ComponentType com : coms) {
 				while(myRC.getTeamResources() < com.cost * 1.1)
@@ -99,7 +84,7 @@ public class Builder {
 		return false;
 	}
 
-	protected MapLocation turnToAvailableSquare(Chassis chassis)
+	private MapLocation turnToAvailableSquare(Chassis chassis)
 			throws GameActionException {
 		Direction buildDir = myRC.getDirection();
 		for (int i = 1; i < 8; ++i) {
@@ -118,7 +103,7 @@ public class Builder {
 		return myRC.getLocation().add(buildDir);
 	}
 	
-	protected double calculateTotalCost(UnitType type) {
+	public double calculateTotalCost(UnitType type) {
 		double totalCost = type.chassis.cost;
 		for (ComponentType com : type.coms) {
 			totalCost += com.cost;

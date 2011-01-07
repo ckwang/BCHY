@@ -20,6 +20,8 @@ public class BorderMessage extends MessageHandler {
 	public BorderMessage(Message msg) {
 		super(msg);
 		
+		borders = new int[4];
+		
 		if ( valid ) {
 			for (int i = 0; i < 4; ++i) {
 				borders[i] = msg.ints[intCounter++];

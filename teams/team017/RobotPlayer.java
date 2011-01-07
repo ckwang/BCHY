@@ -1,6 +1,7 @@
 package team017;
 
 import team017.AI.*;
+import team017.util.Util;
 import battlecode.common.*;
 
 public class RobotPlayer implements Runnable {
@@ -18,7 +19,7 @@ public class RobotPlayer implements Runnable {
 		
 		switch (myRC.getChassis()){
 			case BUILDING:
-				if (containsComponent(ComponentType.RECYCLER)) {
+				if (Util.containsComponent(myRC.components(), ComponentType.RECYCLER)) {
 					new RecyclerAI(myRC).proceed();
 				} else {
 					new FactoryAI(myRC).proceed();
@@ -33,7 +34,7 @@ public class RobotPlayer implements Runnable {
 			case LIGHT:
 			case MEDIUM:
 			case HEAVY:
-				if (containsComponent(ComponentType.CONSTRUCTOR)) {
+				if (Util.containsComponent(myRC.components(), ComponentType.CONSTRUCTOR)) {
 					new ConstructorAI(myRC).proceed();
 				} else {
 					new SoldierAI(myRC).proceed();
@@ -42,12 +43,4 @@ public class RobotPlayer implements Runnable {
 		}
 	}
 	
-	private boolean containsComponent(ComponentType type) {
-		for ( ComponentController com : myRC.components() ) {
-			if (com.type() == type ) {
-				return true;
-			}
-		}
-		return false;
-	}
 }
