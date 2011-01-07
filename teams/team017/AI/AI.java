@@ -5,6 +5,7 @@ import java.util.List;
 
 import team017.construction.Builder;
 import team017.navigation.Navigator;
+import team017.util.Controllers;
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.ComponentController;
@@ -17,15 +18,10 @@ import battlecode.common.WeaponController;
 
 public abstract class AI {
 
-	protected RobotController myRC;
-	protected MovementController motor;
-	protected BuilderController builder;
-	protected SensorController sensor;
 	protected Navigator navigator;
 	protected Builder buildingSystem;
-	protected BroadcastController comm;
-	protected List<WeaponController> weapons;
-
+	protected Controllers controllers;
+	
 	// {NORTH, EAST, SOUTH, WEST}
 	protected int[] borders = { -1, -1, -1, -1 };
 	protected MapLocation homeLocation;
@@ -33,9 +29,11 @@ public abstract class AI {
 	protected double[] fluxRecord = new double[10];
 
 	public AI(RobotController rc) {
-		myRC = rc;
-		navigator = new Navigator(myRC);
-		weapons = new ArrayList<WeaponController>();
+		controllers = new Controllers();
+		
+		controllers.myRC = rc;
+		navigator = new Navigator(controllers.myRC);
+		controllers.weapons= new ArrayList<WeaponController>();
 		homeLocation = rc.getLocation();
 		updateComponents();
 	}
@@ -45,34 +43,34 @@ public abstract class AI {
 	abstract public void yield() throws GameActionException;
 
 	protected void updateComponents() {
-		ComponentController[] components = myRC.newComponents();
+		ComponentController[] components = controllers.myRC.newComponents();
 		BuilderController newBuilder = null;
 
 		for (ComponentController com : components) {
 			switch (com.componentClass()) {
 			case MOTOR:
-				motor = (MovementController) com;
-				navigator.setMotor(motor);
+				controllers.motor = (MovementController) com;
+				navigator.setMotor(controllers.motor);
 				break;
 			case SENSOR:
-				sensor = (SensorController) com;
-				navigator.setSensor(sensor);
+				controllers.sensor = (SensorController) com;
+				navigator.setSensor(controllers.sensor);
 				break;
 			case BUILDER:
 				newBuilder = (BuilderController) com;
 				break;
 			case COMM:
-				comm = (BroadcastController) com;
+				controllers.comm = (BroadcastController) com;
 				break;
 			case WEAPON:
-				weapons.add((WeaponController) com);
+				controllers.weapons.add((WeaponController) com);
 				break;
 			}
 		}
 		
 		if ( newBuilder != null ) {
-			builder = newBuilder;
-			buildingSystem = new Builder(myRC, builder, motor, sensor);
+			controllers.builder = newBuilder;
+			buildingSystem = new Builder(controllers);
 		}
 	}
 
@@ -80,7 +78,7 @@ public abstract class AI {
 		for (int i = 9; i > 0; --i) {
 			fluxRecord[i] = fluxRecord[i - 1];
 		}
-		fluxRecord[0] = myRC.getTeamResources();
+		fluxRecord[0] = controllers.myRC.getTeamResources();
 		fluxRate = fluxRecord[0] - fluxRecord[1];
 	}
 

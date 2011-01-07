@@ -1,5 +1,9 @@
 package team017.construction;
 
+import team017.message.BorderMessage;
+import team017.message.MessageHandler;
+import team017.util.Controllers;
+import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.Chassis;
 import battlecode.common.ComponentType;
@@ -18,22 +22,38 @@ public class Builder {
 	private BuilderController builder;
 	private MovementController motor;
 	private SensorController sensor;
-
+	private BroadcastController comm;
 	
-	public Builder(RobotController rc, BuilderController builder, MovementController motor, SensorController sensor) {
-		myRC = rc;
-		this.builder = builder;
-		this.motor = motor;
-		this.sensor = sensor;
+	public Builder(Controllers controllers) {
+		myRC = controllers.myRC;
+		builder = controllers.builder;
+		motor = controllers.motor;
+		sensor = controllers.sensor;
+		comm = controllers.comm;
 	}
 
-	public boolean constructUnit(MapLocation buildLoc, UnitType type){
+	public boolean constructUnit(MapLocation buildLoc, UnitType type, BuilderDirections builderDirs){
 		try{
+			ComponentType[] builderTypeList = {ComponentType.RECYCLER,ComponentType.ARMORY,ComponentType.FACTORY,ComponentType.CONSTRUCTOR}; 
+			for(ComponentType com: builderTypeList){
+				if(!com.equals(builder.type())){
+					if(type.getComponentList(com).length != 0){
+						if(builderDirs == null){
+							return false;
+						}
+						else{
+//							MessageHandler msgHandler = new BorderMessage(myRC, comm, buildLoc,type);
+//							msgHandler.send();
+						}
+					}
+				}
+			}
+			
 			if (myRC.getTeamResources() > type.chassis.cost * 1.1) {
 				if (canConstruct(type.chassis.level)) {
 					builder.build(type.chassis, buildLoc);
 					myRC.yield();
-					for (ComponentType com : type.coms) {
+					for (ComponentType com : type.getComponentList(builder.type())) {
 						while(myRC.getTeamResources() < com.cost * 1.1)
 							myRC.yield();
 						while(builder.isActive())
@@ -50,7 +70,35 @@ public class Builder {
 		}
 	}
 
-	public boolean randomConstructUnit(UnitType type){
+	public boolean constructUnit(MapLocation buildLoc, UnitType type){
+		try{
+			if(type.selfBuild == false)
+				return false;
+			
+			if (myRC.getTeamResources() > type.chassis.cost * 1.1) {
+				if (canConstruct(type.chassis.level)) {
+					builder.build(type.chassis, buildLoc);
+					myRC.yield();
+					for (ComponentType com : type.getComponentList(builder.type())) {
+						while(myRC.getTeamResources() < com.cost * 1.1)
+							myRC.yield();
+						while(builder.isActive())
+							myRC.yield();
+						builder.build(com, buildLoc, type.chassis.level);
+					}
+					myRC.turnOn(buildLoc, type.chassis.level);
+					return true;
+				}
+			}
+			return false;
+		}catch (Exception e){
+			return false;
+		}
+	}
+
+	
+	
+	public boolean constructUnit(UnitType type){
 		try{
 			MapLocation buildLoc = turnToAvailableSquare(type.chassis);
 			return constructUnit(buildLoc, type);
@@ -103,11 +151,4 @@ public class Builder {
 		return myRC.getLocation().add(buildDir);
 	}
 	
-	public double calculateTotalCost(UnitType type) {
-		double totalCost = type.chassis.cost;
-		for (ComponentType com : type.coms) {
-			totalCost += com.cost;
-		}
-		return totalCost;
-	}
 }

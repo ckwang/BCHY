@@ -22,7 +22,7 @@ public class RecyclerAI extends AI {
 
 	@Override
 	public void yield() throws GameActionException {
-		myRC.yield();
+		controllers.myRC.yield();
 		updateComponents();
 		updateFluxRate();
 	}
@@ -37,7 +37,7 @@ public class RecyclerAI extends AI {
 			try {
 				
 				// receive messages and handle them
-				Message[] messages = myRC.getAllMessages();
+				Message[] messages = controllers.myRC.getAllMessages();
 				for (Message msg : messages) {
 
 					switch (MessageHandler.getMessageType(msg)) {
@@ -54,18 +54,18 @@ public class RecyclerAI extends AI {
 					}
 				}
 				
-				if (fluxRate > 0 && myRC.getTeamResources() > 100) {
+				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 100) {
 					if (Clock.getRoundNum() < 1000) {
 						if (Clock.getRoundNum() % 3 == 0)
-							buildingSystem.randomConstructUnit(UnitType.CONSTRUCTOR);
+							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
 						else
-							buildingSystem.randomConstructUnit(UnitType.GRIZZLY);
+							buildingSystem.constructUnit(UnitType.GRIZZLY);
 
 					} else {
 						if (Clock.getRoundNum() % 5 == 0)
-							buildingSystem.randomConstructUnit(UnitType.CONSTRUCTOR);
+							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
 						else
-							buildingSystem.randomConstructUnit(UnitType.GRIZZLY);
+							buildingSystem.constructUnit(UnitType.GRIZZLY);
 					}
 				}
 				yield();
@@ -85,18 +85,18 @@ public class RecyclerAI extends AI {
 			// install an antenna to the adjacent recycler
 			RobotInfo info = senseAdjacentChassis(Chassis.LIGHT);
 			if (info != null
-					&& myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost
+					&& controllers.myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost
 					&& !Util.containsComponent(info.components,
 							ComponentType.ANTENNA)) {
-				builder.build(ComponentType.ANTENNA, info.location,
+				controllers.builder.build(ComponentType.ANTENNA, info.location,
 						RobotLevel.ON_GROUND);
 			}
 			yield();
 
 			info = senseAdjacentChassis(Chassis.BUILDING);
 			if (info != null
-					&& myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost) {
-				builder.build(ComponentType.ANTENNA, info.location,
+					&& controllers.myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost) {
+				controllers.builder.build(ComponentType.ANTENNA, info.location,
 						RobotLevel.ON_GROUND);
 			}
 		} catch (Exception e) {
@@ -113,10 +113,10 @@ public class RecyclerAI extends AI {
 	 */
 	private RobotInfo senseAdjacentChassis(Chassis chassis)
 			throws GameActionException {
-		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
+		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		for (Robot r : robots) {
-			if (r.getTeam() == myRC.getTeam()) {
-				RobotInfo info = sensor.senseRobotInfo(r);
+			if (r.getTeam() == controllers.myRC.getTeam()) {
+				RobotInfo info = controllers.sensor.senseRobotInfo(r);
 				if (info.chassis == chassis)
 					return info;
 			}

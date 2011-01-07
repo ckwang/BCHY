@@ -25,7 +25,7 @@ public class ConstructorAI extends AI {
 	}
 	
 	public void yield() throws GameActionException {
-		myRC.yield();
+		controllers.myRC.yield();
 		updateComponents();
 		updateMineSet();
 		updateFluxRate();
@@ -43,13 +43,13 @@ public class ConstructorAI extends AI {
 			} catch (GameActionException e) {
 				e.printStackTrace();
 			}
-			init_return();
+//			init_return();
 		}
 		
 		while (true) {
 
 			try {
-				if (motor != null) {
+				if (controllers.motor != null) {
 					navigate();
 				}
 				build();
@@ -66,10 +66,10 @@ public class ConstructorAI extends AI {
 			try {
 				for (int i = 0; i < 4; ++i){
 					// Rotate twice Right for a 90 degrees turn
-					motor.setDirection(myRC.getDirection().rotateRight().rotateRight());
+					controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
 					yield();
-//					myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
-//					myRC.setIndicatorString(1,myRC.getLocation() + "");
+//					controllers.myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+//					controllers.myRC.setIndicatorString(1,controllers.myRC.getLocation() + "");
 				}
 			} catch (GameActionException e) {
 				System.out.println("caught exception:");
@@ -82,20 +82,20 @@ public class ConstructorAI extends AI {
 			
 			Direction[] addDirs = new Direction[3];
 			
-			if (myRC.getDirection().isDiagonal()) {
-				addDirs[0] = myRC.getDirection().rotateLeft();
-				addDirs[1] = myRC.getDirection().rotateRight();
+			if (controllers.myRC.getDirection().isDiagonal()) {
+				addDirs[0] = controllers.myRC.getDirection().rotateLeft();
+				addDirs[1] = controllers.myRC.getDirection().rotateRight();
 			} else {
-				addDirs[0] = myRC.getDirection();
+				addDirs[0] = controllers.myRC.getDirection();
 			}
 			
 			int j = -1;
 			while (addDirs[++j] != null) {
-				MapLocation currentLoc = myRC.getLocation();
+				MapLocation currentLoc = controllers.myRC.getLocation();
 
 				int i;
 				for (i = 3; i > 0; i--) {
-					if (myRC.senseTerrainTile(currentLoc.add(addDirs[j],i)) != TerrainTile.OFF_MAP)
+					if (controllers.myRC.senseTerrainTile(currentLoc.add(addDirs[j],i)) != TerrainTile.OFF_MAP)
 						break;
 				}
 
@@ -137,7 +137,7 @@ public class ConstructorAI extends AI {
 			try {
 				
 				navigator.setDestination(locationList[index]);
-//				myRC.setIndicatorString(2, myRC.getLocation().toString()+locationList[index].toString());
+//				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation().toString()+locationList[index].toString());
 				
 				Direction nextDir = navigator.getNextDir(0);
 				if (nextDir == Direction.OMNI) {
@@ -147,11 +147,11 @@ public class ConstructorAI extends AI {
 					continue;
 				}
 				
-				if (!motor.isActive() && motor.canMove(nextDir) ) {
-					if ( myRC.getDirection() == nextDir ) {
-						motor.moveForward();
+				if (!controllers.motor.isActive() && controllers.motor.canMove(nextDir) ) {
+					if ( controllers.myRC.getDirection() == nextDir ) {
+						controllers.motor.moveForward();
 					} else {
-						motor.setDirection(nextDir);
+						controllers.motor.setDirection(nextDir);
 					}
 				}
 				
@@ -172,11 +172,11 @@ public class ConstructorAI extends AI {
 				
 				if (nextDir == Direction.OMNI)	break;
 				
-				if (!motor.isActive() && motor.canMove(nextDir)) {
-					if ( myRC.getDirection() == nextDir ) 
-						motor.moveForward();
+				if (!controllers.motor.isActive() && controllers.motor.canMove(nextDir)) {
+					if ( controllers.myRC.getDirection() == nextDir ) 
+						controllers.motor.moveForward();
 					else 
-						motor.setDirection(nextDir);
+						controllers.motor.setDirection(nextDir);
 				}
 				yield();
 			} catch (Exception e) {
@@ -185,16 +185,16 @@ public class ConstructorAI extends AI {
 			}
 		}
 		
-		MessageHandler msgHandler = new BorderMessage(myRC, comm, borders);
+		MessageHandler msgHandler = new BorderMessage(controllers.myRC, controllers.comm, borders);
 		msgHandler.send();
-		myRC.yield();
+		controllers.myRC.yield();
 		
 	}
 	
 	private void updateMineSet() throws GameActionException {
-		Mine[] minelist = sensor.senseNearbyGameObjects(Mine.class);
+		Mine[] minelist = controllers.sensor.senseNearbyGameObjects(Mine.class);
 		for (Mine mine : minelist){
-			if(sensor.senseObjectAtLocation(mine.getLocation(), RobotLevel.ON_GROUND) != null){
+			if(controllers.sensor.senseObjectAtLocation(mine.getLocation(), RobotLevel.ON_GROUND) != null){
 				if (mineLocations.contains(mine.getLocation()))
 					mineLocations.remove(mine.getLocation());	
 			} else {
@@ -205,53 +205,53 @@ public class ConstructorAI extends AI {
 	}
 	
 	private void build() throws GameActionException{
-		myRC.setIndicatorString(0, mineLocations.toString());
+		controllers.myRC.setIndicatorString(0, mineLocations.toString());
 		
 		for (MapLocation mineLoc : mineLocations){
-			if(myRC.getLocation().isAdjacentTo(mineLoc)){
-				if(sensor.canSenseSquare(mineLoc)){
-					 if(sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
+			if(controllers.myRC.getLocation().isAdjacentTo(mineLoc)){
+				if(controllers.sensor.canSenseSquare(mineLoc)){
+					 if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
 						 continue;
 				}
-				if(myRC.getDirection()!=myRC.getLocation().directionTo(mineLoc)){
-					while(motor.isActive())
-						myRC.yield();
-					motor.setDirection(myRC.getLocation().directionTo(mineLoc));
-					myRC.yield();
+				if(controllers.myRC.getDirection()!=controllers.myRC.getLocation().directionTo(mineLoc)){
+					while(controllers.motor.isActive())
+						controllers.myRC.yield();
+					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(mineLoc));
+					controllers.myRC.yield();
 				}
-				if(sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) == null){
-					while(!buildingSystem.constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.RECYCLER))
-						myRC.yield();					
+				if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) == null){
+					while(!buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.RECYCLER))
+						controllers.myRC.yield();					
 				}
 			}	
 		}
-//		if(fluxRate > 0  && myRC.getTeamResources() > 120)
-//			buildingSystem.constructUnit(myRC.getLocation().add(myRC.getDirection()),UnitType.FACTORY);
+//		if(fluxRate > 0  && controllers.myRC.getTeamResources() > 120)
+//			buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.FACTORY);
 	}
 	
 	private void navigate() throws GameActionException{
 		
-		if (!motor.isActive()) {
+		if (!controllers.motor.isActive()) {
 			if (!mineLocations.isEmpty()) {
-				MapLocation currentLoc = myRC.getLocation();
+				MapLocation currentLoc = controllers.myRC.getLocation();
 				MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
 				for (MapLocation loc : mineLocations) {
 					if (currentLoc.distanceSquaredTo(loc) < currentLoc.distanceSquaredTo(nearest))
 						nearest = loc;
 				}
 				
-				myRC.setIndicatorString(0, currentLoc + "," + nearest);
+				controllers.myRC.setIndicatorString(0, currentLoc + "," + nearest);
 				
 				navigator.setDestination(nearest);
 				Direction nextDir = navigator.getNextDir(0);
 				
 				if (nextDir != Direction.OMNI) {
-					if (myRC.getDirection() == nextDir) {
-						if (motor.canMove(nextDir)) {
-							motor.moveForward();
+					if (controllers.myRC.getDirection() == nextDir) {
+						if (controllers.motor.canMove(nextDir)) {
+							controllers.motor.moveForward();
 						}
 					} else {
-						motor.setDirection(nextDir);
+						controllers.motor.setDirection(nextDir);
 					}	
 				}
 				
@@ -264,14 +264,16 @@ public class ConstructorAI extends AI {
 	
 	private void roachNavigate() throws GameActionException {
 		// navigate();
-		if (motor.canMove(myRC.getDirection())) {
+		if (controllers.motor.canMove(controllers.myRC.getDirection())) {
 			// System.out.println("about to move");
-			motor.moveForward();
+			controllers.motor.moveForward();
 		} else {
-			if((Clock.getRoundNum()/10) % 2 == 0)
-				motor.setDirection(myRC.getDirection().rotateRight());
-			else
-				motor.setDirection(myRC.getDirection().rotateLeft());
+			Direction tempDir = controllers.myRC.getDirection();
+			int rotationTimes = Clock.getRoundNum() % 7;
+			for (int i = 0; i <= rotationTimes; ++i){
+				tempDir = tempDir.rotateRight();
+			}
+				controllers.motor.setDirection(tempDir);
 		}
 	}
 }
