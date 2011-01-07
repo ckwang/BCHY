@@ -76,4 +76,17 @@ public abstract class MessageHandler {
 		
 		return msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3]; 
 	}
+	
+	public int getRoundNum() {
+		return msg.ints[0];
+	}
+	
+	public int getSourceID() {
+		return msg.ints[1];
+	}
+	
+	public MapLocation getSourceLocation() {
+		return msg.locations[0];
+	}
+	
 }
