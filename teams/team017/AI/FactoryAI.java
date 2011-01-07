@@ -5,6 +5,7 @@ import team017.message.BorderMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.MessageHandler;
 import team017.message.MessageType;
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
@@ -34,11 +35,21 @@ public class FactoryAI extends AI {
 					case BUILDING_REQUEST:
 						BuildingRequestMessage handler = new BuildingRequestMessage(
 								msg);
+						
 						if (handler.getBuilderLocation().equals(
 								controllers.myRC.getLocation())) {
-							buildingSystem.constructComponent(
+							
+							Direction buildDir = controllers.myRC.getLocation().directionTo(handler.getBuildingLocation());
+							if (controllers.myRC.getDirection() != buildDir) {
+								controllers.motor.setDirection(buildDir);
+								yield();
+							}
+							
+							while(!buildingSystem.constructComponent(
 									handler.getBuildingLocation(),
-									handler.getUnitType());
+									handler.getUnitType()))
+								continue;
+							
 							yield();
 						}
 						break;
