@@ -14,7 +14,7 @@ public abstract class MessageHandler {
 	
 	protected int intCounter = 0;
 	protected int locCounter = 0;
-	protected int stringCounter = 1;
+	protected int stringCounter = 0;
 	
 	protected boolean valid;
 	
@@ -60,10 +60,10 @@ public abstract class MessageHandler {
 		msg.ints[intCounter++] = round;
 		msg.ints[intCounter++] = sourceID;
 		msg.locations[locCounter++] = sourceLocation;
-		msg.ints[intCounter++] = type.index;
+		msg.ints[intCounter++] = type.ordinal();
 		
 		// checksum
-		msg.ints[intCounter++] = round + sourceID + sourceLocation.x + sourceLocation.y + type.index; 
+		msg.ints[intCounter++] = round + sourceID + sourceLocation.x + sourceLocation.y + type.ordinal(); 
 	}
 	
 	/*
