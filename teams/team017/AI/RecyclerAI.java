@@ -38,9 +38,9 @@ public class RecyclerAI extends BuildingAI {
 
 		while (true) {
 			try {
-				controllers.myRC.setIndicatorString(0, borders[0]+" "+ borders[1]+" " + borders[2]+" " + borders[3]+" ");
-				controllers.myRC.setIndicatorString(1, enemyBase.toString() );
-				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation().toString() );
+//				controllers.myRC.setIndicatorString(0, borders[0]+" "+ borders[1]+" " + borders[2]+" " + borders[3]+" ");
+//				controllers.myRC.setIndicatorString(1, enemyBase.toString() );
+//				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation().toString() );
 				
 				// receive messages and handle them
 				Message[] messages = controllers.myRC.getAllMessages();
@@ -97,6 +97,7 @@ public class RecyclerAI extends BuildingAI {
 							// build an antenna if it doesn't have one
 							if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) 
 								controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
+							
 						}
 						
 						break;
