@@ -1,16 +1,14 @@
 package team017.message;
 
-import battlecode.common.BroadcastController;
+import team017.util.Controllers;
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
-import battlecode.common.RobotController;
 
 public abstract class MessageHandler {
 	
-	protected RobotController myRC;
-	protected BroadcastController comm;
+	protected Controllers controllers;
 	
 	protected int intCounter = 0;
 	protected int locCounter = 0;
@@ -20,9 +18,8 @@ public abstract class MessageHandler {
 	
 	protected Message msg;
 	
-	protected MessageHandler(RobotController rc, BroadcastController comm, MessageType type) {
-		myRC = rc;
-		this.comm = comm;
+	protected MessageHandler(Controllers controllers, MessageType type) {
+		this.controllers = controllers;
 		
 		msg = new Message();
 		msg.ints = new int[10];
@@ -40,8 +37,8 @@ public abstract class MessageHandler {
 	
 	public void send() {
 		try {
-			if (!comm.isActive())
-				comm.broadcast(msg);
+			if (!controllers.comm.isActive())
+				controllers.comm.broadcast(msg);
 		} catch (GameActionException e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
@@ -54,8 +51,8 @@ public abstract class MessageHandler {
 	
 	private void writeTag(MessageType type) {
 		int round = Clock.getRoundNum();
-		int sourceID = myRC.getRobot().getID();
-		MapLocation sourceLocation = myRC.getLocation();
+		int sourceID = controllers.myRC.getRobot().getID();
+		MapLocation sourceLocation = controllers.myRC.getLocation();
 		
 		msg.ints[intCounter++] = round;
 		msg.ints[intCounter++] = sourceID;
