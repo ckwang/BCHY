@@ -46,7 +46,7 @@ public class ConstructorAI extends AI {
 				e.printStackTrace();
 			}
 //			updateComponents();
-//			init_return();
+			init_return();
 		}
 		
 		while (true) {
