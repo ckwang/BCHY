@@ -9,6 +9,7 @@ import team017.util.Controllers;
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.ComponentController;
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.MovementController;
@@ -24,6 +25,7 @@ public abstract class AI {
 	
 	// {NORTH, EAST, SOUTH, WEST}
 	protected int[] borders = { -1, -1, -1, -1 };
+	protected Direction[] enemyDir = {Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST};
 	protected MapLocation homeLocation;
 	protected double fluxRate;
 	protected double[] fluxRecord = new double[10];

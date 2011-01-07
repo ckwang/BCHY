@@ -164,8 +164,8 @@ public class ConstructorAI extends AI {
 			}
 		}
 	}
-
-	private void init_return() {
+	
+	private void init_return() throws GameActionException {
 		navigator.setDestination(homeLocation);
 
 		while (true) {
@@ -191,8 +191,8 @@ public class ConstructorAI extends AI {
 
 		MessageHandler msgHandler = new BorderMessage(controllers, borders);
 		msgHandler.send();
-		controllers.myRC.yield();
-
+		yield();
+		
 	}
 
 	private void updateLocationSets() throws GameActionException {
@@ -212,16 +212,15 @@ public class ConstructorAI extends AI {
 
 		}
 	}
-
-	private void build() throws GameActionException {
-		controllers.myRC.setIndicatorString(0, mineLocations.toString());
-
-		for (MapLocation mineLoc : mineLocations) {
-			if (controllers.myRC.getLocation().isAdjacentTo(mineLoc)) {
-				if (controllers.sensor.canSenseSquare(mineLoc)) {
-					if (controllers.sensor.senseObjectAtLocation(mineLoc,
-							RobotLevel.ON_GROUND) != null)
-						continue;
+	
+	private void build() throws GameActionException{
+//		controllers.myRC.setIndicatorString(0, mineLocations.toString());
+		
+		for (MapLocation mineLoc : mineLocations){
+			if(controllers.myRC.getLocation().isAdjacentTo(mineLoc)){
+				if(controllers.sensor.canSenseSquare(mineLoc)){
+					 if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
+						 continue;
 				}
 				if (controllers.myRC.getDirection() != controllers.myRC
 						.getLocation().directionTo(mineLoc)) {
@@ -231,13 +230,11 @@ public class ConstructorAI extends AI {
 							.getLocation().directionTo(mineLoc));
 					controllers.myRC.yield();
 				}
-				if (controllers.sensor.senseObjectAtLocation(mineLoc,
-						RobotLevel.ON_GROUND) == null) {
-					while (!buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.RECYCLER))
+				if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) == null){
+					while(!buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.RECYCLER))
 						controllers.myRC.yield();
-					controllers.myRC.yield();
-					controllers.myRC.setIndicatorString(2, "Construction Complete");
-					MessageHandler msgHandler = new ConstructionCompleteMessage(controllers, mineLoc , ComponentType.RECYCLER);
+					MessageHandler msgHandler = new ConstructionCompleteMessage(controllers, mineLoc, ComponentType.RECYCLER);
+					//MessageHandler msgHandler = new BorderMessage(controllers, borders);
 					msgHandler.send();
 					controllers.myRC.yield();
 				}
@@ -307,7 +304,6 @@ public class ConstructorAI extends AI {
 							.distanceSquaredTo(nearest))
 						nearest = loc;
 				}
-
 				navigator.setDestination(nearest);
 				Direction nextDir = navigator.getNextDir(0);
 

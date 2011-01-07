@@ -5,6 +5,7 @@ import team017.construction.UnitType;
 import team017.message.BorderMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.EnemyLocationMessage;
 import team017.message.MessageHandler;
 import team017.util.Util;
 import battlecode.common.Chassis;
@@ -21,23 +22,26 @@ import battlecode.common.RobotLevel;
 
 public class RecyclerAI extends BuildingAI {
 
-	BuilderDirections builderDirs;
+	private MapLocation enemyBase;
 	
 	public RecyclerAI(RobotController rc) {
-		super(rc);
-		
-		builderDirs = new BuilderDirections();
+		super(rc);		
+		enemyBase = controllers.myRC.getLocation();
 	}
+
 
 	@Override
 	public void proceed() {
-
+		
 		if (Clock.getRoundNum() == 0)
 			init();
 
 		while (true) {
 			try {
-
+				controllers.myRC.setIndicatorString(0, borders[0]+" "+ borders[1]+" " + borders[2]+" " + borders[3]+" ");
+				controllers.myRC.setIndicatorString(1, enemyBase.toString() );
+				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation().toString() );
+				
 				// receive messages and handle them
 				Message[] messages = controllers.myRC.getAllMessages();
 				for (Message msg : messages) {
@@ -50,9 +54,14 @@ public class RecyclerAI extends BuildingAI {
 						int[] newBorders = handler.getBorderDirection();
 
 						for (int i = 0; i < 4; ++i) {
-							if (borders[i] == -1)
-								borders[i] = newBorders[i];
+							if (newBorders[i] != -1){
+								if (borders[i] != newBorders[i]){
+									borders[i] = newBorders[i];
+									enemyBase = enemyBase.add(enemyDir[i],60);
+								}
+							}
 						}
+						
 						break;
 					}
 					case BUILDING_REQUEST: {
@@ -96,20 +105,33 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 
-//				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 100) {
-//					if (Clock.getRoundNum() < 1000) {
-//						if (Clock.getRoundNum() % 3 == 0)
-//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-//						else
-//							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//
-//					} else {
-//						if (Clock.getRoundNum() % 5 == 0)
-//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-//						else
-//							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//					}
-//				}
+				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 100) {
+					if (Clock.getRoundNum() < 1000) {
+						if (Clock.getRoundNum() % 3 == 0){
+							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+						}
+						else{
+							buildingSystem.constructUnit(UnitType.GRIZZLY);
+							if (enemyBase != null){
+								MessageHandler msgHandler = new EnemyLocationMessage(controllers, enemyBase);
+								msgHandler.send();
+								yield();
+							}
+						}
+
+					} else {
+						if (Clock.getRoundNum() % 5 == 0)
+							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+						else{
+							buildingSystem.constructUnit(UnitType.GRIZZLY);
+							if (enemyBase != null){
+								MessageHandler msgHandler = new EnemyLocationMessage(controllers, enemyBase);
+								msgHandler.send();
+								yield();
+							}
+						}
+					}
+				}
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
