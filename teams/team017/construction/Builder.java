@@ -3,37 +3,23 @@ package team017.construction;
 import java.util.ArrayList;
 import java.util.List;
 
-import team017.message.BorderMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.MessageHandler;
 import team017.util.Controllers;
-import battlecode.common.BroadcastController;
-import battlecode.common.BuilderController;
 import battlecode.common.Chassis;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
-import battlecode.common.MovementController;
-import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
-import battlecode.common.SensorController;
 import battlecode.common.TerrainTile;
 
 public class Builder {
 	
-	private RobotController myRC;
-	private BuilderController builder;
-	private MovementController motor;
-	private SensorController sensor;
-	private BroadcastController comm;
+	private Controllers controllers;
 	
 	public Builder(Controllers controllers) {
-		myRC = controllers.myRC;
-		builder = controllers.builder;
-		motor = controllers.motor;
-		sensor = controllers.sensor;
-		comm = controllers.comm;
+		this.controllers = controllers;
 	}
 
 	public boolean constructUnit(MapLocation buildLoc, UnitType type, BuilderDirections builderDirs){
@@ -42,7 +28,7 @@ public class Builder {
 			List<ComponentType> otherBuilders = new ArrayList<ComponentType>();
 			
 			for(ComponentType com: builderTypeList){
-				if(!com.equals(builder.type())){
+				if(!com.equals(controllers.builder.type())){
 					if(type.getComponentList(com).length != 0){
 						if(builderDirs.getDirections(com) == null){
 							return false;
@@ -54,23 +40,22 @@ public class Builder {
 				}
 			}
 			
-			if (myRC.getTeamResources() > type.chassis.cost * 1.1) {
+			if (controllers.myRC.getTeamResources() > type.chassis.cost * 1.1) {
 				if (canConstruct(type.chassis.level)) {
-					builder.build(type.chassis, buildLoc);
-					myRC.yield();
+					controllers.builder.build(type.chassis, buildLoc);
+					controllers.myRC.yield();
 					for(ComponentType otherBuilder: otherBuilders){
-						MessageHandler msgHandler = new BuildingRequestMessage(myRC, comm, buildLoc,type);
+						MessageHandler msgHandler = new BuildingRequestMessage(controllers,controllers.myRC.getLocation().add(builderDirs.getDirections(otherBuilder)) ,buildLoc,type);
 						msgHandler.send();
-
 					}
-					for (ComponentType com : type.getComponentList(builder.type())) {
-						while(myRC.getTeamResources() < com.cost * 1.1)
-							myRC.yield();
-						while(builder.isActive())
-							myRC.yield();
-						builder.build(com, buildLoc, type.chassis.level);
+					for (ComponentType com : type.getComponentList(controllers.builder.type())) {
+						while(controllers.myRC.getTeamResources() < com.cost * 1.1)
+							controllers.myRC.yield();
+						while(controllers.builder.isActive())
+							controllers.myRC.yield();
+						controllers.builder.build(com, buildLoc, type.chassis.level);
 					}
-					myRC.turnOn(buildLoc, type.chassis.level);
+					controllers.myRC.turnOn(buildLoc, type.chassis.level);
 					return true;
 				}
 			}
@@ -85,18 +70,18 @@ public class Builder {
 			if(type.selfBuild == false)
 				return false;
 			
-			if (myRC.getTeamResources() > type.chassis.cost * 1.1) {
+			if (controllers.myRC.getTeamResources() > type.chassis.cost * 1.1) {
 				if (canConstruct(type.chassis.level)) {
-					builder.build(type.chassis, buildLoc);
-					myRC.yield();
-					for (ComponentType com : type.getComponentList(builder.type())) {
-						while(myRC.getTeamResources() < com.cost * 1.1)
-							myRC.yield();
-						while(builder.isActive())
-							myRC.yield();
-						builder.build(com, buildLoc, type.chassis.level);
+					controllers.builder.build(type.chassis, buildLoc);
+					controllers.myRC.yield();
+					for (ComponentType com : type.getComponentList(controllers.builder.type())) {
+						while(controllers.myRC.getTeamResources() < com.cost * 1.1)
+							controllers.myRC.yield();
+						while(controllers.builder.isActive())
+							controllers.myRC.yield();
+						controllers.builder.build(com, buildLoc, type.chassis.level);
 					}
-					myRC.turnOn(buildLoc, type.chassis.level);
+					controllers.myRC.turnOn(buildLoc, type.chassis.level);
 					return true;
 				}
 			}
@@ -119,13 +104,14 @@ public class Builder {
 
 	public boolean constructComponent(MapLocation buildLoc, UnitType type){
 		try{
-			for (ComponentType com : type.getComponentList(builder.type())) {
-				while(myRC.getTeamResources() < com.cost * 1.1)
-					myRC.yield();
-				while(builder.isActive())
-					myRC.yield();
-				builder.build(com, buildLoc, type.chassis.level);
+			for (ComponentType com : type.getComponentList(controllers.builder.type())) {
+				while(controllers.myRC.getTeamResources() < com.cost * 1.1)
+					controllers.myRC.yield();
+				while(controllers.builder.isActive())
+					controllers.myRC.yield();
+				controllers.builder.build(com, buildLoc, type.chassis.level);
 			}
+			controllers.myRC.turnOn(buildLoc, type.chassis.level);
 			return true;
 		}catch (Exception e){
 			return false;
@@ -134,31 +120,31 @@ public class Builder {
 	
 	private boolean canConstruct(RobotLevel level) throws GameActionException {
 		
-		if (sensor.senseObjectAtLocation(
-				myRC.getLocation().add(myRC.getDirection()), level) == null
-				&& myRC.senseTerrainTile(myRC.getLocation().add(
-						myRC.getDirection())) == TerrainTile.LAND)
+		if (controllers.sensor.senseObjectAtLocation(
+				controllers.myRC.getLocation().add(controllers.myRC.getDirection()), level) == null
+				&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(
+						controllers.myRC.getDirection())) == TerrainTile.LAND)
 			return true;
 		return false;
 	}
 
 	private MapLocation turnToAvailableSquare(Chassis chassis)
 			throws GameActionException {
-		Direction buildDir = myRC.getDirection();
+		Direction buildDir = controllers.myRC.getDirection();
 		for (int i = 1; i < 8; ++i) {
-			if (sensor.senseObjectAtLocation(myRC.getLocation().add(buildDir),
+			if (controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(buildDir),
 					chassis.level) == null
-					&& myRC.senseTerrainTile(myRC.getLocation().add(buildDir)) == TerrainTile.LAND) {
-				if (myRC.getDirection() != buildDir){
-					while(motor.isActive())
-						myRC.yield();
-					motor.setDirection(buildDir);
+					&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(buildDir)) == TerrainTile.LAND) {
+				if (controllers.myRC.getDirection() != buildDir){
+					while(controllers.motor.isActive())
+						controllers.myRC.yield();
+					controllers.motor.setDirection(buildDir);
 				}
 					break;
 			}
 			buildDir = buildDir.rotateLeft();
 		}
-		return myRC.getLocation().add(buildDir);
+		return controllers.myRC.getLocation().add(buildDir);
 	}
 	
 }
