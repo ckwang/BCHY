@@ -4,6 +4,7 @@ import java.util.List;
 
 import battlecode.common.ComponentClass;
 import battlecode.common.ComponentController;
+import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -37,6 +38,22 @@ public class Util {
 				return cc;
 		}
 		return null;
+	}
+
+	public static boolean containsComponent(ComponentType[] list, ComponentType com) {
+		for (ComponentType c : list) {
+			if (c == com)
+				return true;
+		}
+		return false;
+	}
+	
+	public static boolean containsComponent(ComponentController[] list, ComponentType com) {
+		for (ComponentController c : list) {
+			if (c.type() == com)
+				return true;
+		}
+		return false;
 	}
 
 }

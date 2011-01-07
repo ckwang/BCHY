@@ -1,10 +1,14 @@
 package team017.AI;
 
 import team017.construction.UnitType;
+import team017.message.BorderMessage;
+import team017.message.MessageHandler;
+import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.GameActionException;
+import battlecode.common.Message;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
@@ -31,6 +35,25 @@ public class RecyclerAI extends AI {
 
 		while (true) {
 			try {
+				
+				// receive messages and handle them
+				Message[] messages = myRC.getAllMessages();
+				for (Message msg : messages) {
+
+					switch (MessageHandler.getMessageType(msg)) {
+					case BORDER:
+						BorderMessage handler = new BorderMessage(msg);
+						
+						// update the borders
+						int[] newBorders = handler.getBorderDirection();
+
+						for (int i = 0; i < 4; ++i) {
+							if (borders[i] == -1)
+								borders[i] = newBorders[i];
+						}
+					}
+				}
+				
 				if (fluxRate > 0 && myRC.getTeamResources() > 100) {
 					if (Clock.getRoundNum() < 1000) {
 						if (Clock.getRoundNum() % 3 == 0)
@@ -45,7 +68,7 @@ public class RecyclerAI extends AI {
 							buildingSystem.randomConstructUnit(UnitType.GRIZZLY);
 					}
 				}
-			yield();
+				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
@@ -63,7 +86,7 @@ public class RecyclerAI extends AI {
 			RobotInfo info = senseAdjacentChassis(Chassis.LIGHT);
 			if (info != null
 					&& myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost
-					&& !containsComponent(info.components,
+					&& !Util.containsComponent(info.components,
 							ComponentType.ANTENNA)) {
 				builder.build(ComponentType.ANTENNA, info.location,
 						RobotLevel.ON_GROUND);
@@ -100,12 +123,5 @@ public class RecyclerAI extends AI {
 		}
 		return null;
 	}
-
-	private boolean containsComponent(ComponentType[] list, ComponentType com) {
-		for (ComponentType c : list) {
-			if (c == com)
-				return true;
-		}
-		return false;
-	}
+	
 }

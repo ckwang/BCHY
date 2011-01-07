@@ -48,8 +48,8 @@ public abstract class MessageHandler {
 		}
 	}
 	
-	public MessageType getMessageType() {
-		return MessageType.valueOf( msg.strings[0] );
+	static public MessageType getMessageType(Message msg) {
+		return MessageType.values()[msg.ints[2]];
 	}
 	
 	private void writeTag(MessageType type) {
@@ -60,19 +60,19 @@ public abstract class MessageHandler {
 		msg.ints[intCounter++] = round;
 		msg.ints[intCounter++] = sourceID;
 		msg.locations[locCounter++] = sourceLocation;
-		msg.strings[stringCounter++] = type.toString();
+		msg.ints[intCounter++] = type.index;
 		
 		// checksum
-		msg.ints[intCounter++] = round + sourceID + sourceLocation.x + sourceLocation.y; 
+		msg.ints[intCounter++] = round + sourceID + sourceLocation.x + sourceLocation.y + type.index; 
 	}
 	
 	/*
 	 * Check if the input message is valid by inspecting the check sum
 	 */
 	private boolean isValid() {
-		intCounter += 3;
+		intCounter += 4;
 		locCounter += 2;
 		
-		return msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[1].y == msg.ints[2]; 
+		return msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3]; 
 	}
 }

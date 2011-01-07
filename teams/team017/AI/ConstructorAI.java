@@ -5,7 +5,6 @@ import java.util.Set;
 
 import team017.message.BorderMessage;
 import team017.message.MessageHandler;
-import team017.construction.Builder;
 import team017.construction.UnitType;
 
 import battlecode.common.Clock;
@@ -42,10 +41,8 @@ public class ConstructorAI extends AI {
 			try {
 				yield();
 			} catch (GameActionException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-//			updateComponents();
 			init_return();
 		}
 		
