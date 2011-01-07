@@ -20,13 +20,13 @@ public class FactoryAI extends AI {
 	public FactoryAI(RobotController rc) {
 		super(rc);
 		
-		builderDirs = new BuilderDirections();
+		builderDirs = new BuilderDirections(controllers);
 	}
 
 	@Override
 	public void yield() throws GameActionException {
 		controllers.myRC.yield();
-		updateComponents();
+		controllers.updateComponents();
 		updateFluxRate();
 	}
 

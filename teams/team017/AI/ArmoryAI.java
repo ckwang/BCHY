@@ -15,14 +15,14 @@ public class ArmoryAI extends AI{
 
 	public ArmoryAI(RobotController rc) {
 		super(rc);
-		builderDirs = new BuilderDirections();
+		builderDirs = new BuilderDirections(controllers);
 
 	}
 
 	@Override
 	public void yield() throws GameActionException {
 		controllers.myRC.yield();
-		updateComponents();
+		controllers.updateComponents();
 		updateFluxRate();
 	}
 

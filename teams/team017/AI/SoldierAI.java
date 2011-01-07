@@ -41,7 +41,7 @@ public class SoldierAI extends AI {
 
 			try {
 				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString());
-				updateComponents();
+				controllers.updateComponents();
 				// receive messages and handle them
 				Message[] messages = controllers.myRC.getAllMessages();
 				for (Message msg : messages) {

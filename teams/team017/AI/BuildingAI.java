@@ -25,13 +25,14 @@ public abstract class BuildingAI extends AI {
 	public BuildingAI(RobotController rc) {
 		super(rc);
 		
-		builderDirs = new BuilderDirections();
+		
+		builderDirs = new BuilderDirections(controllers);
 	}
 
 	@Override
 	public void yield() throws GameActionException {
 		controllers.myRC.yield();
-		updateComponents();
+		controllers.updateComponents();
 		updateFluxRate();
 	}
 

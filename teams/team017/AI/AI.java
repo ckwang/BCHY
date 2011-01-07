@@ -1,21 +1,12 @@
 package team017.AI;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import team017.construction.Builder;
 import team017.navigation.Navigator;
 import team017.util.Controllers;
-import battlecode.common.BroadcastController;
-import battlecode.common.BuilderController;
-import battlecode.common.ComponentController;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
-import battlecode.common.MovementController;
 import battlecode.common.RobotController;
-import battlecode.common.SensorController;
-import battlecode.common.WeaponController;
 
 public abstract class AI {
 
@@ -35,39 +26,15 @@ public abstract class AI {
 		
 		controllers.myRC = rc;
 		navigator = new Navigator(controllers);
-		controllers.weapons= new ArrayList<WeaponController>();
 		homeLocation = rc.getLocation();
-		updateComponents();
+		controllers.updateComponents();
+		
+		buildingSystem = new Builder(controllers);
 	}
 
 	abstract public void proceed();
 	
 	abstract public void yield() throws GameActionException;
-
-	protected void updateComponents() {
-		ComponentController[] components = controllers.myRC.newComponents();
-		
-		for (ComponentController com : components) {
-			switch (com.componentClass()) {
-			case MOTOR:
-				controllers.motor = (MovementController) com;
-				break;
-			case SENSOR:
-				controllers.sensor = (SensorController) com;
-				break;
-			case BUILDER:
-				controllers.builder = (BuilderController) com;
-				buildingSystem = new Builder(controllers);
-				break;
-			case COMM:
-				controllers.comm = (BroadcastController) com;
-				break;
-			case WEAPON:
-				controllers.weapons.add((WeaponController) com);
-				break;
-			}
-		}
-	}
 
 	protected void updateFluxRate() {
 		for (int i = 9; i > 0; --i) {

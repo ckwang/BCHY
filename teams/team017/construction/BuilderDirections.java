@@ -1,9 +1,13 @@
 package team017.construction;
 
+import team017.util.Controllers;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 
 public class BuilderDirections {
+	
+	private Controllers controllers;
+	
 	public Direction recyclerDirection;
 	public Direction armoryDirection;
 	public Direction factoryDirection;
@@ -12,10 +16,11 @@ public class BuilderDirections {
 	 * 6 * 2
 	 * 5 4 3
 	 */
-	public ComponentType[] adjacentComponents;
+	public boolean[] emptyDirections;
 	
-	public BuilderDirections() {
-		adjacentComponents = new ComponentType[8];
+	public BuilderDirections(Controllers controllers) {
+		this.controllers = controllers;
+		emptyDirections = new boolean[8];
 	}
 	
 	public Direction getDirections(ComponentType type){
@@ -39,6 +44,24 @@ public class BuilderDirections {
 			armoryDirection = dir;
 		case FACTORY:
 			factoryDirection = dir;
+		}
+	}
+	
+//	public Direction consecutiveTwoEmpty() {
+//		int i = 0;
+//		
+//	}
+	
+	public boolean isComplete() {
+		switch(controllers.builder.type()) {
+		case RECYCLER:
+			return (armoryDirection != null && factoryDirection != null);
+		case ARMORY:
+			return (recyclerDirection != null && factoryDirection != null);
+		case FACTORY:
+			return (recyclerDirection != null && armoryDirection != null);
+		default:
+			return false;
 		}
 	}
 	

@@ -21,7 +21,7 @@ public class ConstructorAI extends AI {
 
 	public void yield() throws GameActionException {
 		controllers.myRC.yield();
-		updateComponents();
+		controllers.updateComponents();
 		updateLocationSets();
 		updateFluxRate();
 		sense_border();
