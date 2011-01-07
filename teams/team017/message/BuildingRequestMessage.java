@@ -1,20 +1,21 @@
 package team017.message;
 
 import team017.construction.UnitType;
-import battlecode.common.BroadcastController;
+import team017.util.Controllers;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
-import battlecode.common.RobotController;
 
 public class BuildingRequestMessage extends MessageHandler{
 	
+	private MapLocation builderLocation;
 	private MapLocation buildingLocation;
 	private UnitType unitType;
 	
-	public BuildingRequestMessage(RobotController rc, BroadcastController comm,
-			MapLocation buildingLocation, UnitType unitType) {
-		super(rc, comm, MessageType.BUILDING_REQUEST);
+	public BuildingRequestMessage(Controllers controllers,
+			MapLocation builderLocation, MapLocation buildingLocation, UnitType unitType) {
+		super(controllers, MessageType.BUILDING_REQUEST);
 		
+		msg.locations[locCounter++] = builderLocation;
 		msg.locations[locCounter++] = buildingLocation;
 		msg.ints[intCounter++] = unitType.ordinal();
 	}
@@ -23,9 +24,14 @@ public class BuildingRequestMessage extends MessageHandler{
 		super(msg);
 		
 		if (valid) {
+			builderLocation = msg.locations[locCounter++];
 			buildingLocation = msg.locations[locCounter++];
 			unitType = UnitType.values()[msg.ints[intCounter++]];
 		}
+	}
+	
+	public MapLocation getBuilderLocation() {
+		return builderLocation;
 	}
 	
 	public MapLocation getBuildingLocation() {

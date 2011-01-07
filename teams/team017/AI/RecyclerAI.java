@@ -2,6 +2,7 @@ package team017.AI;
 
 import team017.construction.UnitType;
 import team017.message.BorderMessage;
+import team017.message.BuildingRequestMessage;
 import team017.message.MessageHandler;
 import team017.util.Util;
 import battlecode.common.Chassis;
@@ -41,7 +42,7 @@ public class RecyclerAI extends AI {
 				for (Message msg : messages) {
 
 					switch (MessageHandler.getMessageType(msg)) {
-					case BORDER:
+					case BORDER: {
 						BorderMessage handler = new BorderMessage(msg);
 
 						// update the borders
@@ -51,6 +52,21 @@ public class RecyclerAI extends AI {
 							if (borders[i] == -1)
 								borders[i] = newBorders[i];
 						}
+						break;
+					}
+					case BUILDING_REQUEST: {
+						BuildingRequestMessage handler = new BuildingRequestMessage(
+								msg);
+						if (handler.getBuilderLocation().equals(
+								controllers.myRC.getLocation())) {
+							buildingSystem.constructComponent(
+									handler.getBuildingLocation(),
+									handler.getUnitType());
+							yield();
+						}
+						break;
+					}
+
 					}
 				}
 

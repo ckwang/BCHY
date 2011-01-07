@@ -179,7 +179,7 @@ public class ConstructorAI extends AI {
 			}
 		}
 		
-		MessageHandler msgHandler = new BorderMessage(controllers.myRC, controllers.comm, borders);
+		MessageHandler msgHandler = new BorderMessage(controllers, borders);
 		msgHandler.send();
 		controllers.myRC.yield();
 		

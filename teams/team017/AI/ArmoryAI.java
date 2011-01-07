@@ -1,17 +1,14 @@
 package team017.AI;
 
 import team017.construction.UnitType;
-import team017.message.BorderMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.MessageHandler;
-import team017.message.MessageType;
 import battlecode.common.GameActionException;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
 
-public class FactoryAI extends AI {
-
-	public FactoryAI(RobotController rc) {
+public class ArmoryAI extends AI{
+	public ArmoryAI(RobotController rc) {
 		super(rc);
 	}
 
