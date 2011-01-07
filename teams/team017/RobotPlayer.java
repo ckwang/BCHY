@@ -21,6 +21,8 @@ public class RobotPlayer implements Runnable {
 			case BUILDING:
 				if (Util.containsComponent(myRC.components(), ComponentType.RECYCLER)) {
 					new RecyclerAI(myRC).proceed();
+				} else if (Util.containsComponent(myRC.components(), ComponentType.ARMORY)) {
+					new ArmoryAI(myRC).proceed();
 				} else {
 					new FactoryAI(myRC).proceed();
 				}

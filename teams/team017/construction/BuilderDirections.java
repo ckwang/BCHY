@@ -21,4 +21,15 @@ public class BuilderDirections {
 		}
 	}
 	
+	public void setDirections(ComponentType type, Direction dir) {
+		switch(type){
+		case RECYCLER:
+			recyclerDirection = dir;
+		case ARMORY:
+			armoryDirection = dir;
+		case FACTORY:
+			factoryDirection = dir;
+		}
+	}
+	
 }
