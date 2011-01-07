@@ -10,6 +10,7 @@ import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
@@ -72,16 +73,28 @@ public class RecyclerAI extends AI {
 					case CONSTRUCTION_COMPLETE: {
 						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 						
+						/*
+						 * When a new building is constructed, we would like to build an antenna on it.
+						 */
+						
 						MapLocation currentLoc = controllers.myRC.getLocation();
-						controllers.myRC.setIndicatorString(2, handler.getBuildingLocation() + "" + currentLoc);
+
+						// see if the target is adjacent
 						if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
-							builderDirs.setDirections(handler.getBuilderType(), currentLoc.directionTo(handler.getBuildingLocation()));
-							if(controllers.myRC.getDirection() != controllers.myRC.getLocation().directionTo(handler.getBuildingLocation())){
-								controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(handler.getBuildingLocation()));
+							
+							// update the builderDirs
+							Direction builderDir = currentLoc.directionTo(handler.getBuildingLocation());
+							builderDirs.setDirections(handler.getBuilderType(), builderDir);
+							
+							// face the correct direction
+							if (controllers.myRC.getDirection() != builderDir){
+								controllers.motor.setDirection(builderDir);
 								yield();
 							}
-							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
-
+							
+							// build an antenna if it doesn't have one
+							if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) 
+								controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
 						}
 						
 						break;

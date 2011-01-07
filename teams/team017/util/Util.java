@@ -6,8 +6,11 @@ import battlecode.common.ComponentClass;
 import battlecode.common.ComponentController;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
+import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+import battlecode.common.Robot;
 import battlecode.common.RobotController;
+import battlecode.common.RobotLevel;
 
 public class Util {
 
@@ -54,6 +57,16 @@ public class Util {
 				return true;
 		}
 		return false;
+	}
+	
+	public static boolean containsComponent(Controllers controllers, MapLocation loc, RobotLevel level, ComponentType com) {
+		try {
+			Robot robot = (Robot) controllers.sensor.senseObjectAtLocation(loc, level);
+			return containsComponent(controllers.sensor.senseRobotInfo(robot).components, com);
+		} catch (GameActionException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 }
