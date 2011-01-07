@@ -44,9 +44,9 @@ public class Navigator {
 	}
 
 	public Direction getNextDir(int tolerance) throws GameActionException {
-		controllers.myRC.setIndicatorString(0,"");
-		controllers.myRC.setIndicatorString(1,"");
-		controllers.myRC.setIndicatorString(2,"");
+//		controllers.myRC.setIndicatorString(0,controllers.myRC.getLocation()+" "+destination.toString() );
+//		controllers.myRC.setIndicatorString(1,"");
+//		controllers.myRC.setIndicatorString(2,"");
 		
 		if (destination == null){
 			return Direction.OMNI;
@@ -80,16 +80,17 @@ public class Navigator {
 		}
 		
 		backTrackDes = t;
+		//controllers.myRC.setIndicatorString(2,backTrackDes.toString()+"BACK");
 
 		if (!isTracing) {
 			if ( controllers.motor.canMove(initDir)/*isTraversable(s.add(initDir))*/ ) {
 				isTracing = false;
-				controllers.myRC.setIndicatorString(1, initDir.toString());
+				//controllers.myRC.setIndicatorString(1, initDir.toString());
 				return initDir;
 			} else {
 				isTracing = true;
-				MapLocation nextLoc = traceNext(s, initDir, true);
-				controllers.myRC.setIndicatorString(1, nextLoc.toString());
+				MapLocation nextLoc = traceNext(s, controllers.myRC.getDirection(), true);
+				//controllers.myRC.setIndicatorString(1, nextLoc.toString());
 				return s.directionTo(nextLoc);
 			}
 		} else {
@@ -97,12 +98,12 @@ public class Navigator {
 					&& Util.isNotTurningBackward(initDir, controllers.myRC.getDirection())
 			) {
 				isTracing = false;
-				controllers.myRC.setIndicatorString(1, initDir.toString() + " Tracing" );
+				//controllers.myRC.setIndicatorString(1, initDir.toString() + " Tracing" );
 				return initDir;
 			} else {
 				isTracing = true;
-				MapLocation nextLoc = traceNext(s, initDir, true);
-				controllers.myRC.setIndicatorString(1, nextLoc.toString() + " Tracing" );
+				MapLocation nextLoc = traceNext(s, controllers.myRC.getDirection(), true);
+				//controllers.myRC.setIndicatorString(1, nextLoc.toString() + " Tracing" );
 				return s.directionTo(nextLoc);
 			}
 		}

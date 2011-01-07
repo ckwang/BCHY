@@ -29,15 +29,20 @@ public class ConstructorAI extends AI {
 	public void proceed() {
 
 		//Initial movement
-		if (Clock.getRoundNum() == 0) {
-			init();
-			init_revolve();
-			try {
-				yield();
-			} catch (GameActionException e) {
-				e.printStackTrace();
+		try {
+			if (Clock.getRoundNum() == 0) {
+				init();
+				init_revolve();
+				try {
+					yield();
+				} catch (GameActionException e) {
+					e.printStackTrace();
+				}
+				init_return();
 			}
-//			init_return();
+		}catch (Exception e) {
+			System.out.println("caught exception:");
+			e.printStackTrace();
 		}
 		
 		while (true) {
@@ -157,7 +162,7 @@ public class ConstructorAI extends AI {
 		}
 	}
 	
-	private void init_return() {
+	private void init_return() throws GameActionException {
 		navigator.setDestination(homeLocation);
 		
 		while (true) {
@@ -181,7 +186,7 @@ public class ConstructorAI extends AI {
 		
 		MessageHandler msgHandler = new BorderMessage(controllers, borders);
 		msgHandler.send();
-		controllers.myRC.yield();
+		yield();
 		
 	}
 	
@@ -199,7 +204,7 @@ public class ConstructorAI extends AI {
 	}
 	
 	private void build() throws GameActionException{
-		controllers.myRC.setIndicatorString(0, mineLocations.toString());
+//		controllers.myRC.setIndicatorString(0, mineLocations.toString());
 		
 		for (MapLocation mineLoc : mineLocations){
 			if(controllers.myRC.getLocation().isAdjacentTo(mineLoc)){
@@ -215,9 +220,12 @@ public class ConstructorAI extends AI {
 				}
 				if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) == null){
 					while(!buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.RECYCLER))
-						controllers.myRC.yield();					
+						controllers.myRC.yield();
+					MessageHandler msgHandler = new BorderMessage(controllers, borders);
+					msgHandler.send();
+					yield();
 				}
-			}	
+			}
 		}
 //		if(fluxRate > 0  && controllers.myRC.getTeamResources() > 120)
 //			buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.FACTORY);
@@ -234,7 +242,7 @@ public class ConstructorAI extends AI {
 						nearest = loc;
 				}
 				
-				controllers.myRC.setIndicatorString(0, currentLoc + "," + nearest);
+//				controllers.myRC.setIndicatorString(0, currentLoc + "," + nearest);
 				
 				navigator.setDestination(nearest);
 				Direction nextDir = navigator.getNextDir(0);

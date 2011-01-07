@@ -36,12 +36,16 @@ public abstract class MessageHandler {
 	}
 	
 	public void send() {
-		try {
-			if (!controllers.comm.isActive())
-				controllers.comm.broadcast(msg);
-		} catch (GameActionException e) {
-			System.out.println("caught exception:");
-			e.printStackTrace();
+		if (controllers.comm == null)
+			return;
+		else{
+			try {
+				if (!controllers.comm.isActive())
+					controllers.comm.broadcast(msg);
+			} catch (GameActionException e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
+			}
 		}
 	}
 	

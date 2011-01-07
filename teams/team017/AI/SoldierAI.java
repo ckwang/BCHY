@@ -1,16 +1,22 @@
 package team017.AI;
 
 import team017.combat.CombatSystem;
+import team017.message.BorderMessage;
+import team017.message.BuildingRequestMessage;
+import team017.message.EnemyLocationMessage;
+import team017.message.MessageHandler;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+import battlecode.common.Message;
 import battlecode.common.RobotController;
 import battlecode.common.TerrainTile;
 
 public class SoldierAI extends AI {
 
 	private CombatSystem combat;
+	private MapLocation enemyLoc;
 	
 	public SoldierAI(RobotController rc) {
 		super(rc);
@@ -34,7 +40,24 @@ public class SoldierAI extends AI {
 			// ((BorderMessage) decoder).getBorderDirection();
 
 			try {
+				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString());
 				updateComponents();
+				// receive messages and handle them
+				Message[] messages = controllers.myRC.getAllMessages();
+				for (Message msg : messages) {
+
+					switch (MessageHandler.getMessageType(msg)) {
+					case ENEMY_LOCATION: {
+						EnemyLocationMessage handler = new EnemyLocationMessage(msg);
+						enemyLoc = handler.getEnemyLocation();
+						navigator.setDestination(enemyLoc);
+						
+						controllers.myRC.setIndicatorString(1, enemyLoc.toString());
+						break;
+					}
+
+					}
+				}
 
 				/*** beginning of main loop ***/
 				if (controllers.motor != null) {
@@ -104,10 +127,23 @@ public class SoldierAI extends AI {
 
 	private void navigate() throws GameActionException {
 
-		if (!controllers.motor.isActive()) {
+		Direction nextDir = navigator.getNextDir(0);
+		if (nextDir != Direction.OMNI) {
+		
+			if (!controllers.motor.isActive() && controllers.motor.canMove(nextDir) ) {
+				if ( controllers.myRC.getDirection() == nextDir ) {
+					controllers.motor.moveForward();
+				} else {
+					controllers.motor.setDirection(nextDir);
+				}
+			}
+		
+		}
+		else if (!controllers.motor.isActive()) {
 			roachNavigate();
 		}
 
+		yield();
 	}
 
 	private void roachNavigate() throws GameActionException {
