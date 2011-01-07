@@ -15,6 +15,12 @@ public class Util {
 			Direction.EAST, Direction.SOUTH_EAST, Direction.SOUTH,
 			Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
 	
+	public static boolean isNotTurningBackward( Direction d1, Direction d2 ){
+		return !d1.opposite().equals(d2)  
+				&& !d1.opposite().equals(d2.rotateLeft()) 
+				&& !d1.opposite().equals(d2.rotateRight());
+	}
+	
 	public static MapLocation aveLocation(List<MapLocation> list) {
 		int x = 0, y = 0;
 		for (MapLocation loc: list) {

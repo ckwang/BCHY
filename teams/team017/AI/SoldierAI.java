@@ -1,24 +1,20 @@
 package team017.AI;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import battlecode.common.Chassis;
+import team017.combat.CombatSystem;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
-import battlecode.common.Robot;
 import battlecode.common.RobotController;
-import battlecode.common.RobotInfo;
-import battlecode.common.Team;
 import battlecode.common.TerrainTile;
-import battlecode.common.WeaponController;
 
 public class SoldierAI extends AI {
 
+	private CombatSystem combat;
+	
 	public SoldierAI(RobotController rc) {
 		super(rc);
+		combat = new CombatSystem(myRC, motor, sensor, weapons);
 	}
 
 	public void yield() throws GameActionException {
@@ -45,7 +41,7 @@ public class SoldierAI extends AI {
 					navigate();
 				}
 
-				attack();
+				combat.init_attack();
 
 				sense_border();
 
@@ -104,79 +100,6 @@ public class SoldierAI extends AI {
 			e.printStackTrace();
 		}
 
-	}
-
-	private boolean attack() {
-		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
-		List<MapLocation> enemylocs = new ArrayList<MapLocation>(robots.length);
-		List<MapLocation> allylocs = new ArrayList<MapLocation>(robots.length);
-		double leasthp1 = Chassis.HEAVY.maxHp, leasthp2 = Chassis.HEAVY.maxHp;
-		int index1 = 0, index2 = 0;
-		for (int i = 0; i < robots.length; ++i) {
-			Robot r = robots[i];
-			if (r.getTeam() == myRC.getTeam()) {
-				MapLocation loc;
-				try {
-					loc = sensor.senseLocationOf(r);
-					allylocs.add(loc);
-				} catch (GameActionException e) {
-					e.printStackTrace();
-					continue;
-				}
-
-			} else if (r.getTeam() != Team.NEUTRAL) {
-				try {
-					RobotInfo info = sensor.senseRobotInfo(r);
-					MapLocation loc = sensor.senseLocationOf(r);
-					enemylocs.add(loc);
-					if (!info.on)
-						continue;
-					if (info.hitpoints < leasthp1) {
-						leasthp2 = leasthp1;
-						index2 = index1;
-						index1 = i;
-						leasthp1 = info.hitpoints;
-					}
-					if (info.hitpoints < leasthp2) {
-						index2 = i;
-						leasthp2 = info.hitpoints;
-					}
-				} catch (GameActionException e) {
-					e.printStackTrace();
-					continue;
-				}
-			}
-		}
-		boolean canfire = false, attacked = false;
-		if (enemylocs.size() == 0)
-			return false;
-		for (WeaponController w : weapons) {
-			if (w.isActive())
-				continue;
-			try {
-				MapLocation weakest = sensor.senseLocationOf(robots[index1]);
-				w.attackSquare(weakest, robots[index1].getRobotLevel());
-				attacked = true;
-			} catch (GameActionException e) {
-				canfire = true;
-				break;
-			}
-		}
-		if (enemylocs.size() > 1 && canfire) {
-			for (WeaponController w : weapons) {
-				if (w.isActive())
-					continue;
-				try {
-					MapLocation weakest = sensor
-							.senseLocationOf(robots[index2]);
-					w.attackSquare(weakest, robots[index2].getRobotLevel());
-					attacked = true;
-				} catch (GameActionException e) {
-					return attacked;
-				}
-			}
-		}
-		return attacked;
 	}
 
 	private void navigate() throws GameActionException {
