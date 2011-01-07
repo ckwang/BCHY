@@ -25,7 +25,6 @@ public class RecyclerAI extends AI {
 		myRC.yield();
 		updateComponents();
 		updateFluxRate();
-		myRC.setIndicatorString(0, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
 	}
 	
 	@Override
