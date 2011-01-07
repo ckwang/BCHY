@@ -19,6 +19,7 @@ import battlecode.common.TerrainTile;
 public class ConstructorAI extends AI {
 	
 	Set<MapLocation> mineLocations = new HashSet<MapLocation>();
+	Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	
 	public ConstructorAI(RobotController rc) {
 		super(rc);

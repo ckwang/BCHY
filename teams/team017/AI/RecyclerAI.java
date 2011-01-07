@@ -15,8 +15,8 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 
 public class RecyclerAI extends AI {
-	
-	public RecyclerAI (RobotController rc) {
+
+	public RecyclerAI(RobotController rc) {
 		super(rc);
 	}
 
@@ -26,16 +26,16 @@ public class RecyclerAI extends AI {
 		updateComponents();
 		updateFluxRate();
 	}
-	
+
 	@Override
 	public void proceed() {
-		
+
 		if (Clock.getRoundNum() == 0)
 			init();
 
 		while (true) {
 			try {
-				
+
 				// receive messages and handle them
 				Message[] messages = myRC.getAllMessages();
 				for (Message msg : messages) {
@@ -43,7 +43,7 @@ public class RecyclerAI extends AI {
 					switch (MessageHandler.getMessageType(msg)) {
 					case BORDER:
 						BorderMessage handler = new BorderMessage(msg);
-						
+
 						// update the borders
 						int[] newBorders = handler.getBorderDirection();
 
@@ -53,19 +53,23 @@ public class RecyclerAI extends AI {
 						}
 					}
 				}
-				
+
 				if (fluxRate > 0 && myRC.getTeamResources() > 100) {
 					if (Clock.getRoundNum() < 1000) {
 						if (Clock.getRoundNum() % 3 == 0)
-							buildingSystem.randomConstructUnit(UnitType.CONSTRUCTOR);
+							buildingSystem
+									.randomConstructUnit(UnitType.CONSTRUCTOR);
 						else
-							buildingSystem.randomConstructUnit(UnitType.GRIZZLY);
+							buildingSystem
+									.randomConstructUnit(UnitType.GRIZZLY);
 
 					} else {
 						if (Clock.getRoundNum() % 5 == 0)
-							buildingSystem.randomConstructUnit(UnitType.CONSTRUCTOR);
+							buildingSystem
+									.randomConstructUnit(UnitType.CONSTRUCTOR);
 						else
-							buildingSystem.randomConstructUnit(UnitType.GRIZZLY);
+							buildingSystem
+									.randomConstructUnit(UnitType.GRIZZLY);
 					}
 				}
 				yield();
@@ -76,9 +80,8 @@ public class RecyclerAI extends AI {
 			}
 
 		}
-		
+
 	}
-	
 
 	private void init() {
 		try {
@@ -123,5 +126,5 @@ public class RecyclerAI extends AI {
 		}
 		return null;
 	}
-	
+
 }
