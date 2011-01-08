@@ -1,30 +1,15 @@
 package team017.AI;
 
-import team017.construction.BuilderDirections;
-import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.message.GenericMessage;
-import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
 
-public class ArmoryAI extends AI{
-	BuilderDirections builderDirs;
+public class ArmoryAI extends BuildingAI{
 
 	public ArmoryAI(RobotController rc) {
 		super(rc);
-		builderDirs = new BuilderDirections(controllers);
-
-	}
-
-	@Override
-	public void yield() throws GameActionException {
-		controllers.myRC.yield();
-		controllers.updateComponents();
-		msgHandler.process();
-		updateFluxRate();
 	}
 
 	@Override
@@ -58,12 +43,6 @@ public class ArmoryAI extends AI{
 						break;
 					}
 					}
-				}
-				
-				Message[] messages = controllers.myRC.getAllMessages();
-				for (Message msg : messages) {
-
-					
 				}
 
 				yield();

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import team017.message.BuildingRequestMessage;
-import team017.message.GenericMessage;
 import team017.message.MessageHandler;
 import team017.util.Controllers;
 import battlecode.common.Chassis;

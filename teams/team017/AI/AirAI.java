@@ -9,10 +9,6 @@ public class AirAI extends AI {
 	public AirAI(RobotController rc) {
 		super(rc);
 	}
-	
-	public void yield() throws GameActionException {
-		
-	}
 
 	public void proceed() {
 		

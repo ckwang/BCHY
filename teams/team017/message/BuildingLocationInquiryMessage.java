@@ -2,16 +2,25 @@ package team017.message;
 
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
-import team017.construction.UnitType;
 
 public class BuildingLocationInquiryMessage extends GenericMessage {
 
-	public BuildingLocationInquiryMessage(MapLocation builderLocation, MapLocation buildingLocation, UnitType unitType) {
+	private MapLocation builderLocation;
+	
+	public BuildingLocationInquiryMessage(MapLocation builderLocation) {
 		super(MessageType.BUILDING_LOCATION_INQUIRY_MESSAGE);
+		
+		msg.locations[locCounter++] = builderLocation;
 	}
 	
 	public BuildingLocationInquiryMessage(Message msg) {
 		super(msg);
+		
+		builderLocation = msg.locations[locCounter++];
+	}
+	
+	public MapLocation getBuilderLocation() {
+		return builderLocation;
 	}
 
 }
