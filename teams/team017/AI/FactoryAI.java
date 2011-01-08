@@ -54,7 +54,7 @@ public class FactoryAI extends BuildingAI {
 					}
 				}
 			}
-//			if (controllers.myRC.getTeamResources() > 100) {
+//			if (controllers.myRC.getTeamResources() > 180) {
 //				builderDirs.updateEmptyDirections();
 //				Direction recyclerDir = builderDirs.recyclerDirection;
 //				MapLocation myLoc = controllers.myRC.getLocation();

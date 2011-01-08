@@ -4,6 +4,7 @@ import team017.construction.BuilderDirections;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentClass;
+import battlecode.common.ComponentController;
 import battlecode.common.ComponentType;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
