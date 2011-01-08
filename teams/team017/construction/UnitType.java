@@ -24,6 +24,8 @@ public enum UnitType {
 	public final ComponentType[] armoryComs;
 	public final ComponentType[] factoryComs;
 	public final ComponentType[] constructorComs;
+	public final ComponentType[] requiredBuilders;
+	
 	public final double totalCost;
 	public final boolean selfBuild;
 	public boolean shouldBuild;
@@ -31,7 +33,6 @@ public enum UnitType {
 	UnitType(Chassis chassis, ComponentType...coms) {
 		this.chassis = chassis;
 		double t = chassis.cost;
-		int countNulls = 0;
 		
 		List<ComponentType> recyclerList = new ArrayList<ComponentType>();
 		List<ComponentType> armoryList = new ArrayList<ComponentType>();
@@ -51,29 +52,26 @@ public enum UnitType {
 		}
 	
 		recyclerComs = new ComponentType[recyclerList.size()];
-		recyclerList.toArray(recyclerComs);
-		if(recyclerComs.length == 0)
-			++countNulls;
-		
 		armoryComs = new ComponentType[armoryList.size()];
-		armoryList.toArray(armoryComs);
-		if(armoryComs.length == 0)
-			++countNulls;
-		
 		factoryComs = new ComponentType[factoryList.size()];
-		factoryList.toArray(factoryComs);
-		if(factoryComs.length == 0)
-			++countNulls;
-		
 		constructorComs = new ComponentType[constructorList.size()];
-		constructorList.toArray(constructorComs);
-		if(constructorComs.length == 0)
-			++countNulls;
 		
-		if(countNulls == 3)
-			selfBuild = true;
-		else
-			selfBuild = false;
+		recyclerList.toArray(recyclerComs);
+		armoryList.toArray(armoryComs);
+		factoryList.toArray(factoryComs);
+		constructorList.toArray(constructorComs);
+		
+		List<ComponentType> requiredBuilderList = new ArrayList<ComponentType>();
+		
+		if(recyclerComs.length != 0)	requiredBuilderList.add(ComponentType.RECYCLER);
+		if(armoryComs.length != 0)	requiredBuilderList.add(ComponentType.ARMORY);
+		if(factoryComs.length != 0)	requiredBuilderList.add(ComponentType.FACTORY);
+		if(constructorComs.length != 0)	requiredBuilderList.add(ComponentType.CONSTRUCTOR);
+		
+		requiredBuilders = new ComponentType[requiredBuilderList.size()];
+		requiredBuilderList.toArray(requiredBuilders);
+		
+		selfBuild = requiredBuilders.length == 1;
 		
 		totalCost = t;
 		shouldBuild = false;

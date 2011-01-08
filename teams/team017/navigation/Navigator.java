@@ -21,20 +21,37 @@ public class Navigator {
 	private MapLocation destination;
 	private MapLocation backTrackDes;
 	
-	private MapLocation startTracingLoc;
-	private MapLocation previousTracingLoc;
+	private MapLocation startTracingLoc; // used for check if the robot move around the obstacle
+	private MapLocation previousTracingLoc; // use for eliminating loop motion
 	
 	private MapLocation previousRobLoc;
 	private Direction previousDir;
 	
-	private boolean isTracing;
-	private boolean isRounded;
+	private static enum State{
+		RECKONING,
+		START,
+		TRACING,
+		ROUNDED
+	}
+	
+	private State navigationState = State.RECKONING;
+	
 	private boolean isCCW;
 
 	public Navigator(Controllers cs) {
 		controllers = cs;
-		isTracing = false;
-		isRounded = false;
+		navigationState = State.RECKONING;
+		isCCW = false;
+	}
+	
+	public void reset() {
+		previousRobLoc = null;
+		previousTracingLoc = null;
+		startTracingLoc = null;
+		destination = null;
+		backTrackDes = null;
+		
+		navigationState = State.RECKONING;
 		isCCW = false;
 	}
 
@@ -53,19 +70,24 @@ public class Navigator {
 
 	public Direction getNextDir(int tolerance) throws GameActionException {
 		
+		controllers.myRC.setIndicatorString(0,"");
+		controllers.myRC.setIndicatorString(1,"");
+//		controllers.myRC.setIndicatorString(2,"");
+		
 		if (controllers.myRC.getLocation().equals(previousRobLoc)){
+			controllers.myRC.setIndicatorString(0,"STAY" );
 			return previousDir;
 		}
 		else{
 			previousRobLoc = controllers.myRC.getLocation();
 			if (destination == null){
+				controllers.myRC.setIndicatorString(0,"NULL" );
+				reset();
 				previousDir = Direction.OMNI;
 				return Direction.OMNI;
 			}
 			else {
 				controllers.myRC.setIndicatorString(0,controllers.myRC.getLocation()+" "+destination.toString() );
-				controllers.myRC.setIndicatorString(1,"");
-				controllers.myRC.setIndicatorString(2,"");
 				
 				previousDir = Bug(controllers.myRC.getLocation(), backTrackDes, tolerance);
 				return previousDir;
@@ -77,10 +99,7 @@ public class Navigator {
 			throws GameActionException {
 		
 		if (s.distanceSquaredTo(t) <= tolerance) {
-			previousRobLoc = null;
-			previousTracingLoc = null;
-			startTracingLoc = null;
-			destination = null;
+			reset();
 			return Direction.OMNI;
 		}
 
@@ -92,10 +111,7 @@ public class Navigator {
 			nextDir = s.directionTo(t);
 
 			if (nextDir == Direction.OMNI) {
-				previousRobLoc = null;
-				previousTracingLoc = null;
-				startTracingLoc = null;
-				destination = null;
+				reset();
 				return Direction.OMNI;
 			}
 			t = t.subtract(nextDir);
@@ -104,70 +120,60 @@ public class Navigator {
 		backTrackDes = t;
 		
 		Direction initDir = s.directionTo(t);
+		MapLocation nextLoc;
 		
-		if (isTracing) {
-			
+		switch(navigationState){
+			case RECKONING:
+				if ( controllers.motor.canMove(initDir) ) {
+					return initDir;
+				}
+				else {
+					navigationState = State.START;
+					nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
+					return s.directionTo(nextLoc);
+				}
+			case START:
+				navigationState = State.TRACING;
+				startTracingLoc = controllers.myRC.getLocation();
+				
+				if (startTracingLoc.equals(previousTracingLoc)){
+					isCCW = !isCCW;
+					previousTracingLoc = null;
+				}
+				nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
+				return s.directionTo(nextLoc);
+			case TRACING:
 				// Have gone around the obstacle
 				if (controllers.myRC.getLocation().equals(startTracingLoc) ){
-					isRounded = true;
+					navigationState = State.ROUNDED;
 				}
-				// Find a way to leave the obstacle
-				if ( (isRounded || isOpen(backTrackDes)) && controllers.motor.canMove(initDir)){
-					isRounded = false;
-					isTracing = false;
+				
+				// The way is open
+				if (  isOpen(backTrackDes) && controllers.motor.canMove(initDir) ){
+					navigationState = State.RECKONING;
 					previousTracingLoc = startTracingLoc;
 					startTracingLoc = null;
 					return initDir;
 				}
 				
-				MapLocation nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
-				controllers.myRC.setIndicatorString(2,nextLoc.toString() + " KEEP" );
+				nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
+				controllers.myRC.setIndicatorString(1, startTracingLoc.toString()+" "+nextLoc.toString() + " KEEP" );
 				return s.directionTo(nextLoc);
-		}
-		else{
-			if ( controllers.motor.canMove(initDir) ) {
-				return initDir;
-			}
-			else{
-				startTracingLoc = controllers.myRC.getLocation();
-				if (startTracingLoc.equals(previousTracingLoc)){
-					isCCW = !isCCW;
-					controllers.myRC.setIndicatorString(1, isCCW+"");
-					previousTracingLoc = null;
+			case ROUNDED:
+				if (  controllers.motor.canMove(initDir) ){
+					navigationState = State.RECKONING;
+					previousTracingLoc = startTracingLoc;
+					startTracingLoc = null;
+					return initDir;
 				}
-				isTracing = true;
-				MapLocation nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
-				controllers.myRC.setIndicatorString(2,nextLoc.toString() + " START" );
+				
+				nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
+				controllers.myRC.setIndicatorString(1, startTracingLoc.toString()+" "+nextLoc.toString() + " KEEP" );
 				return s.directionTo(nextLoc);
-			}
+			default:
+				return initDir;
 		}
 		
-
-//		if (!isTracing) {
-//			if ( controllers.motor.canMove(initDir)/*isTraversable(s.add(initDir))*/ ) {
-//				isTracing = false;
-//				//controllers.myRC.setIndicatorString(1, initDir.toString());
-//				return initDir;
-//			} else {
-//				isTracing = true;
-//				MapLocation nextLoc = traceNext(s, controllers.myRC.getDirection(), true);
-//				//controllers.myRC.setIndicatorString(1, nextLoc.toString());
-//				return s.directionTo(nextLoc);
-//			}
-//		} else {
-//			if ( controllers.motor.canMove(initDir)/*isTraversable(s.add(initDir) )*/
-//					&& Util.isNotTurningBackward(initDir, controllers.myRC.getDirection())
-//			) {
-//				isTracing = false;
-//				//controllers.myRC.setIndicatorString(1, initDir.toString() + " Tracing" );
-//				return initDir;
-//			} else {
-//				isTracing = true;
-//				MapLocation nextLoc = traceNext(s, controllers.myRC.getDirection(), true);
-//				//controllers.myRC.setIndicatorString(1, nextLoc.toString() + " Tracing" );
-//				return s.directionTo(nextLoc);
-//			}
-//		}
 	}
 
 	public Direction tangentBug(MapLocation s, MapLocation t, int tolerance)
@@ -312,5 +318,6 @@ public class Navigator {
 		} else
 			return (tile == null) || (tile == TerrainTile.LAND);
 	}
+	
 
 }

@@ -11,37 +11,29 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 
 public abstract class BuildingAI extends AI {
-	
+
 	protected BuilderDirections builderDirs;
-	
+
 	public BuildingAI(RobotController rc) {
 		super(rc);
-		
+
 		builderDirs = new BuilderDirections(controllers);
 	}
 
 	abstract public void proceed();
-	
-	protected void updateBuilderDirs() {
-		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-		for (Robot r : robots) {
-			if (r.getTeam() == controllers.myRC.getTeam()) {
-				try {
-					RobotInfo info = controllers.sensor.senseRobotInfo(r);
-					MapLocation currentLoc = controllers.myRC.getLocation();
-					
-					if (info.location.isAdjacentTo(currentLoc)) {
-						for (ComponentType com : info.components) {
-							if (com.componentClass == ComponentClass.BUILDER) {
-								builderDirs.setDirections(com, currentLoc.directionTo(info.location));
-							}
-						}
-					}
-				} catch (GameActionException e) {
-					e.printStackTrace();
-				}
-			}
+
+	public void yield() throws GameActionException {
+		super.yield();
+		controllers.updateComponents();
+		updateFluxRate();
+	}
+
+	protected void updateFluxRate() {
+		for (int i = 9; i > 0; --i) {
+			fluxRecord[i] = fluxRecord[i - 1];
 		}
+		fluxRecord[0] = controllers.myRC.getTeamResources();
+		fluxRate = fluxRecord[0] - fluxRecord[1];
 	}
 
 	/***

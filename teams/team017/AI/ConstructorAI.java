@@ -32,14 +32,13 @@ public class ConstructorAI extends AI {
 
 		// Initial movement
 		if (Clock.getRoundNum() == 0) {
-			init();
-			init_revolve();
 			try {
-				yield();
+				init();
+				init_revolve();
+				init_return();
 			} catch (GameActionException e) {
 				e.printStackTrace();
 			}
-			// init_return();
 		}
 
 		while (true) {
@@ -220,7 +219,6 @@ public class ConstructorAI extends AI {
 		}
 
 		msgHandler.queueMessage(new BorderMessage(borders));
-		yield();
 		
 	}
 
@@ -273,8 +271,9 @@ public class ConstructorAI extends AI {
 							break;
 						controllers.myRC.yield();
 					}
+
 					msgHandler.queueMessage(new ConstructionCompleteMessage(mineLoc, ComponentType.RECYCLER));
-					//MessageHandler msgHandler = new BorderMessage(controllers, borders);
+					msgHandler.queueMessage(new BorderMessage(borders));
 					controllers.myRC.yield();
 				}
 			}
