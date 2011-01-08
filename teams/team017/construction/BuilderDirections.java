@@ -25,7 +25,7 @@ public class BuilderDirections {
 	 */
 	public boolean[] emptyDirections = {true, true, true, true, true, true, true, true};
 	
-	static final Direction[] directionMapping = 
+	private static final Direction[] directionMapping = 
 		{Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 		Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
 	
@@ -59,14 +59,14 @@ public class BuilderDirections {
 		}
 	}
 	
-	public Direction consecutiveTwoEmpty() {
+	public Direction consecutiveEmpties(int length) {
 		updateEmptyDirections();
 		
 		int n = 0;
 		
-		for (int i = 0; i < 9; ++i) {
+		for (int i = 0; i < 7 + length; ++i) {
 			n = emptyDirections[i%8] ? n + 1 : 0;
-			if (n == 2)	return directionMapping[(i+8-1)%8];
+			if (n == length)	return directionMapping[(i+8-(length-1))%8];
 		}
 		
 		return Direction.NONE;
