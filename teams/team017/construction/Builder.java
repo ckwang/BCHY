@@ -17,9 +17,11 @@ import battlecode.common.TerrainTile;
 public class Builder {
 	
 	private Controllers controllers;
+	private MessageHandler msgHandler;
 	
-	public Builder(Controllers controllers) {
+	public Builder(Controllers controllers, MessageHandler msgHandler) {
 		this.controllers = controllers;
+		this.msgHandler = msgHandler;
 	}
 
 	public boolean constructUnit(MapLocation buildLoc, UnitType type, BuilderDirections builderDirs){
@@ -45,8 +47,7 @@ public class Builder {
 					controllers.builder.build(type.chassis, buildLoc);
 					controllers.myRC.yield();
 					for(ComponentType otherBuilder: otherBuilders){
-						MessageHandler msgHandler = new BuildingRequestMessage(controllers,controllers.myRC.getLocation().add(builderDirs.getDirections(otherBuilder)) ,buildLoc,type);
-						msgHandler.send();
+						msgHandler.queueMessage(new BuildingRequestMessage(controllers.myRC.getLocation().add(builderDirs.getDirections(otherBuilder)) ,buildLoc,type));
 					}
 					for (ComponentType com : type.getComponentList(controllers.builder.type())) {
 						while(controllers.myRC.getTeamResources() < com.cost * 1.1)
@@ -118,12 +119,9 @@ public class Builder {
 		}
 	}
 	
-	private boolean canConstruct(RobotLevel level) throws GameActionException {
-		
-		if (controllers.sensor.senseObjectAtLocation(
-				controllers.myRC.getLocation().add(controllers.myRC.getDirection()), level) == null
-				&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(
-						controllers.myRC.getDirection())) == TerrainTile.LAND)
+	public boolean canConstruct(RobotLevel level) throws GameActionException {
+		if (controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(controllers.myRC.getDirection()), level) == null
+				&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(controllers.myRC.getDirection())) == TerrainTile.LAND)
 			return true;
 		return false;
 	}

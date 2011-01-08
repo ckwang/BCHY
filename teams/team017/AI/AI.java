@@ -1,6 +1,7 @@
 package team017.AI;
 
 import team017.construction.Builder;
+import team017.message.MessageHandler;
 import team017.navigation.Navigator;
 import team017.util.Controllers;
 import battlecode.common.Direction;
@@ -12,6 +13,7 @@ public abstract class AI {
 
 	protected Navigator navigator;
 	protected Builder buildingSystem;
+	protected MessageHandler msgHandler;
 	protected Controllers controllers;
 	
 	// {NORTH, EAST, SOUTH, WEST}
@@ -25,16 +27,22 @@ public abstract class AI {
 		controllers = new Controllers();
 		
 		controllers.myRC = rc;
-		navigator = new Navigator(controllers);
 		homeLocation = rc.getLocation();
 		controllers.updateComponents();
 		
-		buildingSystem = new Builder(controllers);
+		navigator = new Navigator(controllers);
+		msgHandler = new MessageHandler(controllers);
+		buildingSystem = new Builder(controllers, msgHandler);
 	}
 
 	abstract public void proceed();
 	
-	abstract public void yield() throws GameActionException;
+	public void yield() throws GameActionException {
+		controllers.myRC.yield();
+		controllers.updateComponents();
+		msgHandler.process();
+		updateFluxRate();
+	}
 
 	protected void updateFluxRate() {
 		for (int i = 9; i > 0; --i) {
