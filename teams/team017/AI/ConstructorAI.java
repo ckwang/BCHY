@@ -31,7 +31,7 @@ public class ConstructorAI extends AI {
 
 	public void yield() {
 		super.yield();
-//		updateLocationSets();
+		updateLocationSets();
 		sense_border();
 	}
 
@@ -51,6 +51,8 @@ public class ConstructorAI extends AI {
 		while (true) {
 
 			try {
+				controllers.myRC.setIndicatorString(0, recyclerLocations + "");
+				controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + "");
 				if (controllers.motor != null) {
 					navigate();
 				}
@@ -73,12 +75,16 @@ public class ConstructorAI extends AI {
 						} else if (handler.getBuildableDirection() != Direction.NONE) {
 							MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
 							if (handler.getAvailableSpace() == 3) {
-								if (buildBuildingAtLoc(buildLoc,UnitType.ARMORY)) {
+								if (buildBuildingAtLoc(buildLoc,UnitType.FACTORY)) {
 									MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
-									buildBuildingAtLoc(nextBuildLoc,UnitType.FACTORY);
+									buildBuildingAtLoc(nextBuildLoc,UnitType.ARMORY);
+									recyclerLocations.remove(handler.getSourceLocation());
+									
 								}
 							} else if(handler.getAvailableSpace() == 2){
-								buildBuildingAtLoc(buildLoc, UnitType.ARMORY);
+								if(buildBuildingAtLoc(buildLoc, UnitType.FACTORY)){
+									recyclerLocations.remove(handler.getSourceLocation());
+								}
 							}
 						}
 						break;
@@ -240,8 +246,8 @@ public class ConstructorAI extends AI {
 				if (object != null) {
 					if (mineLocations.contains(mine.getLocation()))
 						mineLocations.remove(mine.getLocation());
-					if (object.getTeam() == controllers.myRC.getTeam())
-						recyclerLocations.add(mine.getLocation());
+//					if (object.getTeam() == controllers.myRC.getTeam())
+//						recyclerLocations.add(mine.getLocation());
 				} else {
 					mineLocations.add(mine.getLocation());
 				}
@@ -294,6 +300,19 @@ public class ConstructorAI extends AI {
 
 	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type) throws GameActionException {
 		while (!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)) {
+			MapLocation currentLoc = controllers.myRC.getLocation();
+			if(currentLoc.equals(buildLoc)){
+				while(controllers.motor.isActive()){
+					yield();
+				}
+				controllers.motor.moveBackward();
+				while (!buildingSystem.constructUnit(buildLoc, type)) {
+					if (controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
+						return false;
+					yield();
+				}
+				return true;
+			}
 			if (controllers.sensor.canSenseSquare(buildLoc)
 					&& controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
 				return false;
@@ -301,15 +320,17 @@ public class ConstructorAI extends AI {
 				if (!controllers.myRC.getLocation().isAdjacentTo(buildLoc)) {
 					navigator.setDestination(buildLoc);
 					Direction nextDir = navigator.getNextDir(0);
+//					if(controllers.myRC.getDirection() == Direction.OMNI || controllers.myRC.getDirection() == Direction.NONE){
+//						controllers.motor.setDirection(currentLoc.directionTo(buildLoc));
+//						break;
+//					}
 					if (controllers.myRC.getDirection() != nextDir) {
 						controllers.motor.setDirection(nextDir);
 					} else {
 						controllers.motor.moveForward();
 					}
-				} else if (!controllers.myRC.getLocation().add(
-						controllers.myRC.getDirection()).equals(buildLoc)) {
-					controllers.motor.setDirection(controllers.myRC
-							.getLocation().directionTo(buildLoc));
+				} else if (!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)) {
+					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(buildLoc));
 				}
 			}
 			yield();

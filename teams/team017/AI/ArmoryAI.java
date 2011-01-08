@@ -44,33 +44,7 @@ public class ArmoryAI extends BuildingAI{
 					}
 				}
 				
-				if (controllers.myRC.getTeamResources() > 100) {
-					builderDirs.updateEmptyDirections();
-					Direction recyclerDir = builderDirs.recyclerDirection;
-					MapLocation myLoc = controllers.myRC.getLocation();
-					if (recyclerDir != null) {
-						if (recyclerDir.isDiagonal()) {
-							// try from left twice to right twice
-							Direction buildDir = recyclerDir.rotateLeft().rotateLeft();
-							for(int i = 0; i < 5; ++i){
-								if(builderDirs.checkDirEmpty(buildDir)){
-									buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
-									break;
-								}
-								buildDir = buildDir.rotateRight();
-							}
-						} else {
-							Direction buildDir = recyclerDir.rotateLeft();
-							if (builderDirs.checkDirEmpty(buildDir)) {
-								buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
-							} else {
-								buildDir = buildDir.rotateRight().rotateRight();
-								buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
-							}	
-						}
-						
-					}
-				}
+
 
 				yield();
 			} catch (Exception e) {

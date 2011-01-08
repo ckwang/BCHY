@@ -73,6 +73,7 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
+
 				// receive messages and handle them
 				while (msgHandler.hasMessage()) {
 					Message msg = msgHandler.nextMessage();
@@ -108,13 +109,14 @@ public class RecyclerAI extends BuildingAI {
 						if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
 							if(builderDirs.armoryDirection != null && builderDirs.factoryDirection != null){
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), -1));
+								controllers.myRC.setIndicatorString(0, "Consecutive -1");
 							} else if (builderDirs.consecutiveEmpties(3) != Direction.NONE) {
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
+								controllers.myRC.setIndicatorString(0, "Consecutive 3");
 							} else if (builderDirs.consecutiveEmpties(2) != Direction.NONE) {
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
+								controllers.myRC.setIndicatorString(0, "Consecutive 2");
 							}
-							
-								
 							yield();
 						}
 						break;
@@ -205,7 +207,6 @@ public class RecyclerAI extends BuildingAI {
 				controllers.builder.build(ComponentType.ANTENNA, info.location,RobotLevel.ON_GROUND);
 			}
 			yield();
-
 			// build an antenna on itself
 			controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 		} catch (Exception e) {
