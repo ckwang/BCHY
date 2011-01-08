@@ -2,12 +2,14 @@ package team017.construction;
 
 import team017.util.Controllers;
 import battlecode.common.Chassis;
+import battlecode.common.ComponentClass;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Robot;
+import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 import battlecode.common.TerrainTile;
 
@@ -72,16 +74,34 @@ public class BuilderDirections {
 		return Direction.NONE;
 	}
 	
-	public boolean isComplete() {
-		switch(controllers.builder.type()) {
-		case RECYCLER:
-			return (armoryDirection != null && factoryDirection != null);
-		case ARMORY:
-			return (recyclerDirection != null && factoryDirection != null);
-		case FACTORY:
-			return (recyclerDirection != null && armoryDirection != null);
-		default:
-			return false;
+	public boolean isComplete(ComponentType thisBuilder, ComponentType[] builders) {
+		for (ComponentType b : builders) {
+			if (getDirections(b) == null || b != thisBuilder)	return false;
+		}
+		
+		return true;
+	}
+	
+	
+	public void updateBuilderDirs() {
+		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+		for (Robot r : robots) {
+			if (r.getTeam() == controllers.myRC.getTeam()) {
+				try {
+					RobotInfo info = controllers.sensor.senseRobotInfo(r);
+					MapLocation currentLoc = controllers.myRC.getLocation();
+					
+					if (info.location.isAdjacentTo(currentLoc)) {
+						for (ComponentType com : info.components) {
+							if (com.componentClass == ComponentClass.BUILDER) {
+								setDirections(com, currentLoc.directionTo(info.location));
+							}
+						}
+					}
+				} catch (GameActionException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	

@@ -254,6 +254,7 @@ public class ConstructorAI extends AI {
 							break;
 						controllers.myRC.yield();
 					}
+
 					msgHandler.queueMessage(new ConstructionCompleteMessage(mineLoc, ComponentType.RECYCLER));
 					msgHandler.queueMessage(new BorderMessage(borders));
 					controllers.myRC.yield();

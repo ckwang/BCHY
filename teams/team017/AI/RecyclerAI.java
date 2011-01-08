@@ -91,6 +91,7 @@ public class RecyclerAI extends BuildingAI {
 							// update the builderDirs
 							Direction builderDir = currentLoc.directionTo(handler.getBuildingLocation());
 							builderDirs.setDirections(handler.getBuilderType(), builderDir);
+							
 							if(handler.getBuilderType() != ComponentType.RECYCLER){
 								// face the correct direction
 								if (controllers.myRC.getDirection() != builderDir){

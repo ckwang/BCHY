@@ -21,28 +21,6 @@ public abstract class BuildingAI extends AI {
 	}
 
 	abstract public void proceed();
-	
-	protected void updateBuilderDirs() {
-		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-		for (Robot r : robots) {
-			if (r.getTeam() == controllers.myRC.getTeam()) {
-				try {
-					RobotInfo info = controllers.sensor.senseRobotInfo(r);
-					MapLocation currentLoc = controllers.myRC.getLocation();
-					
-					if (info.location.isAdjacentTo(currentLoc)) {
-						for (ComponentType com : info.components) {
-							if (com.componentClass == ComponentClass.BUILDER) {
-								builderDirs.setDirections(com, currentLoc.directionTo(info.location));
-							}
-						}
-					}
-				} catch (GameActionException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
 
 	/***
 	 * Sense nearby robots and return the location of one robot with specific

@@ -25,37 +25,40 @@ public class Builder {
 	}
 
 	public boolean constructUnit(MapLocation buildLoc, UnitType type, BuilderDirections builderDirs){
-		try{
-			ComponentType[] builderTypeList = {ComponentType.RECYCLER,ComponentType.ARMORY,ComponentType.FACTORY,ComponentType.CONSTRUCTOR}; 
-			List<ComponentType> otherBuilders = new ArrayList<ComponentType>();
+		try {
 			
-			for(ComponentType com: builderTypeList){
-				if(!com.equals(controllers.builder.type())){
-					if(type.getComponentList(com).length != 0){
-						if(builderDirs.getDirections(com) == null){
-							return false;
-						}
-						else{
-							otherBuilders.add(com);
-						}
-					}
-				}
-			}
+			// check if buildLoc is adjacent to current location
+			if (!buildLoc.isAdjacentTo(controllers.myRC.getLocation()))	return false;
+			Direction buildDir = controllers.myRC.getLocation().directionTo(buildLoc);
 			
+			// if there's enough resource
 			if (controllers.myRC.getTeamResources() > type.chassis.cost * 1.1) {
-				if (canConstruct(type.chassis.level)) {
+				
+				
+				// see if there are all the required builders 
+				builderDirs.updateBuilderDirs();
+				if (!builderDirs.isComplete(controllers.builder.type(), type.requiredBuilders))	return false;
+				
+				// check if the unit can be built at the desired location
+				if (canConstruct(buildDir, type.chassis.level)) {
 					controllers.builder.build(type.chassis, buildLoc);
 					controllers.myRC.yield();
-					for(ComponentType otherBuilder: otherBuilders){
-						msgHandler.queueMessage(new BuildingRequestMessage(controllers.myRC.getLocation().add(builderDirs.getDirections(otherBuilder)) ,buildLoc,type));
+					
+					// send messages to other builders
+					for(ComponentType builder: type.requiredBuilders){
+						if (builder != controllers.builder.type())
+							msgHandler.queueMessage(new BuildingRequestMessage(controllers.myRC.getLocation().add(builderDirs.getDirections(builder)), buildLoc, type));
 					}
+					
+					// build my responsible parts
 					for (ComponentType com : type.getComponentList(controllers.builder.type())) {
-						while(controllers.myRC.getTeamResources() < com.cost * 1.1)
+						while(controllers.myRC.getTeamResources() < com.cost * 1.1 || controllers.builder.isActive()) {
 							controllers.myRC.yield();
-						while(controllers.builder.isActive())
-							controllers.myRC.yield();
+							msgHandler.process();
+						}
 						controllers.builder.build(com, buildLoc, type.chassis.level);
 					}
+					
 					controllers.myRC.turnOn(buildLoc, type.chassis.level);
 					return true;
 				}
@@ -119,11 +122,15 @@ public class Builder {
 		}
 	}
 	
-	public boolean canConstruct(RobotLevel level) throws GameActionException {
-		if (controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(controllers.myRC.getDirection()), level) == null
-				&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(controllers.myRC.getDirection())) == TerrainTile.LAND)
+	public boolean canConstruct(Direction dir, RobotLevel level) throws GameActionException {
+		if (controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(dir), level) == null
+				&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(dir)) == TerrainTile.LAND)
 			return true;
 		return false;
+	}
+	
+	public boolean canConstruct(RobotLevel level) throws GameActionException {
+		return canConstruct(controllers.myRC.getDirection(), level);
 	}
 
 	private MapLocation turnToAvailableSquare(Chassis chassis)
