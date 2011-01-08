@@ -23,11 +23,11 @@ public class CombatSystem {
 	// private List<WeaponController> weapons;
 	private Controllers controllers;
 
-	private List<Robot> allies = new ArrayList<Robot>(); // exclude self
-	private List<Robot> enemies = new ArrayList<Robot>(); // exclude off robot
-	private List<Robot> deadEnemies = new ArrayList<Robot>();
-	private List<MapLocation> elocs = new ArrayList<MapLocation>();
-	private List<MapLocation> alocs = new ArrayList<MapLocation>();
+	public List<Robot> allies = new ArrayList<Robot>(); // exclude self
+	public List<Robot> enemies = new ArrayList<Robot>(); // exclude off robot
+	public List<Robot> deadEnemies = new ArrayList<Robot>();
+	public List<MapLocation> elocs = new ArrayList<MapLocation>();
+	public List<MapLocation> alocs = new ArrayList<MapLocation>();
 
 	private Robot target1 = null;
 	private Robot target2 = null;
@@ -66,7 +66,14 @@ public class CombatSystem {
 			MapLocation nextloc = loc.add(info.direction);
 			Direction dir2 = cur.directionTo(nextloc);
 			if (cur.isAdjacentTo(loc)) {
-					controllers.motor.setDirection(dir1);
+					Direction newdir;
+					if (dir1.rotateLeft() == dir2.rotateRight())
+						newdir = dir1.rotateLeft();
+					else if (dir2.rotateLeft() == dir1.rotateRight())
+						newdir = dir2.rotateLeft();
+					else
+						newdir = dir1;
+					controllers.motor.setDirection(newdir);
 					nextDir = dir2;
 					return true;
 			}
@@ -140,12 +147,10 @@ public class CombatSystem {
 	}
 
 	public void attack() {
-
 		if (target1 == null) {
 			destroyDeadEnemy();
 			return;
 		}
-
 		for (WeaponController w : controllers.weapons) {
 			if (w.isActive())
 				continue;
@@ -166,6 +171,7 @@ public class CombatSystem {
 		allies.clear();
 		enemies.clear();
 		deadEnemies.clear();
+		
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		double leasthp1 = Chassis.HEAVY.maxHp;
 		double leasthp2 = Chassis.HEAVY.maxHp;
@@ -178,6 +184,7 @@ public class CombatSystem {
 					alocs.add(loc);
 				} else if ((r.getTeam() != Team.NEUTRAL)) {
 					if (!info.on || info.chassis == Chassis.BUILDING) {
+//						System.out.println(r.getTeam());
 						deadEnemies.add(r);
 						continue;
 					}
@@ -214,7 +221,7 @@ public class CombatSystem {
 	}
 
 	public boolean outdated() {
-		return Clock.getRoundNum() > lastUpdate + 2;
+		return Clock.getRoundNum() > lastUpdate + 1;
 	}
 
 }
