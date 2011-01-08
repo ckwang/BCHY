@@ -11,16 +11,30 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 
 public abstract class BuildingAI extends AI {
-	
+
 	protected BuilderDirections builderDirs;
-	
+
 	public BuildingAI(RobotController rc) {
 		super(rc);
-		
+
 		builderDirs = new BuilderDirections(controllers);
 	}
 
 	abstract public void proceed();
+
+	public void yield() throws GameActionException {
+		super.yield();
+		controllers.updateComponents();
+		updateFluxRate();
+	}
+
+	protected void updateFluxRate() {
+		for (int i = 9; i > 0; --i) {
+			fluxRecord[i] = fluxRecord[i - 1];
+		}
+		fluxRecord[0] = controllers.myRC.getTeamResources();
+		fluxRate = fluxRecord[0] - fluxRecord[1];
+	}
 
 	/***
 	 * Sense nearby robots and return the location of one robot with specific
