@@ -31,10 +31,34 @@ public class BuilderDirections {
 		{Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
 		Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
 	
+	private static int indexMapping(Direction dir) {
+		switch(dir){
+		case NORTH:
+			return 0;
+		case NORTH_EAST:
+			return 1;
+		case EAST:
+			return 2;
+		case SOUTH_EAST:
+			return 3;
+		case SOUTH:
+			return 4;
+		case SOUTH_WEST:
+			return 5;
+		case WEST:
+			return 6;
+		case NORTH_WEST:
+			return 7;
+		default:
+			return -1;
+		}
+	}
+	
 	public BuilderDirections(Controllers controllers) {
 		this.controllers = controllers;
 		
 		updateEmptyDirections();
+		updateBuilderDirs();
 	}
 	
 	public Direction getDirections(ComponentType type){
@@ -137,6 +161,10 @@ public class BuilderDirections {
 			indicator += emptyDirections[i] + ",";
 		}
 		controllers.myRC.setIndicatorString(1, indicator);
+	}
+	
+	public boolean checkDirEmpty(Direction dir){
+		return emptyDirections[indexMapping(dir)];
 	}
 	
 }
