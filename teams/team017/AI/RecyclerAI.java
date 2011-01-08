@@ -105,6 +105,13 @@ public class RecyclerAI extends BuildingAI {
 							}	
 						}
 						break;
+						
+//						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
+//						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+//							buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType());
+//							yield();
+//						}
+//						break;
 					}
 					
 					case BUILDING_LOCATION_INQUIRY_MESSAGE: {
