@@ -15,9 +15,9 @@ public abstract class BuildingAI extends AI {
 
 	protected BuilderDirections builderDirs;
 	
-	protected double fluxRate;
-	protected double[] fluxRecord = new double[10];
-	protected int[]	roundRecord = new int[10];
+	private double[] fluxRecord = new double[10];
+	private int[] roundRecord = new int[10];
+	private double[] fluxRate = new double[9];
 
 	public BuildingAI(RobotController rc) {
 		super(rc);
@@ -41,7 +41,22 @@ public abstract class BuildingAI extends AI {
 		}
 		fluxRecord[0] = controllers.myRC.getTeamResources();
 		roundRecord[0] = Clock.getRoundNum();
-		fluxRate = (fluxRecord[0] - fluxRecord[1]) / (roundRecord[0] - roundRecord[1]);
+		for (int i = 0; i < 9; ++i) {
+			fluxRate[i] = (fluxRecord[i] - fluxRecord[i+1]) / (roundRecord[i] - roundRecord[i+1]);
+		}
+	}
+	
+	protected double getEffectiveFluxRate() {
+		double sum = 0;
+		int n = 0;
+		for (int i = 0; i < 9; ++i) {
+			if (fluxRate[i] >= -10) {
+				sum += fluxRate[i];
+				n++;
+			}
+		}
+		
+		return fluxRate[0] + (sum / n);
 	}
 
 	/***
