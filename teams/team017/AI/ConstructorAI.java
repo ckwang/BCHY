@@ -50,7 +50,7 @@ public class ConstructorAI extends AI {
 				buildRecyclers();
 				
 				//Check messages
-				if(controllers.myRC.getTeamResources() > 150)
+				if(controllers.myRC.getTeamResources() > 200)
 					checkEmptyRecyclers();
 			
 				while (msgHandler.hasMessage()) {
@@ -63,7 +63,7 @@ public class ConstructorAI extends AI {
 							
 							if(handler.getAvailableSpace() == 3){
 								if (buildBuildingAtLoc(buildLoc, UnitType.FACTORY)) {
-									MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight().rotateRight());
+									MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
 									buildBuildingAtLoc(nextBuildLoc, UnitType.ARMORY);
 								}
 							} else {
@@ -89,7 +89,7 @@ public class ConstructorAI extends AI {
 		try {
 			for (int i = 0; i < 4; ++i) {
 				// Rotate twice Right for a 90 degrees turn
-				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
+				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
 				yield();
 				// controllers.myRC.setIndicatorString(0, borders[0] + "," +
 				// borders[1] + "," + borders[2] + "," + borders[3]);
@@ -120,8 +120,7 @@ public class ConstructorAI extends AI {
 
 				int i;
 				for (i = 3; i > 0; i--) {
-					if (controllers.myRC.senseTerrainTile(currentLoc.add(
-							addDirs[j], i)) != TerrainTile.OFF_MAP)
+					if (controllers.myRC.senseTerrainTile(currentLoc.add(addDirs[j], i)) != TerrainTile.OFF_MAP)
 						break;
 				}
 
