@@ -119,12 +119,9 @@ public class Builder {
 		}
 	}
 	
-	private boolean canConstruct(RobotLevel level) throws GameActionException {
-		
-		if (controllers.sensor.senseObjectAtLocation(
-				controllers.myRC.getLocation().add(controllers.myRC.getDirection()), level) == null
-				&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(
-						controllers.myRC.getDirection())) == TerrainTile.LAND)
+	public boolean canConstruct(RobotLevel level) throws GameActionException {
+		if (controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(controllers.myRC.getDirection()), level) == null
+				&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(controllers.myRC.getDirection())) == TerrainTile.LAND)
 			return true;
 		return false;
 	}

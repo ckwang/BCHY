@@ -4,6 +4,10 @@ import team017.construction.UnitType;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 
+// Ask another builder to build some components
+// builderLocation : if the receiver is at that location, it builds
+// buildingLocation: the location where things should be built
+
 public class BuildingRequestMessage extends GenericMessage{
 	
 	private MapLocation builderLocation;
