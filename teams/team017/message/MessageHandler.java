@@ -75,7 +75,8 @@ public class MessageHandler {
 	 * Check if the input message is valid by inspecting the check sum
 	 */
 	private boolean isValid(Message msg) {
-		return msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3]; 
+		return (msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3])
+			&& msg.ints[1] != controllers.myRC.getRobot().getID(); 
 	}
 	
 	public MessageType getMessageType(Message msg) {
