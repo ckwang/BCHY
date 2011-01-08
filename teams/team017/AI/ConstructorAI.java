@@ -31,7 +31,7 @@ public class ConstructorAI extends AI {
 
 	public void yield() {
 		super.yield();
-		updateLocationSets();
+//		updateLocationSets();
 		sense_border();
 	}
 
@@ -54,7 +54,10 @@ public class ConstructorAI extends AI {
 				if (controllers.motor != null) {
 					navigate();
 				}
-				buildRecyclers();
+				
+				if(buildRecyclers()){
+					recyclerLocations.add(controllers.myRC.getLocation().add(controllers.myRC.getDirection()));
+				}
 
 				// Check messages
 				if (controllers.myRC.getTeamResources() > 200)
@@ -65,15 +68,16 @@ public class ConstructorAI extends AI {
 					switch (msgHandler.getMessageType(msg)) {
 					case BUILDING_LOCATION_RESPONSE_MESSAGE: {
 						BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
-						if (handler.getBuildableDirection() != Direction.NONE) {
+						if(handler.getAvailableSpace() == -1){
+							recyclerLocations.remove(handler.getSourceLocation());
+						} else if (handler.getBuildableDirection() != Direction.NONE) {
 							MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-
 							if (handler.getAvailableSpace() == 3) {
 								if (buildBuildingAtLoc(buildLoc,UnitType.ARMORY)) {
 									MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
 									buildBuildingAtLoc(nextBuildLoc,UnitType.FACTORY);
 								}
-							} else {
+							} else if(handler.getAvailableSpace() == 2){
 								buildBuildingAtLoc(buildLoc, UnitType.ARMORY);
 							}
 						}
@@ -223,9 +227,7 @@ public class ConstructorAI extends AI {
 				e.printStackTrace();
 			}
 		}
-
 		msgHandler.queueMessage(new BorderMessage(borders));
-
 	}
 
 	private void updateLocationSets() {
@@ -251,14 +253,13 @@ public class ConstructorAI extends AI {
 	private void checkEmptyRecyclers() {
 		for (MapLocation recyclerLoc : recyclerLocations) {
 			if (controllers.myRC.getLocation().isAdjacentTo(recyclerLoc)) {
-				msgHandler.queueMessage(new BuildingLocationInquiryMessage(
-						recyclerLoc));
+				msgHandler.queueMessage(new BuildingLocationInquiryMessage(recyclerLoc));
 				break;
 			}
 		}
 	}
 
-	private void buildRecyclers() throws GameActionException{
+	private boolean buildRecyclers() throws GameActionException{
 //		controllers.myRC.setIndicatorString(2, mineLocations.toString());
 		
 		for (MapLocation mineLoc : mineLocations){
@@ -266,50 +267,40 @@ public class ConstructorAI extends AI {
 				if(controllers.sensor.canSenseSquare(mineLoc)){
 					 if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
 						 continue;
-
 				}
 				if (controllers.myRC.getDirection() != controllers.myRC
 						.getLocation().directionTo(mineLoc)) {
 					while (controllers.motor.isActive())
 						controllers.myRC.yield();
-					controllers.motor.setDirection(controllers.myRC
-							.getLocation().directionTo(mineLoc));
+					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(mineLoc));
 					controllers.myRC.yield();
 				}
-				if (controllers.sensor.senseObjectAtLocation(mineLoc,
-						RobotLevel.ON_GROUND) == null) {
-					while (!buildingSystem.constructUnit(
-							controllers.myRC.getLocation().add(
-									controllers.myRC.getDirection()),
-							UnitType.RECYCLER)) {
+				if (controllers.sensor.senseObjectAtLocation(mineLoc,RobotLevel.ON_GROUND) == null) {
+					while (!buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.RECYCLER)) {
 						if (buildingSystem.canConstruct(RobotLevel.ON_GROUND) == false)
-							break;
+							return false;
 						controllers.myRC.yield();
 					}
-
-					msgHandler.queueMessage(new ConstructionCompleteMessage(
-							mineLoc, ComponentType.RECYCLER));
+					msgHandler.queueMessage(new ConstructionCompleteMessage(mineLoc, ComponentType.RECYCLER));
 					msgHandler.queueMessage(new BorderMessage(borders));
 					controllers.myRC.yield();
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 
-	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type)
-			throws GameActionException {
-		while (!controllers.myRC.getLocation().add(
-				controllers.myRC.getDirection()).equals(buildLoc)) {
+	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type) throws GameActionException {
+		while (!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)) {
 			if (controllers.sensor.canSenseSquare(buildLoc)
-					&& controllers.sensor.senseObjectAtLocation(buildLoc,
-							type.chassis.level) != null)
+					&& controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
 				return false;
 			if (!controllers.motor.isActive()) {
 				if (!controllers.myRC.getLocation().isAdjacentTo(buildLoc)) {
 					navigator.setDestination(buildLoc);
 					Direction nextDir = navigator.getNextDir(0);
 					if (controllers.myRC.getDirection() != nextDir) {
-
 						controllers.motor.setDirection(nextDir);
 					} else {
 						controllers.motor.moveForward();
@@ -324,8 +315,7 @@ public class ConstructorAI extends AI {
 		}
 
 		while (!buildingSystem.constructUnit(buildLoc, type)) {
-			if (controllers.sensor.senseObjectAtLocation(buildLoc,
-					type.chassis.level) != null)
+			if (controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
 				return false;
 			yield();
 		}
