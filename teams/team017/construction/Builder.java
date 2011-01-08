@@ -39,7 +39,6 @@ public class Builder {
 				// see if there are all the required builders 
 				builderDirs.updateBuilderDirs();
 				if (!builderDirs.isComplete(controllers.builder.type(), type.requiredBuilders))	{
-					controllers.myRC.setIndicatorString(1, "lalala");
 					return false;
 				}
 				

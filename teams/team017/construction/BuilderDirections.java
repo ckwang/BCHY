@@ -122,6 +122,8 @@ public class BuilderDirections {
 						for (ComponentType com : info.components) {
 							if (com.componentClass == ComponentClass.BUILDER) {
 								setDirections(com, currentLoc.directionTo(info.location));
+								if (com == ComponentType.RECYCLER)
+									clusterSize++;
 							}
 						}
 					}
