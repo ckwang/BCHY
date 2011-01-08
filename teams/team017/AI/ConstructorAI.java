@@ -6,9 +6,7 @@ import java.util.Set;
 import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
-import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.util.Util;
 import team017.construction.UnitType;
 
 import battlecode.common.*;
@@ -50,8 +48,8 @@ public class ConstructorAI extends AI {
 				buildRecyclers();
 				
 				//Check messages
-				if(controllers.myRC.getTeamResources() > 200)
-					checkEmptyRecyclers();
+//				if(controllers.myRC.getTeamResources() > 200)
+//					checkEmptyRecyclers();
 			
 				while (msgHandler.hasMessage()) {
 					Message msg = msgHandler.nextMessage();
@@ -246,7 +244,7 @@ public class ConstructorAI extends AI {
 	}
 	
 	private void buildRecyclers() throws GameActionException{
-//		controllers.myRC.setIndicatorString(0, mineLocations.toString());
+//		controllers.myRC.setIndicatorString(2, mineLocations.toString());
 		
 		for (MapLocation mineLoc : mineLocations){
 			if(controllers.myRC.getLocation().isAdjacentTo(mineLoc)){
@@ -317,6 +315,7 @@ public class ConstructorAI extends AI {
 							.distanceSquaredTo(nearest))
 						nearest = loc;
 				}
+				
 				navigator.setDestination(nearest);
 				Direction nextDir = navigator.getNextDir(0);
 
@@ -363,20 +362,5 @@ public class ConstructorAI extends AI {
 			}
 		}
 
-	}
-
-	private void roachNavigate() throws GameActionException {
-		// navigate();
-		if (controllers.motor.canMove(controllers.myRC.getDirection())) {
-			// System.out.println("about to move");
-			controllers.motor.moveForward();
-		} else {
-			Direction tempDir = controllers.myRC.getDirection();
-			int rotationTimes = (Clock.getRoundNum() / 10) % 7;
-			for (int i = 0; i <= rotationTimes; ++i) {
-				tempDir = tempDir.rotateRight();
-			}
-			controllers.motor.setDirection(tempDir);
-		}
 	}
 }

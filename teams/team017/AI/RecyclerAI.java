@@ -13,8 +13,10 @@ import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
+import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
@@ -23,10 +25,17 @@ import battlecode.common.RobotLevel;
 public class RecyclerAI extends BuildingAI {
 
 	private MapLocation enemyBase;
+	private Mine myMine;
 	
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
 		enemyBase = controllers.myRC.getLocation();
+		
+		try {
+			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
+		} catch (GameActionException e) {
+			e.printStackTrace();
+		}
 	}
 
 
@@ -35,17 +44,33 @@ public class RecyclerAI extends BuildingAI {
 		
 		if (Clock.getRoundNum() == 0)
 			init();
-
 		else{
+			
+			// turn off if there is already a recycler nearby
+			if (builderDirs.recyclerDirection != null) {
+				try {
+					GameObject object = controllers.sensor.senseObjectAtLocation(
+							controllers.myRC.getLocation().add(builderDirs.recyclerDirection), RobotLevel.ON_GROUND);
+					
+					if (object.getID() < controllers.myRC.getRobot().getID())
+						controllers.myRC.turnOff();
+				} catch (GameActionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
 			while(controllers.myRC.getTeamResources() < 6)
 				controllers.myRC.yield();
 			try {
+				// build an antenna on itself
 				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 			} catch (GameActionException e1) {
 				System.out.println("caught exception:");
 				e1.printStackTrace();
 			}
 		}
+		
 		while (true) {
 			try {
 				// receive messages and handle them
@@ -154,6 +179,10 @@ public class RecyclerAI extends BuildingAI {
 //						}
 //					}
 //				}
+				
+				// turn off when the mine is depleted
+				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0)
+					controllers.myRC.turnOff();
 
 				yield();
 			} catch (Exception e) {
@@ -167,7 +196,7 @@ public class RecyclerAI extends BuildingAI {
 
 	private void init() {
 		try {
-			// install an antenna to the adjacent recycler
+			// install an antenna to the adjacent constructor
 			RobotInfo info = senseAdjacentChassis(Chassis.LIGHT);
 			if (info != null
 					&& controllers.myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost
@@ -176,6 +205,7 @@ public class RecyclerAI extends BuildingAI {
 			}
 			yield();
 
+			// build an antenna on itself
 			controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 		} catch (Exception e) {
 			System.out.println("caught exception:");
