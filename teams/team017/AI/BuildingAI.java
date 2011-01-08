@@ -28,7 +28,7 @@ public abstract class BuildingAI extends AI {
 
 	abstract public void proceed();
 
-	public void yield() throws GameActionException {
+	public void yield() {
 		super.yield();
 		controllers.updateComponents();
 		updateFluxRate();
