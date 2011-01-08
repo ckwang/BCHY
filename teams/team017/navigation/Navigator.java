@@ -19,7 +19,7 @@ public class Navigator {
 	private Controllers controllers;
 	
 	private MapLocation destination;
-	private MapLocation backTrackDes;
+	private MapLocation backTraceDes;
 	
 	private MapLocation startTracingLoc; // used for check if the robot move around the obstacle
 	private MapLocation previousTracingLoc; // use for eliminating loop motion
@@ -49,7 +49,7 @@ public class Navigator {
 		previousTracingLoc = null;
 		startTracingLoc = null;
 		destination = null;
-		backTrackDes = null;
+		backTraceDes = null;
 		
 		navigationState = State.RECKONING;
 		isCCW = false;
@@ -60,7 +60,7 @@ public class Navigator {
 			return;
 		else{
 			destination = new MapLocation(loc.x, loc.y);
-			backTrackDes = new MapLocation(loc.x, loc.y);
+			backTraceDes = new MapLocation(loc.x, loc.y);
 		}
 	}
 
@@ -70,26 +70,31 @@ public class Navigator {
 
 	public Direction getNextDir(int tolerance) throws GameActionException {
 		
-		controllers.myRC.setIndicatorString(0,"");
-		controllers.myRC.setIndicatorString(1,"");
+//		controllers.myRC.setIndicatorString(0,"");
+//		controllers.myRC.setIndicatorString(1,"");
 //		controllers.myRC.setIndicatorString(2,"");
 		
+		
+		// return same direction at same location (given same destination)
 		if (controllers.myRC.getLocation().equals(previousRobLoc)){
-			controllers.myRC.setIndicatorString(0,"STAY" );
 			return previousDir;
 		}
+		// navigation has been interrupted before
+		else if (previousRobLoc != null && 
+				   !previousRobLoc.isAdjacentTo(controllers.myRC.getLocation() )){
+			reset();
+			return Direction.OMNI; 
+		}
+		// using (BUG/ TangentBug) algorithm to find direction to destination
 		else{
 			previousRobLoc = controllers.myRC.getLocation();
 			if (destination == null){
-				controllers.myRC.setIndicatorString(0,"NULL" );
 				reset();
 				previousDir = Direction.OMNI;
 				return Direction.OMNI;
 			}
 			else {
-				controllers.myRC.setIndicatorString(0,controllers.myRC.getLocation()+" "+destination.toString() );
-				
-				previousDir = Bug(controllers.myRC.getLocation(), backTrackDes, tolerance);
+				previousDir = Bug(controllers.myRC.getLocation(), backTraceDes, tolerance);
 				return previousDir;
 			}
 		}
@@ -98,6 +103,7 @@ public class Navigator {
 	public Direction Bug(MapLocation s, MapLocation t, int tolerance)
 			throws GameActionException {
 		
+		// arrive the destination
 		if (s.distanceSquaredTo(t) <= tolerance) {
 			reset();
 			return Direction.OMNI;
@@ -106,18 +112,19 @@ public class Navigator {
 		
 		Direction nextDir;
 
-		// if target is not traversable
+		// if target is not traversable, back-tracing the destination
 		while (!isTraversable(t)) {
 			nextDir = s.directionTo(t);
-
-			if (nextDir == Direction.OMNI) {
+			t = t.subtract(nextDir);
+			
+			// beside the source
+			if (s.distanceSquaredTo(t) <= tolerance) {
 				reset();
 				return Direction.OMNI;
 			}
-			t = t.subtract(nextDir);
 		}
 		
-		backTrackDes = t;
+		backTraceDes = t;
 		
 		Direction initDir = s.directionTo(t);
 		MapLocation nextLoc;
@@ -149,7 +156,7 @@ public class Navigator {
 				}
 				
 				// The way is open
-				if (  isOpen(backTrackDes) && controllers.motor.canMove(initDir) ){
+				if (  isOpen(backTraceDes) && controllers.motor.canMove(initDir) ){
 					navigationState = State.RECKONING;
 					previousTracingLoc = startTracingLoc;
 					startTracingLoc = null;
@@ -157,7 +164,7 @@ public class Navigator {
 				}
 				
 				nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
-				controllers.myRC.setIndicatorString(1, startTracingLoc.toString()+" "+nextLoc.toString() + " KEEP" );
+//				controllers.myRC.setIndicatorString(1, startTracingLoc.toString()+" "+nextLoc.toString() + " KEEP" );
 				return s.directionTo(nextLoc);
 			case ROUNDED:
 				if (  controllers.motor.canMove(initDir) ){
@@ -168,7 +175,7 @@ public class Navigator {
 				}
 				
 				nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
-				controllers.myRC.setIndicatorString(1, startTracingLoc.toString()+" "+nextLoc.toString() + " KEEP" );
+//				controllers.myRC.setIndicatorString(1, startTracingLoc.toString()+" "+nextLoc.toString() + " KEEP" );
 				return s.directionTo(nextLoc);
 			default:
 				return initDir;
