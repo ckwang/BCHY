@@ -1,40 +1,23 @@
 package team017.AI;
 
 import team017.construction.BuilderDirections;
-import team017.message.BorderMessage;
-import team017.message.BuildingRequestMessage;
-import team017.message.ConstructionCompleteMessage;
-import team017.message.GenericMessage;
-import team017.util.Util;
 import battlecode.common.Chassis;
-import battlecode.common.Clock;
 import battlecode.common.ComponentClass;
 import battlecode.common.ComponentType;
-import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
-import battlecode.common.Message;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
-import battlecode.common.RobotLevel;
 
 public abstract class BuildingAI extends AI {
+	
 	protected BuilderDirections builderDirs;
 	
 	public BuildingAI(RobotController rc) {
 		super(rc);
 		
-		
 		builderDirs = new BuilderDirections(controllers);
-	}
-
-	@Override
-	public void yield() throws GameActionException {
-		controllers.myRC.yield();
-		controllers.updateComponents();
-		msgHandler.process();
-		updateFluxRate();
 	}
 
 	abstract public void proceed();

@@ -1,6 +1,5 @@
 package team017.message;
 
-import team017.util.Controllers;
 import battlecode.common.ComponentType;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;

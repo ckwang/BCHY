@@ -5,7 +5,6 @@ import java.util.Set;
 
 import team017.message.BorderMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.message.GenericMessage;
 import team017.construction.UnitType;
 
 import battlecode.common.*;
@@ -20,11 +19,8 @@ public class ConstructorAI extends AI {
 	}
 
 	public void yield() throws GameActionException {
-		controllers.myRC.yield();
-		controllers.updateComponents();
-		msgHandler.process();
+		super.yield();
 		updateLocationSets();
-		updateFluxRate();
 		sense_border();
 	}
 

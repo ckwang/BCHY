@@ -37,7 +37,12 @@ public abstract class AI {
 
 	abstract public void proceed();
 	
-	abstract public void yield() throws GameActionException;
+	public void yield() throws GameActionException {
+		controllers.myRC.yield();
+		controllers.updateComponents();
+		msgHandler.process();
+		updateFluxRate();
+	}
 
 	protected void updateFluxRate() {
 		for (int i = 9; i > 0; --i) {

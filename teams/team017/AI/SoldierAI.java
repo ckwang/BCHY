@@ -1,10 +1,7 @@
 package team017.AI;
 
 import team017.combat.CombatSystem;
-import team017.message.BorderMessage;
-import team017.message.BuildingRequestMessage;
 import team017.message.EnemyLocationMessage;
-import team017.message.GenericMessage;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;

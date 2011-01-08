@@ -1,12 +1,10 @@
 package team017.AI;
 
-import team017.construction.BuilderDirections;
 import team017.construction.UnitType;
 import team017.message.BorderMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.EnemyLocationMessage;
-import team017.message.GenericMessage;
 import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
