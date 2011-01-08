@@ -9,6 +9,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.MovementController;
+import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.TerrainTile;
 
@@ -18,8 +19,8 @@ public class SoldierAI extends AI {
 	private MapLocation enemyBase;
 	private RobotController rc = controllers.myRC;
 	private MovementController motor = controllers.motor;
-	private MapLocation leaderLoc = null;
-	private int leaderID = 0;
+	private int leaderID;
+	private Robot leader = null;
 
 	public SoldierAI(RobotController rc) {
 		super(rc);
@@ -29,7 +30,6 @@ public class SoldierAI extends AI {
 	public void proceed() {
 
 		while (true) {
-			
 			rc.setIndicatorString(0, "Soldier");
 
 			// receive messages and handle them
@@ -40,26 +40,42 @@ public class SoldierAI extends AI {
 					EnemyLocationMessage handler = new EnemyLocationMessage(msg);
 					enemyBase = handler.getEnemyLocation();
 					navigator.setDestination(enemyBase);
-					controllers.myRC.setIndicatorString(1, enemyBase.toString());
+					controllers.myRC
+							.setIndicatorString(1, enemyBase.toString());
 					break;
 				}
 				case FOLLOW_ME_MESSAGE: {
-					if (leaderID != 0)
-						break;
-					FollowMeMessage handler = new FollowMeMessage(msg);
-					leaderID = handler.getSourceID();
-					leaderLoc = handler.getSourceLocation();
+					if (leader == null) {
+						FollowMeMessage handler = new FollowMeMessage(msg);
+						leaderID = handler.getSourceID();
+						if (trackLeader())
+							break;
+						MapLocation leaderLoc = handler.getSourceLocation();
+						Direction dir = controllers.myRC.getLocation()
+								.directionTo(leaderLoc);
+						try {
+							controllers.motor.setDirection(dir);
+							trackLeader();
+						} catch (GameActionException e) {
+						}
+					}
+
 				}
 				}
 			}
-			
+
 			rc.setIndicatorString(1, String.valueOf(combat.enemyNum()));
-			
+
 			if (combat.hasEnemy() && controllers.weaponNum() > 0) {
 				// if (combat.approachTarget())
 				// rc.yield();
-				combat.approachTarget();
+				if (combat.chaseTarget()) {
+					try {
+						yield();
+					} catch (GameActionException e) {}
+				}
 				combat.attack();
+				continue;
 			}
 
 			if (leaderID != 0) {
@@ -67,15 +83,28 @@ public class SoldierAI extends AI {
 			} else {
 				try {
 					navigate();
-				} catch (GameActionException e) {}
+				} catch (GameActionException e) {
+				}
 			}
-			
+
 			sense_border();
+			controllers.myRC.yield();
 		}
 	}
-	
+
+	public boolean trackLeader() {
+		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+		for (Robot r : robots) {
+			if (r.getID() == leaderID) {
+				leader = r;
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public void followLeader() {
-		
+
 	}
 
 	private void sense_border() {
@@ -91,11 +120,7 @@ public class SoldierAI extends AI {
 			MapLocation currentLoc = rc.getLocation();
 			int i;
 			for (i = 3; i > 0; i--) {
-				TerrainTile tile = rc.senseTerrainTile(currentLoc.add(
-						addDirs[j], i));
-				if (tile == null || tile != TerrainTile.OFF_MAP)
-					// if (rc.senseTerrainTile(currentLoc.add(
-					// addDirs[j], i)) != TerrainTile.OFF_MAP)
+				if (rc.senseTerrainTile(currentLoc.add(addDirs[j], i)) != TerrainTile.OFF_MAP)
 					break;
 			}
 			// i == 3 means no OFF_MAP sensed

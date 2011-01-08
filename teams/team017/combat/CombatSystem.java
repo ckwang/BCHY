@@ -32,6 +32,7 @@ public class CombatSystem {
 	private Robot target1 = null;
 	private Robot target2 = null;
 	private int lastUpdate = -10;
+	private Direction nextDir = Direction.NONE;
 
 	public CombatSystem(Controllers c) {
 		controllers = c;
@@ -43,22 +44,67 @@ public class CombatSystem {
 		else
 			return false;
 	};
+	
+	public boolean chaseTarget() {
+		if (target1 != null)
+			return chase(target1);
+		else
+			return false;
+	}
 
-	/*
-	 * return true is moved
-	 */
-	public boolean approach(Robot r) {
-		if (controllers.motor == null || controllers.motor.isActive())
+	
+	public boolean chase(Robot r) {
+		if (controllers.motor.isActive())
 			return false;
 		MapLocation cur = controllers.myRC.getLocation();
 		try {
 			MapLocation loc = controllers.sensor.senseLocationOf(r);
-			if (cur.isAdjacentTo(loc))
+			RobotInfo info = controllers.sensor.senseRobotInfo(r);
+			Direction dir1 = cur.directionTo(loc);
+			if (dir1 == Direction.OMNI || dir1 == Direction.NONE)
 				return false;
+			MapLocation nextloc = loc.add(info.direction);
+			Direction dir2 = cur.directionTo(nextloc);
+			if (cur.isAdjacentTo(loc)) {
+					controllers.motor.setDirection(dir1);
+					nextDir = dir2;
+					return true;
+			}
+			if (dir2 == Direction.OMNI || dir2 == Direction.NONE)
+				return false;
+			if (controllers.myRC.getDirection() != dir2) {
+				controllers.motor.setDirection(dir2);
+				return true;
+			}
+			controllers.motor.moveForward();
+			return true;
+		} catch (GameActionException e) {
+			if (nextDir != Direction.OMNI && nextDir != Direction.NONE) {
+				try {
+					controllers.motor.setDirection(nextDir);
+					return true;
+				} catch (GameActionException e1) {}
+			}
+			return false;
+		}
+	}
+	
+	/*
+	 * return true is moved
+	 */
+	public boolean approach(Robot r) {
+		if (controllers.motor.isActive())
+			return false;
+		MapLocation cur = controllers.myRC.getLocation();
+		try {
+			MapLocation loc = controllers.sensor.senseLocationOf(r);
 			Direction dir = cur.directionTo(loc);
 			if (dir == Direction.OMNI || dir == Direction.NONE)
 				return false;
-			if (Util.isFacing(controllers.myRC.getDirection(), dir)
+			if (cur.isAdjacentTo(loc)) {
+				controllers.motor.setDirection(dir);
+			}
+			else if (Util.isFacing(controllers.myRC.getDirection(), dir)
 					&& controllers.motor.canMove(dir))
 				controllers.motor.moveForward();
 			else if (Util.isFacing(controllers.myRC.getDirection().opposite(),
@@ -131,7 +177,7 @@ public class CombatSystem {
 					MapLocation loc = controllers.sensor.senseLocationOf(r);
 					alocs.add(loc);
 				} else if ((r.getTeam() != Team.NEUTRAL)) {
-					if (!info.on) {
+					if (!info.on || info.chassis == Chassis.BUILDING) {
 						deadEnemies.add(r);
 						continue;
 					}
