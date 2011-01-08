@@ -5,7 +5,7 @@ import java.util.Set;
 
 import team017.message.BorderMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.message.MessageHandler;
+import team017.message.GenericMessage;
 import team017.construction.UnitType;
 
 import battlecode.common.*;
@@ -22,6 +22,7 @@ public class ConstructorAI extends AI {
 	public void yield() throws GameActionException {
 		controllers.myRC.yield();
 		controllers.updateComponents();
+		msgHandler.process();
 		updateLocationSets();
 		updateFluxRate();
 		sense_border();
@@ -189,8 +190,7 @@ public class ConstructorAI extends AI {
 			}
 		}
 
-		MessageHandler msgHandler = new BorderMessage(controllers, borders);
-		msgHandler.send();
+		msgHandler.queueMessage(new BorderMessage(borders));
 		yield();
 		
 	}
@@ -233,9 +233,8 @@ public class ConstructorAI extends AI {
 				if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) == null){
 					while(!buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.RECYCLER))
 						controllers.myRC.yield();
-					MessageHandler msgHandler = new ConstructionCompleteMessage(controllers, mineLoc, ComponentType.RECYCLER);
+					msgHandler.queueMessage(new ConstructionCompleteMessage(mineLoc, ComponentType.RECYCLER));
 					//MessageHandler msgHandler = new BorderMessage(controllers, borders);
-					msgHandler.send();
 					controllers.myRC.yield();
 				}
 			}

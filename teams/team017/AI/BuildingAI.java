@@ -4,7 +4,7 @@ import team017.construction.BuilderDirections;
 import team017.message.BorderMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.message.MessageHandler;
+import team017.message.GenericMessage;
 import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
@@ -33,6 +33,7 @@ public abstract class BuildingAI extends AI {
 	public void yield() throws GameActionException {
 		controllers.myRC.yield();
 		controllers.updateComponents();
+		msgHandler.process();
 		updateFluxRate();
 	}
 
