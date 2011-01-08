@@ -231,8 +231,12 @@ public class ConstructorAI extends AI {
 					controllers.myRC.yield();
 				}
 				if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) == null){
-					while(!buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.RECYCLER))
+					while(!buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.RECYCLER)){
+						if(buildingSystem.canConstruct(RobotLevel.ON_GROUND) == false)
+							break;
 						controllers.myRC.yield();
+							
+					}
 					msgHandler.queueMessage(new ConstructionCompleteMessage(mineLoc, ComponentType.RECYCLER));
 					//MessageHandler msgHandler = new BorderMessage(controllers, borders);
 					controllers.myRC.yield();
@@ -357,7 +361,7 @@ public class ConstructorAI extends AI {
 			controllers.motor.moveForward();
 		} else {
 			Direction tempDir = controllers.myRC.getDirection();
-			int rotationTimes = Clock.getRoundNum() % 7;
+			int rotationTimes = (Clock.getRoundNum() / 10) % 7;
 			for (int i = 0; i <= rotationTimes; ++i) {
 				tempDir = tempDir.rotateRight();
 			}

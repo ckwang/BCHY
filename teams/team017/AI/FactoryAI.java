@@ -40,10 +40,8 @@ public class FactoryAI extends AI {
 					Message msg = msgHandler.nextMessage();
 					switch (msgHandler.getMessageType(msg)) {
 					case BUILDING_REQUEST:{
-						BuildingRequestMessage handler = new BuildingRequestMessage(
-								msg);
-						if (handler.getBuilderLocation().equals(
-								controllers.myRC.getLocation())) {
+						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
+						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
 							
 							Direction buildDir = controllers.myRC.getLocation().directionTo(handler.getBuildingLocation());
 							if (controllers.myRC.getDirection() != buildDir) {
@@ -51,12 +49,11 @@ public class FactoryAI extends AI {
 								yield();
 							}
 							
-							while(!buildingSystem.constructComponent(
-									handler.getBuildingLocation(),
-									handler.getUnitType()))
-								continue;
-							
-
+							while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
+								if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
+									break;
+								yield();
+							}
 							yield();
 						}
 						break;
@@ -72,10 +69,8 @@ public class FactoryAI extends AI {
 						
 						break;
 					}
-
-						
-					}
 				}
+			}
 
 //				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 120)
 //					buildingSystem.constructUnit(UnitType.TANK_KILLER);

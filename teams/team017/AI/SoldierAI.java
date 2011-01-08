@@ -141,7 +141,6 @@ public class SoldierAI extends AI {
 		else if (!controllers.motor.isActive()) {
 			roachNavigate();
 		}
-
 		yield();
 	}
 
@@ -152,12 +151,11 @@ public class SoldierAI extends AI {
 			controllers.motor.moveForward();
 		} else {
 			Direction tempDir = controllers.myRC.getDirection();
-			int rotationTimes = Clock.getRoundNum() % 7;
+			int rotationTimes = (Clock.getRoundNum() / 10) % 7;
 			for (int i = 0; i <= rotationTimes; ++i){
 				tempDir = tempDir.rotateRight();
 			}
 				controllers.motor.setDirection(tempDir);
 		}
 	}
-
 }

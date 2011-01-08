@@ -36,13 +36,15 @@ public class RecyclerAI extends BuildingAI {
 		if (Clock.getRoundNum() == 0)
 			init();
 
-		while(controllers.myRC.getTeamResources() < 6)
-			controllers.myRC.yield();
-		try {
-			controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-		} catch (GameActionException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		else{
+			while(controllers.myRC.getTeamResources() < 6)
+				controllers.myRC.yield();
+			try {
+				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+			} catch (GameActionException e1) {
+				System.out.println("caught exception:");
+				e1.printStackTrace();
+			}
 		}
 		while (true) {
 			try {
@@ -95,16 +97,17 @@ public class RecyclerAI extends BuildingAI {
 							// update the builderDirs
 							Direction builderDir = currentLoc.directionTo(handler.getBuildingLocation());
 							builderDirs.setDirections(handler.getBuilderType(), builderDir);
-							
-							// face the correct direction
-							if (controllers.myRC.getDirection() != builderDir){
-								controllers.motor.setDirection(builderDir);
-								yield();
+							if(handler.getBuilderType() != ComponentType.RECYCLER){
+								// face the correct direction
+								if (controllers.myRC.getDirection() != builderDir){
+									controllers.motor.setDirection(builderDir);
+									yield();
+								}
+								
+								// build an antenna if it doesn't have one
+								if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) 
+									controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
 							}
-							
-							// build an antenna if it doesn't have one
-							if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) 
-								controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
 						}
 						break;
 					}
@@ -141,7 +144,6 @@ public class RecyclerAI extends BuildingAI {
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
-
 			}
 
 		}
