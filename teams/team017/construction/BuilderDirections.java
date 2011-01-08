@@ -156,11 +156,11 @@ public class BuilderDirections {
 		}
 		
 		
-		String indicator = "";
-		for (int i = 0; i < 8; ++i) {
-			indicator += emptyDirections[i] + ",";
-		}
-		controllers.myRC.setIndicatorString(1, indicator);
+//		String indicator = "";
+//		for (int i = 0; i < 8; ++i) {
+//			indicator += emptyDirections[i] + ",";
+//		}
+//		controllers.myRC.setIndicatorString(1, indicator);
 	}
 	
 	public boolean checkDirEmpty(Direction dir){

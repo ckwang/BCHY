@@ -55,8 +55,8 @@ public class FactoryAI extends BuildingAI {
 				}
 			}
 			
-			controllers.myRC.setIndicatorString(2, fluxRate + "");
-			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && fluxRate > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
+			controllers.myRC.setIndicatorString(2, getEffectiveFluxRate() + "");
+			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
 				if(builderDirs.armoryDirection != null){
 					Direction armoryDir = builderDirs.armoryDirection;
 					MapLocation myLoc = controllers.myRC.getLocation();

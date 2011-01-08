@@ -103,6 +103,7 @@ public class ConstructorAI extends AI {
 				controllers.motor.setDirection(controllers.myRC.getDirection()
 						.rotateRight());
 				yield();
+				controllers.updateComponents();
 				// controllers.myRC.setIndicatorString(0, borders[0] + "," +
 				// borders[1] + "," + borders[2] + "," + borders[3]);
 				// controllers.myRC.setIndicatorString(1,controllers.myRC.getLocation()
