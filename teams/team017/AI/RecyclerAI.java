@@ -143,8 +143,9 @@ public class RecyclerAI extends BuildingAI {
 								}
 								
 								// build an antenna if it doesn't have one
-								if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) 
+								if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
 									controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
+								}
 							}
 						}
 						break;

@@ -38,7 +38,10 @@ public class Builder {
 				
 				// see if there are all the required builders 
 				builderDirs.updateBuilderDirs();
-				if (!builderDirs.isComplete(controllers.builder.type(), type.requiredBuilders))	return false;
+				if (!builderDirs.isComplete(controllers.builder.type(), type.requiredBuilders))	{
+					controllers.myRC.setIndicatorString(1, "lalala");
+					return false;
+				}
 				
 				// check if the unit can be built at the desired location
 				if (canConstruct(buildDir, type.chassis.level)) {
