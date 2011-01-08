@@ -24,16 +24,11 @@ public class SoldierAI extends AI {
 		combat = new CombatSystem(controllers);
 	}
 
-	public void yield() throws GameActionException {
-
-	}
-
 	public void proceed() {
 
 		while (true) {
 			controllers.myRC.setIndicatorString(0, controllers.myRC
 					.getLocation().toString());
-			controllers.updateComponents();
 			// receive messages and handle them
 			while (msgHandler.hasMessage()) {
 				Message msg = msgHandler.nextMessage();
