@@ -54,12 +54,9 @@ public class ConstructorAI extends AI {
 					checkEmptyRecyclers();
 			
 				while (msgHandler.hasMessage()) {
-//					controllers.myRC.setIndicatorString(2, "Get Message");
 					Message msg = msgHandler.nextMessage();
-					controllers.myRC.setIndicatorString(2,"" + msgHandler.getMessageType(msg));
 					switch (msgHandler.getMessageType(msg)) {
 					case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-//						controllers.myRC.setIndicatorString(2, "GetResponse");
 						BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
 						if(handler.getBuildableDirection() != Direction.NONE){
 							MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
@@ -243,7 +240,6 @@ public class ConstructorAI extends AI {
 	private void checkEmptyRecyclers(){
 		for(MapLocation recyclerLoc : recyclerLocations){
 			if(controllers.myRC.getLocation().isAdjacentTo(recyclerLoc)){
-//				controllers.myRC.setIndicatorString(2, "Inquiry");
 				msgHandler.queueMessage(new BuildingLocationInquiryMessage(recyclerLoc));
 				break;
 			}
@@ -281,16 +277,23 @@ public class ConstructorAI extends AI {
 	}
 
 	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type) throws GameActionException{
-		MapLocation currentLoc = controllers.myRC.getLocation();
-		while(!currentLoc.add(controllers.myRC.getDirection()).equals(buildLoc)){
+		while(!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)){
 			if(controllers.sensor.canSenseSquare(buildLoc) && controllers.sensor.senseObjectAtLocation(buildLoc, type.chassis.level) != null)
 				return false;
 			if(!controllers.motor.isActive()){
-				if(controllers.myRC.getDirection() != currentLoc.directionTo(buildLoc)){
-					controllers.motor.setDirection(currentLoc.directionTo(buildLoc));
+				if(!controllers.myRC.getLocation().isAdjacentTo(buildLoc)){
+					navigator.setDestination(buildLoc);
+					Direction nextDir = navigator.getNextDir(0);
+					if(controllers.myRC.getDirection() != nextDir){
+						
+						controllers.motor.setDirection(nextDir);
+					}
+					else{
+						controllers.motor.moveForward();
+					}
 				}
-				else{
-					controllers.motor.moveForward();
+				else if(!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)){
+					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(buildLoc));
 				}
 			}
 			yield();

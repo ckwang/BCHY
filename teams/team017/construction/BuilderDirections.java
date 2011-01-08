@@ -117,7 +117,7 @@ public class BuilderDirections {
 			} else {
 				try {
 					GameObject object = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND);
-					if (object != null && object.getTeam() == controllers.myRC.getTeam()) {
+					if (object != null) {
 						if (controllers.sensor.senseRobotInfo((Robot) object).chassis == Chassis.BUILDING)
 							emptyDirections[i] = false;
 					}
@@ -132,11 +132,11 @@ public class BuilderDirections {
 		}
 		
 		
-//		String indicator = "";
-//		for (int i = 0; i < 8; ++i) {
-//			indicator += emptyDirections[i] + ",";
-//		}
-//		controllers.myRC.setIndicatorString(2, indicator);
+		String indicator = "";
+		for (int i = 0; i < 8; ++i) {
+			indicator += emptyDirections[i] + ",";
+		}
+		controllers.myRC.setIndicatorString(1, indicator);
 	}
 	
 }
