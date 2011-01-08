@@ -55,23 +55,23 @@ public class FactoryAI extends BuildingAI {
 				}
 			}
 			
-//			if(controllers.myRC.getTeamResources() > 100 && fluxRate > 0){
-//				if(builderDirs.armoryDirection != null){
-//					Direction armoryDir = builderDirs.armoryDirection;
-//					MapLocation myLoc = controllers.myRC.getLocation();
-//					builderDirs.updateEmptyDirections();
-//					// try from left twice to right twice
-//					Direction buildDir = armoryDir.rotateLeft().rotateLeft();
-//					for(int i = 0; i < 5; ++i){
-//						if(builderDirs.checkDirEmpty(buildDir)){
-//							buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.APOCALYPSE, builderDirs);
-//							break;
-//						}
-//						buildDir.rotateRight();
-//					}
-//				}
-//			}
-			
+			controllers.myRC.setIndicatorString(2, fluxRate + "");
+			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && fluxRate > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
+				if(builderDirs.armoryDirection != null){
+					Direction armoryDir = builderDirs.armoryDirection;
+					MapLocation myLoc = controllers.myRC.getLocation();
+					builderDirs.updateEmptyDirections();
+					// try from left twice to right twice
+					Direction buildDir = armoryDir.rotateLeft().rotateLeft();
+					for(int i = 0; i < 5; ++i){
+						if(builderDirs.checkDirEmpty(buildDir)){
+							buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.APOCALYPSE, builderDirs);
+							break;
+						}
+						buildDir.rotateRight();
+					}
+				}
+			}
 
 //				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 120)
 //					buildingSystem.constructUnit(UnitType.TANK_KILLER);

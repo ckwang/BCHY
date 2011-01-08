@@ -27,7 +27,7 @@ public class MessageHandler {
 	
 	public void process() {
 		// send a message
-		if (outQueue.size() != 0 && controllers.comm != null) {
+		if (outQueue.size() != 0 && controllers.comm != null && !controllers.comm.isActive()) {
 			try {
 				controllers.comm.broadcast(outQueue.poll().msg);
 			} catch (GameActionException e) {
