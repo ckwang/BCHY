@@ -81,11 +81,13 @@ public class RecyclerAI extends BuildingAI {
 					case BUILDING_LOCATION_INQUIRY_MESSAGE: {
 						BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
 						if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
-							if(builderDirs.consecutiveEmpties(3) != Direction.NONE){
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
-							}
-								
-							else if(builderDirs.consecutiveEmpties(2) != Direction.NONE){
+
+//							if(builderDirs.consecutiveEmpties(3) != Direction.NONE){
+//								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
+//							}
+//								
+//							else 
+							if(builderDirs.consecutiveEmpties(2) != Direction.NONE){
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
 							}
 								

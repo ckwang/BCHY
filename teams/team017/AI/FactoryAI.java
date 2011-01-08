@@ -55,22 +55,22 @@ public class FactoryAI extends BuildingAI {
 				}
 			}
 			
-			if(controllers.myRC.getTeamResources() > 100 && fluxRate > 0){
-				if(builderDirs.armoryDirection != null){
-					Direction armoryDir = builderDirs.armoryDirection;
-					MapLocation myLoc = controllers.myRC.getLocation();
-					builderDirs.updateEmptyDirections();
-					// try from left twice to right twice
-					Direction buildDir = armoryDir.rotateLeft().rotateLeft();
-					for(int i = 0; i < 5; ++i){
-						if(builderDirs.checkDirEmpty(buildDir)){
-							buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.APOCALYPSE, builderDirs);
-							break;
-						}
-						buildDir.rotateRight();
-					}
-				}
-			}
+//			if(controllers.myRC.getTeamResources() > 100 && fluxRate > 0){
+//				if(builderDirs.armoryDirection != null){
+//					Direction armoryDir = builderDirs.armoryDirection;
+//					MapLocation myLoc = controllers.myRC.getLocation();
+//					builderDirs.updateEmptyDirections();
+//					// try from left twice to right twice
+//					Direction buildDir = armoryDir.rotateLeft().rotateLeft();
+//					for(int i = 0; i < 5; ++i){
+//						if(builderDirs.checkDirEmpty(buildDir)){
+//							buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.APOCALYPSE, builderDirs);
+//							break;
+//						}
+//						buildDir.rotateRight();
+//					}
+//				}
+//			}
 			
 
 //				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 120)

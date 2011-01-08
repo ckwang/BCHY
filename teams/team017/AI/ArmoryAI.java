@@ -1,7 +1,9 @@
 package team017.AI;
 
+import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
+import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
@@ -33,15 +35,40 @@ public class ArmoryAI extends BuildingAI{
 					}
 					case CONSTRUCTION_COMPLETE: {
 						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
-						
 						MapLocation currentLoc = controllers.myRC.getLocation();
-						
 						if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
 							builderDirs.setDirections(handler.getBuilderType(), currentLoc.directionTo(handler.getBuildingLocation()));
 						}
-						
 						break;
 					}
+					}
+				}
+				
+				if (controllers.myRC.getTeamResources() > 100) {
+					builderDirs.updateEmptyDirections();
+					Direction recyclerDir = builderDirs.recyclerDirection;
+					MapLocation myLoc = controllers.myRC.getLocation();
+					if (recyclerDir != null) {
+						if (recyclerDir.isDiagonal()) {
+							// try from left twice to right twice
+							Direction buildDir = recyclerDir.rotateLeft().rotateLeft();
+							for(int i = 0; i < 5; ++i){
+								if(builderDirs.checkDirEmpty(buildDir)){
+									buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
+									break;
+								}
+								buildDir = buildDir.rotateRight();
+							}
+						} else {
+							Direction buildDir = recyclerDir.rotateLeft();
+							if (builderDirs.checkDirEmpty(buildDir)) {
+								buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
+							} else {
+								buildDir = buildDir.rotateRight().rotateRight();
+								buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
+							}	
+						}
+						
 					}
 				}
 

@@ -64,26 +64,17 @@ public class ConstructorAI extends AI {
 					Message msg = msgHandler.nextMessage();
 					switch (msgHandler.getMessageType(msg)) {
 					case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-						BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(
-								msg);
+						BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
 						if (handler.getBuildableDirection() != Direction.NONE) {
-							MapLocation buildLoc = handler.getSourceLocation()
-									.add(handler.getBuildableDirection());
+							MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
 
 							if (handler.getAvailableSpace() == 3) {
-								if (buildBuildingAtLoc(buildLoc,
-										UnitType.FACTORY)) {
-									MapLocation nextBuildLoc = handler
-											.getSourceLocation()
-											.add(
-													handler
-															.getBuildableDirection()
-															.rotateRight());
-									buildBuildingAtLoc(nextBuildLoc,
-											UnitType.ARMORY);
+								if (buildBuildingAtLoc(buildLoc,UnitType.ARMORY)) {
+									MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
+									buildBuildingAtLoc(nextBuildLoc,UnitType.FACTORY);
 								}
 							} else {
-								buildBuildingAtLoc(buildLoc, UnitType.FACTORY);
+								buildBuildingAtLoc(buildLoc, UnitType.ARMORY);
 							}
 						}
 						break;
