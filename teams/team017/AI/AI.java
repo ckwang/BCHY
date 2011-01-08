@@ -39,18 +39,7 @@ public abstract class AI {
 	
 	public void yield() throws GameActionException {
 		controllers.myRC.yield();
-		controllers.updateComponents();
 		msgHandler.process();
-		updateFluxRate();
 	}
-
-	protected void updateFluxRate() {
-		for (int i = 9; i > 0; --i) {
-			fluxRecord[i] = fluxRecord[i - 1];
-		}
-		fluxRecord[0] = controllers.myRC.getTeamResources();
-		fluxRate = fluxRecord[0] - fluxRecord[1];
-	}
-
 
 }

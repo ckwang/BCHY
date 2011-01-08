@@ -2,6 +2,7 @@ package team017.AI;
 
 import team017.combat.CombatSystem;
 import team017.message.EnemyLocationMessage;
+import team017.message.FollowMeMessage;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -14,10 +15,11 @@ import battlecode.common.TerrainTile;
 public class SoldierAI extends AI {
 
 	private CombatSystem combat;
-	private MapLocation enemyLoc;
+	private MapLocation enemyBase;
 	private RobotController rc = controllers.myRC;
 	private MovementController motor = controllers.motor;
 	private MapLocation leaderLoc = null;
+	private int leaderID = 0;
 
 	public SoldierAI(RobotController rc) {
 		super(rc);
@@ -27,38 +29,53 @@ public class SoldierAI extends AI {
 	public void proceed() {
 
 		while (true) {
-			controllers.myRC.setIndicatorString(0, controllers.myRC
-					.getLocation().toString());
+			
+			rc.setIndicatorString(0, "Soldier");
+
 			// receive messages and handle them
 			while (msgHandler.hasMessage()) {
 				Message msg = msgHandler.nextMessage();
 				switch (msgHandler.getMessageType(msg)) {
 				case ENEMY_LOCATION: {
 					EnemyLocationMessage handler = new EnemyLocationMessage(msg);
-					enemyLoc = handler.getEnemyLocation();
-					navigator.setDestination(enemyLoc);
-					controllers.myRC.setIndicatorString(1, enemyLoc.toString());
+					enemyBase = handler.getEnemyLocation();
+					navigator.setDestination(enemyBase);
+					controllers.myRC.setIndicatorString(1, enemyBase.toString());
 					break;
 				}
-
+				case FOLLOW_ME_MESSAGE: {
+					if (leaderID != 0)
+						break;
+					FollowMeMessage handler = new FollowMeMessage(msg);
+					leaderID = handler.getSourceID();
+					leaderLoc = handler.getSourceLocation();
+				}
 				}
 			}
-
+			
 			rc.setIndicatorString(1, String.valueOf(combat.enemyNum()));
-
-			if (combat.enemyNum() > 0 && controllers.weaponNum() > 0) {
+			
+			if (combat.hasEnemy() && controllers.weaponNum() > 0) {
 				// if (combat.approachTarget())
 				// rc.yield();
 				combat.approachTarget();
 				combat.attack();
 			}
 
-			try {
-				navigate();
-			} catch (GameActionException e) {
+			if (leaderID != 0) {
+				followLeader();
+			} else {
+				try {
+					navigate();
+				} catch (GameActionException e) {}
 			}
+			
 			sense_border();
 		}
+	}
+	
+	public void followLeader() {
+		
 	}
 
 	private void sense_border() {
