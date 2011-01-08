@@ -69,12 +69,10 @@ public class SoldierAI extends AI {
 			if (combat.hasEnemy() && controllers.weaponNum() > 0) {
 				// if (combat.approachTarget())
 				// rc.yield();
-				if (combat.chaseTarget()) {
-					try {
-						yield();
-					} catch (GameActionException e) {}
-				}
+				if (combat.chaseTarget())
+					yield();
 				combat.attack();
+				yield();
 				continue;
 			}
 
@@ -86,9 +84,7 @@ public class SoldierAI extends AI {
 				} catch (GameActionException e) {
 				}
 			}
-
 			sense_border();
-			controllers.myRC.yield();
 		}
 	}
 

@@ -3,15 +3,22 @@ package team017.AI;
 import java.util.HashSet;
 import java.util.Set;
 
+import team017.construction.UnitType;
 import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
-import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.util.Util;
-import team017.construction.UnitType;
-
-import battlecode.common.*;
+import battlecode.common.Clock;
+import battlecode.common.ComponentType;
+import battlecode.common.Direction;
+import battlecode.common.GameActionException;
+import battlecode.common.GameObject;
+import battlecode.common.MapLocation;
+import battlecode.common.Message;
+import battlecode.common.Mine;
+import battlecode.common.RobotController;
+import battlecode.common.RobotLevel;
+import battlecode.common.TerrainTile;
 
 public class ConstructorAI extends AI {
 
@@ -22,7 +29,7 @@ public class ConstructorAI extends AI {
 		super(rc);
 	}
 
-	public void yield() throws GameActionException {
+	public void yield() {
 		super.yield();
 		updateLocationSets();
 		sense_border();
@@ -48,34 +55,43 @@ public class ConstructorAI extends AI {
 					navigate();
 				}
 				buildRecyclers();
-				
-				//Check messages
-				if(controllers.myRC.getTeamResources() > 200)
+
+				// Check messages
+				if (controllers.myRC.getTeamResources() > 200)
 					checkEmptyRecyclers();
-			
+
 				while (msgHandler.hasMessage()) {
 					Message msg = msgHandler.nextMessage();
 					switch (msgHandler.getMessageType(msg)) {
 					case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-						BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
-						if(handler.getBuildableDirection() != Direction.NONE){
-							MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-							
-							if(handler.getAvailableSpace() == 3){
-								if (buildBuildingAtLoc(buildLoc, UnitType.FACTORY)) {
-									MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
-									buildBuildingAtLoc(nextBuildLoc, UnitType.ARMORY);
+						BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(
+								msg);
+						if (handler.getBuildableDirection() != Direction.NONE) {
+							MapLocation buildLoc = handler.getSourceLocation()
+									.add(handler.getBuildableDirection());
+
+							if (handler.getAvailableSpace() == 3) {
+								if (buildBuildingAtLoc(buildLoc,
+										UnitType.FACTORY)) {
+									MapLocation nextBuildLoc = handler
+											.getSourceLocation()
+											.add(
+													handler
+															.getBuildableDirection()
+															.rotateRight());
+									buildBuildingAtLoc(nextBuildLoc,
+											UnitType.ARMORY);
 								}
 							} else {
 								buildBuildingAtLoc(buildLoc, UnitType.FACTORY);
-							}							
+							}
 						}
 						break;
 					}
 					}
 				}
 				yield();
-				
+
 				// Conditions of building factories/armories
 
 			} catch (Exception e) {
@@ -89,7 +105,8 @@ public class ConstructorAI extends AI {
 		try {
 			for (int i = 0; i < 4; ++i) {
 				// Rotate twice Right for a 90 degrees turn
-				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
+				controllers.motor.setDirection(controllers.myRC.getDirection()
+						.rotateRight());
 				yield();
 				// controllers.myRC.setIndicatorString(0, borders[0] + "," +
 				// borders[1] + "," + borders[2] + "," + borders[3]);
@@ -120,7 +137,8 @@ public class ConstructorAI extends AI {
 
 				int i;
 				for (i = 3; i > 0; i--) {
-					if (controllers.myRC.senseTerrainTile(currentLoc.add(addDirs[j], i)) != TerrainTile.OFF_MAP)
+					if (controllers.myRC.senseTerrainTile(currentLoc.add(
+							addDirs[j], i)) != TerrainTile.OFF_MAP)
 						break;
 				}
 
@@ -190,7 +208,7 @@ public class ConstructorAI extends AI {
 			}
 		}
 	}
-	
+
 	private void init_return() throws GameActionException {
 		navigator.setDestination(homeLocation);
 
@@ -201,7 +219,8 @@ public class ConstructorAI extends AI {
 				if (nextDir == Direction.OMNI)
 					break;
 
-				if (!controllers.motor.isActive() && controllers.motor.canMove(nextDir)) {
+				if (!controllers.motor.isActive()
+						&& controllers.motor.canMove(nextDir)) {
 					if (controllers.myRC.getDirection() == nextDir)
 						controllers.motor.moveForward();
 					else
@@ -215,59 +234,70 @@ public class ConstructorAI extends AI {
 		}
 
 		msgHandler.queueMessage(new BorderMessage(borders));
-		
+
 	}
 
-	private void updateLocationSets() throws GameActionException {
+	private void updateLocationSets() {
 		Mine[] minelist = controllers.sensor.senseNearbyGameObjects(Mine.class);
 		for (Mine mine : minelist) {
-			GameObject object = controllers.sensor.senseObjectAtLocation(
-					mine.getLocation(), RobotLevel.ON_GROUND);
-
-			if (object != null) {
-				if (mineLocations.contains(mine.getLocation()))
-					mineLocations.remove(mine.getLocation());
-				if (object.getTeam() == controllers.myRC.getTeam())
-					recyclerLocations.add(mine.getLocation());
-			} else {
-				mineLocations.add(mine.getLocation());
+			try {
+				GameObject object = controllers.sensor.senseObjectAtLocation(
+						mine.getLocation(), RobotLevel.ON_GROUND);
+				if (object != null) {
+					if (mineLocations.contains(mine.getLocation()))
+						mineLocations.remove(mine.getLocation());
+					if (object.getTeam() == controllers.myRC.getTeam())
+						recyclerLocations.add(mine.getLocation());
+				} else {
+					mineLocations.add(mine.getLocation());
+				}
+			} catch (GameActionException e) {
+				continue;
 			}
-
 		}
 	}
-	
-	private void checkEmptyRecyclers(){
-		for(MapLocation recyclerLoc : recyclerLocations){
-			if(controllers.myRC.getLocation().isAdjacentTo(recyclerLoc)){
-				msgHandler.queueMessage(new BuildingLocationInquiryMessage(recyclerLoc));
+
+	private void checkEmptyRecyclers() {
+		for (MapLocation recyclerLoc : recyclerLocations) {
+			if (controllers.myRC.getLocation().isAdjacentTo(recyclerLoc)) {
+				msgHandler.queueMessage(new BuildingLocationInquiryMessage(
+						recyclerLoc));
 				break;
 			}
 		}
 	}
-	
-	private void buildRecyclers() throws GameActionException{
-//		controllers.myRC.setIndicatorString(0, mineLocations.toString());
-		
-		for (MapLocation mineLoc : mineLocations){
-			if(controllers.myRC.getLocation().isAdjacentTo(mineLoc)){
-				if(controllers.sensor.canSenseSquare(mineLoc)){
-					 if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
-						 continue;
+
+	private void buildRecyclers() throws GameActionException {
+		// controllers.myRC.setIndicatorString(0, mineLocations.toString());
+
+		for (MapLocation mineLoc : mineLocations) {
+			if (controllers.myRC.getLocation().isAdjacentTo(mineLoc)) {
+				if (controllers.sensor.canSenseSquare(mineLoc)) {
+					if (controllers.sensor.senseObjectAtLocation(mineLoc,
+							RobotLevel.ON_GROUND) != null)
+						continue;
 				}
-				if (controllers.myRC.getDirection() != controllers.myRC.getLocation().directionTo(mineLoc)) {
+				if (controllers.myRC.getDirection() != controllers.myRC
+						.getLocation().directionTo(mineLoc)) {
 					while (controllers.motor.isActive())
 						controllers.myRC.yield();
-					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(mineLoc));
+					controllers.motor.setDirection(controllers.myRC
+							.getLocation().directionTo(mineLoc));
 					controllers.myRC.yield();
 				}
-				if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) == null){
-					while(!buildingSystem.constructUnit(controllers.myRC.getLocation().add(controllers.myRC.getDirection()),UnitType.RECYCLER)){
-						if(buildingSystem.canConstruct(RobotLevel.ON_GROUND) == false)
+				if (controllers.sensor.senseObjectAtLocation(mineLoc,
+						RobotLevel.ON_GROUND) == null) {
+					while (!buildingSystem.constructUnit(
+							controllers.myRC.getLocation().add(
+									controllers.myRC.getDirection()),
+							UnitType.RECYCLER)) {
+						if (buildingSystem.canConstruct(RobotLevel.ON_GROUND) == false)
 							break;
 						controllers.myRC.yield();
 					}
 
-					msgHandler.queueMessage(new ConstructionCompleteMessage(mineLoc, ComponentType.RECYCLER));
+					msgHandler.queueMessage(new ConstructionCompleteMessage(
+							mineLoc, ComponentType.RECYCLER));
 					msgHandler.queueMessage(new BorderMessage(borders));
 					controllers.myRC.yield();
 				}
@@ -275,37 +305,42 @@ public class ConstructorAI extends AI {
 		}
 	}
 
-	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type) throws GameActionException{
-		while(!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)){
-			if(controllers.sensor.canSenseSquare(buildLoc) && controllers.sensor.senseObjectAtLocation(buildLoc, type.chassis.level) != null)
+	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type)
+			throws GameActionException {
+		while (!controllers.myRC.getLocation().add(
+				controllers.myRC.getDirection()).equals(buildLoc)) {
+			if (controllers.sensor.canSenseSquare(buildLoc)
+					&& controllers.sensor.senseObjectAtLocation(buildLoc,
+							type.chassis.level) != null)
 				return false;
-			if(!controllers.motor.isActive()){
-				if(!controllers.myRC.getLocation().isAdjacentTo(buildLoc)){
+			if (!controllers.motor.isActive()) {
+				if (!controllers.myRC.getLocation().isAdjacentTo(buildLoc)) {
 					navigator.setDestination(buildLoc);
 					Direction nextDir = navigator.getNextDir(0);
-					if(controllers.myRC.getDirection() != nextDir){
-						
+					if (controllers.myRC.getDirection() != nextDir) {
+
 						controllers.motor.setDirection(nextDir);
-					}
-					else{
+					} else {
 						controllers.motor.moveForward();
 					}
-				}
-				else if(!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)){
-					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(buildLoc));
+				} else if (!controllers.myRC.getLocation().add(
+						controllers.myRC.getDirection()).equals(buildLoc)) {
+					controllers.motor.setDirection(controllers.myRC
+							.getLocation().directionTo(buildLoc));
 				}
 			}
 			yield();
 		}
-		
-		while(!buildingSystem.constructUnit(buildLoc, type)){
-			if(controllers.sensor.senseObjectAtLocation(buildLoc, type.chassis.level) != null)
+
+		while (!buildingSystem.constructUnit(buildLoc, type)) {
+			if (controllers.sensor.senseObjectAtLocation(buildLoc,
+					type.chassis.level) != null)
 				return false;
 			yield();
 		}
 		return true;
 	}
-	
+
 	private void navigate() throws GameActionException {
 
 		if (!controllers.motor.isActive()) {
@@ -330,34 +365,34 @@ public class ConstructorAI extends AI {
 					}
 				}
 
-			} 
-			
-//			else if (!recyclerLocations.isEmpty()) {
-//				MapLocation currentLoc = controllers.myRC.getLocation();
-//				MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
-//				for (MapLocation loc : recyclerLocations) {
-//					if (currentLoc.distanceSquaredTo(loc) < currentLoc
-//							.distanceSquaredTo(nearest))
-//						nearest = loc;
-//				}
-//
-//				controllers.myRC.setIndicatorString(0, currentLoc + ","
-//						+ nearest);
-//
-//				navigator.setDestination(nearest);
-//				Direction nextDir = navigator.getNextDir(0);
-//
-//				if (nextDir != Direction.OMNI) {
-//					if (controllers.myRC.getDirection() == nextDir) {
-//						if (controllers.motor.canMove(nextDir)) {
-//							controllers.motor.moveForward();
-//						}
-//					} else {
-//						controllers.motor.setDirection(nextDir);
-//					}
-//				}
-//
-//			} 
+			}
+
+			// else if (!recyclerLocations.isEmpty()) {
+			// MapLocation currentLoc = controllers.myRC.getLocation();
+			// MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
+			// for (MapLocation loc : recyclerLocations) {
+			// if (currentLoc.distanceSquaredTo(loc) < currentLoc
+			// .distanceSquaredTo(nearest))
+			// nearest = loc;
+			// }
+			//
+			// controllers.myRC.setIndicatorString(0, currentLoc + ","
+			// + nearest);
+			//
+			// navigator.setDestination(nearest);
+			// Direction nextDir = navigator.getNextDir(0);
+			//
+			// if (nextDir != Direction.OMNI) {
+			// if (controllers.myRC.getDirection() == nextDir) {
+			// if (controllers.motor.canMove(nextDir)) {
+			// controllers.motor.moveForward();
+			// }
+			// } else {
+			// controllers.motor.setDirection(nextDir);
+			// }
+			// }
+			//
+			// }
 			else {
 				roachNavigate();
 			}
@@ -368,7 +403,6 @@ public class ConstructorAI extends AI {
 	private void roachNavigate() throws GameActionException {
 		// navigate();
 		if (controllers.motor.canMove(controllers.myRC.getDirection())) {
-			// System.out.println("about to move");
 			controllers.motor.moveForward();
 		} else {
 			Direction tempDir = controllers.myRC.getDirection();
