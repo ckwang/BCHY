@@ -267,15 +267,15 @@ public class ConstructorAI extends AI {
 		}
 	}
 
-	private void buildRecyclers() throws GameActionException {
-		// controllers.myRC.setIndicatorString(0, mineLocations.toString());
+	private void buildRecyclers() throws GameActionException{
+//		controllers.myRC.setIndicatorString(2, mineLocations.toString());
+		
+		for (MapLocation mineLoc : mineLocations){
+			if(controllers.myRC.getLocation().isAdjacentTo(mineLoc)){
+				if(controllers.sensor.canSenseSquare(mineLoc)){
+					 if(controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
+						 continue;
 
-		for (MapLocation mineLoc : mineLocations) {
-			if (controllers.myRC.getLocation().isAdjacentTo(mineLoc)) {
-				if (controllers.sensor.canSenseSquare(mineLoc)) {
-					if (controllers.sensor.senseObjectAtLocation(mineLoc,
-							RobotLevel.ON_GROUND) != null)
-						continue;
 				}
 				if (controllers.myRC.getDirection() != controllers.myRC
 						.getLocation().directionTo(mineLoc)) {
@@ -352,6 +352,7 @@ public class ConstructorAI extends AI {
 							.distanceSquaredTo(nearest))
 						nearest = loc;
 				}
+				
 				navigator.setDestination(nearest);
 				Direction nextDir = navigator.getNextDir(0);
 
@@ -396,21 +397,6 @@ public class ConstructorAI extends AI {
 			else {
 				roachNavigate();
 			}
-		}
-
-	}
-
-	private void roachNavigate() throws GameActionException {
-		// navigate();
-		if (controllers.motor.canMove(controllers.myRC.getDirection())) {
-			controllers.motor.moveForward();
-		} else {
-			Direction tempDir = controllers.myRC.getDirection();
-			int rotationTimes = (Clock.getRoundNum() / 10) % 7;
-			for (int i = 0; i <= rotationTimes; ++i) {
-				tempDir = tempDir.rotateRight();
-			}
-			controllers.motor.setDirection(tempDir);
 		}
 	}
 }

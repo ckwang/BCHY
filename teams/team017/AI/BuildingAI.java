@@ -2,6 +2,7 @@ package team017.AI;
 
 import team017.construction.BuilderDirections;
 import battlecode.common.Chassis;
+import battlecode.common.Clock;
 import battlecode.common.ComponentClass;
 import battlecode.common.ComponentType;
 import battlecode.common.GameActionException;
@@ -13,11 +14,16 @@ import battlecode.common.RobotInfo;
 public abstract class BuildingAI extends AI {
 
 	protected BuilderDirections builderDirs;
+	
+	protected double fluxRate;
+	protected double[] fluxRecord = new double[10];
+	protected int[]	roundRecord = new int[10];
 
 	public BuildingAI(RobotController rc) {
 		super(rc);
 
 		builderDirs = new BuilderDirections(controllers);
+		builderDirs.updateBuilderDirs();
 	}
 
 	abstract public void proceed();
@@ -31,9 +37,11 @@ public abstract class BuildingAI extends AI {
 	protected void updateFluxRate() {
 		for (int i = 9; i > 0; --i) {
 			fluxRecord[i] = fluxRecord[i - 1];
+			roundRecord[i] = roundRecord[i - 1];
 		}
 		fluxRecord[0] = controllers.myRC.getTeamResources();
-		fluxRate = fluxRecord[0] - fluxRecord[1];
+		roundRecord[0] = Clock.getRoundNum();
+		fluxRate = (fluxRecord[0] - fluxRecord[1]) / (roundRecord[0] - roundRecord[1]);
 	}
 
 	/***

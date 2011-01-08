@@ -54,8 +54,8 @@ public class Builder {
 					// build my responsible parts
 					for (ComponentType com : type.getComponentList(controllers.builder.type())) {
 						while(controllers.myRC.getTeamResources() < com.cost * 1.1 || controllers.builder.isActive()) {
-							controllers.myRC.yield();
 							msgHandler.process();
+							controllers.myRC.yield();
 						}
 						controllers.builder.build(com, buildLoc, type.chassis.level);
 					}

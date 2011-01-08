@@ -3,7 +3,6 @@ package team017.AI;
 import team017.combat.CombatSystem;
 import team017.message.EnemyLocationMessage;
 import team017.message.FollowMeMessage;
-import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -154,17 +153,4 @@ public class SoldierAI extends AI {
 		}
 	}
 
-	private void roachNavigate() throws GameActionException {
-		// navigate();
-		if (motor.canMove(rc.getDirection())) {
-			motor.moveForward();
-		} else {
-			Direction tempDir = rc.getDirection();
-			int rotationTimes = Clock.getRoundNum() % 7;
-			for (int i = 0; i <= rotationTimes; ++i) {
-				tempDir = tempDir.rotateRight();
-			}
-			motor.setDirection(tempDir);
-		}
-	}
 }
