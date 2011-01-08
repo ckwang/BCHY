@@ -24,6 +24,7 @@ public enum UnitType {
 	public final ComponentType[] armoryComs;
 	public final ComponentType[] factoryComs;
 	public final ComponentType[] constructorComs;
+	public final ComponentType[] allComs;
 	public final ComponentType[] requiredBuilders;
 	
 	public final double totalCost;
@@ -33,6 +34,7 @@ public enum UnitType {
 	UnitType(Chassis chassis, ComponentType...coms) {
 		this.chassis = chassis;
 		double t = chassis.cost;
+		allComs = coms;
 		
 		List<ComponentType> recyclerList = new ArrayList<ComponentType>();
 		List<ComponentType> armoryList = new ArrayList<ComponentType>();
