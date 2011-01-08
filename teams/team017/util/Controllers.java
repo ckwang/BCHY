@@ -12,16 +12,37 @@ import battlecode.common.SensorController;
 import battlecode.common.WeaponController;
 
 public class Controllers {
-	public RobotController myRC;
-	public MovementController motor;
-	public BuilderController builder;
-	public SensorController sensor;
-	public BroadcastController comm;
-	public List<WeaponController> weapons;
-
+	
+	public RobotController myRC = null;
+	public MovementController motor = null;
+	public BuilderController builder = null;
+	public SensorController sensor = null;
+	public BroadcastController comm = null;
+	public List<WeaponController> weapons = null;
+	
 	public Controllers() {
 		weapons = new ArrayList<WeaponController>();
 	}
+	
+	public List<WeaponController> weapons() throws Exception {
+		if (weapons.size() == 0)
+			throw new Exception("Null weapon");
+		return weapons;
+	}
+	
+	public SensorController sensor() throws Exception {
+		if (sensor == null)
+			throw new Exception("Null sensor");
+		return sensor;
+	}
+	
+	public BroadcastController comm() throws Exception {
+		if (comm == null)
+			throw new Exception("Null comm");
+		return comm;
+	}
+	
+	public int weaponNum() {return weapons.size();}
 	
 	public void updateComponents() {
 		ComponentController[] components = myRC.newComponents();
