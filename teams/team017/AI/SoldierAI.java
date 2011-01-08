@@ -146,5 +146,4 @@ public class SoldierAI extends AI {
 			motor.setDirection(tempDir);
 		}
 	}
-
 }

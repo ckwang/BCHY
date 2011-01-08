@@ -21,16 +21,16 @@ public class ArmoryAI extends BuildingAI{
 					Message msg = msgHandler.nextMessage();
 					switch (msgHandler.getMessageType(msg)) {
 					case BUILDING_REQUEST:{
-						BuildingRequestMessage handler = new BuildingRequestMessage(
-								msg);
-						if (handler.getBuilderLocation().equals(
-								controllers.myRC.getLocation())) {
-							buildingSystem.constructComponent(
-									handler.getBuildingLocation(),
-									handler.getUnitType());
-							yield();
+						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
+						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+							while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
+								if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
+									break;
+								yield();
+							}	
 						}
-						break;}
+						break;
+					}
 					case CONSTRUCTION_COMPLETE: {
 						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 						

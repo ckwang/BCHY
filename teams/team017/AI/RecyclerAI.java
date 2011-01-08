@@ -34,6 +34,16 @@ public class RecyclerAI extends BuildingAI {
 		if (Clock.getRoundNum() == 0)
 			init();
 
+		else{
+			while(controllers.myRC.getTeamResources() < 6)
+				controllers.myRC.yield();
+			try {
+				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+			} catch (GameActionException e1) {
+				System.out.println("caught exception:");
+				e1.printStackTrace();
+			}
+		}
 		while (true) {
 			try {
 //				controllers.myRC.setIndicatorString(0, borders[0]+" "+ borders[1]+" " + borders[2]+" " + borders[3]+" ");
@@ -69,6 +79,7 @@ public class RecyclerAI extends BuildingAI {
 						}
 						break;
 					}
+					
 					case CONSTRUCTION_COMPLETE: {
 						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 						
@@ -84,19 +95,18 @@ public class RecyclerAI extends BuildingAI {
 							// update the builderDirs
 							Direction builderDir = currentLoc.directionTo(handler.getBuildingLocation());
 							builderDirs.setDirections(handler.getBuilderType(), builderDir);
-							
-							// face the correct direction
-							if (controllers.myRC.getDirection() != builderDir){
-								controllers.motor.setDirection(builderDir);
-								yield();
+							if(handler.getBuilderType() != ComponentType.RECYCLER){
+								// face the correct direction
+								if (controllers.myRC.getDirection() != builderDir){
+									controllers.motor.setDirection(builderDir);
+									yield();
+								}
+								
+								// build an antenna if it doesn't have one
+								if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) 
+									controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
 							}
-							
-							// build an antenna if it doesn't have one
-							if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) 
-								controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
-							
 						}
-						
 						break;
 					}
 
@@ -132,7 +142,6 @@ public class RecyclerAI extends BuildingAI {
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
-
 			}
 
 		}
@@ -145,19 +154,12 @@ public class RecyclerAI extends BuildingAI {
 			RobotInfo info = senseAdjacentChassis(Chassis.LIGHT);
 			if (info != null
 					&& controllers.myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost
-					&& !Util.containsComponent(info.components,
-							ComponentType.ANTENNA)) {
-				controllers.builder.build(ComponentType.ANTENNA, info.location,
-						RobotLevel.ON_GROUND);
+					&& !Util.containsComponent(info.components,ComponentType.ANTENNA)) {
+				controllers.builder.build(ComponentType.ANTENNA, info.location,RobotLevel.ON_GROUND);
 			}
 			yield();
 
-			info = senseAdjacentChassis(Chassis.BUILDING);
-			if (info != null
-					&& controllers.myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost) {
-				controllers.builder.build(ComponentType.ANTENNA, info.location,
-						RobotLevel.ON_GROUND);
-			}
+			controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
