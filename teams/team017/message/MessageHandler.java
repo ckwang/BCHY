@@ -1,92 +1,84 @@
 package team017.message;
 
-import team017.util.Controllers;
+import java.util.LinkedList;
+import java.util.Queue;
+
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 
-public abstract class MessageHandler {
+import team017.util.Controllers;
+
+public class MessageHandler {
+
+	final static int INT_TAG_LENGTH = 4;
+	final static int LOC_TAG_LENGTH = 1;
 	
-	protected Controllers controllers;
+	Controllers controllers;
+	private Queue<GenericMessage> outQueue;
+	private Queue<Message> inQueue;
 	
-	protected int intCounter = 0;
-	protected int locCounter = 0;
-	protected int stringCounter = 0;
-	
-	protected boolean valid;
-	
-	protected Message msg;
-	
-	protected MessageHandler(Controllers controllers, MessageType type) {
+	public MessageHandler(Controllers controllers) {
 		this.controllers = controllers;
-		
-		msg = new Message();
-		msg.ints = new int[10];
-		msg.locations = new MapLocation[10];
-		msg.strings = new String[10];
-		
-		
-		writeTag(type);
+		outQueue = new LinkedList<GenericMessage>();
+		inQueue = new LinkedList<Message>();
 	}
 	
-	protected MessageHandler(Message msg) {
-		this.msg = msg;
-		valid = isValid();
-	}
-	
-	public void send() {
-		if (controllers.comm == null)
-			return;
-		else{
+	public void process() {
+		// send a message
+		if (outQueue.size() != 0 && controllers.comm != null) {
 			try {
-				if (!controllers.comm.isActive())
-					controllers.comm.broadcast(msg);
+				controllers.comm.broadcast(outQueue.poll().msg);
 			} catch (GameActionException e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
 			}
 		}
+		
+		// receive messages
+		Message[] messages = controllers.myRC.getAllMessages();
+		for (Message m : messages) {
+			if (isValid(m))
+				inQueue.add(m);
+		}
 	}
 	
-	static public MessageType getMessageType(Message msg) {
-		return MessageType.values()[msg.ints[2]];
+	public void queueMessage(GenericMessage msg) {
+		writeTag(msg);
+		outQueue.add(msg);
 	}
 	
-	private void writeTag(MessageType type) {
+	public Message nextMessage() {
+		return inQueue.poll();
+	}
+	
+	public boolean hasMessage() {
+		return !inQueue.isEmpty();
+	}
+	
+	private void writeTag(GenericMessage msg) {
 		int round = Clock.getRoundNum();
 		int sourceID = controllers.myRC.getRobot().getID();
 		MapLocation sourceLocation = controllers.myRC.getLocation();
 		
-		msg.ints[intCounter++] = round;
-		msg.ints[intCounter++] = sourceID;
-		msg.locations[locCounter++] = sourceLocation;
-		msg.ints[intCounter++] = type.ordinal();
+		msg.msg.ints[0] = round;
+		msg.msg.ints[1] = sourceID;
+		msg.msg.locations[0] = sourceLocation;
+		msg.msg.ints[2] = msg.type.ordinal();
 		
 		// checksum
-		msg.ints[intCounter++] = round + sourceID + sourceLocation.x + sourceLocation.y + type.ordinal(); 
+		msg.msg.ints[3] = round + sourceID + sourceLocation.x + sourceLocation.y + msg.type.ordinal(); 
 	}
 	
 	/*
 	 * Check if the input message is valid by inspecting the check sum
 	 */
-	private boolean isValid() {
-		intCounter += 4;
-		locCounter += 1;
-		
+	private boolean isValid(Message msg) {
 		return msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3]; 
 	}
 	
-	public int getRoundNum() {
-		return msg.ints[0];
+	public MessageType getMessageType(Message msg) {
+		return MessageType.values()[msg.ints[2]];
 	}
-	
-	public int getSourceID() {
-		return msg.ints[1];
-	}
-	
-	public MapLocation getSourceLocation() {
-		return msg.locations[0];
-	}
-	
 }

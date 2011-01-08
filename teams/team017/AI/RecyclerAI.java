@@ -6,7 +6,7 @@ import team017.message.BorderMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.EnemyLocationMessage;
-import team017.message.MessageHandler;
+import team017.message.GenericMessage;
 import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
@@ -51,10 +51,9 @@ public class RecyclerAI extends BuildingAI {
 //				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation().toString() );
 				
 				// receive messages and handle them
-				Message[] messages = controllers.myRC.getAllMessages();
-				for (Message msg : messages) {
-
-					switch (MessageHandler.getMessageType(msg)) {
+				while (msgHandler.hasMessage()) {
+					Message msg = msgHandler.nextMessage();
+					switch (msgHandler.getMessageType(msg)) {
 					case BORDER: {
 						BorderMessage handler = new BorderMessage(msg);
 
@@ -121,8 +120,7 @@ public class RecyclerAI extends BuildingAI {
 						else{
 							buildingSystem.constructUnit(UnitType.GRIZZLY);
 							if (enemyBase != null){
-								MessageHandler msgHandler = new EnemyLocationMessage(controllers, enemyBase);
-								msgHandler.send();
+								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
 								yield();
 							}
 						}
@@ -133,8 +131,7 @@ public class RecyclerAI extends BuildingAI {
 						else{
 							buildingSystem.constructUnit(UnitType.GRIZZLY);
 							if (enemyBase != null){
-								MessageHandler msgHandler = new EnemyLocationMessage(controllers, enemyBase);
-								msgHandler.send();
+								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
 								yield();
 							}
 						}

@@ -4,7 +4,7 @@ import team017.combat.CombatSystem;
 import team017.message.BorderMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.EnemyLocationMessage;
-import team017.message.MessageHandler;
+import team017.message.GenericMessage;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -43,10 +43,9 @@ public class SoldierAI extends AI {
 				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString());
 				controllers.updateComponents();
 				// receive messages and handle them
-				Message[] messages = controllers.myRC.getAllMessages();
-				for (Message msg : messages) {
-
-					switch (MessageHandler.getMessageType(msg)) {
+				while (msgHandler.hasMessage()) {
+					Message msg = msgHandler.nextMessage();
+					switch (msgHandler.getMessageType(msg)) {
 					case ENEMY_LOCATION: {
 						EnemyLocationMessage handler = new EnemyLocationMessage(msg);
 						enemyLoc = handler.getEnemyLocation();
