@@ -2,6 +2,8 @@ package team017.AI;
 
 import team017.construction.UnitType;
 import team017.message.BorderMessage;
+import team017.message.BuildingLocationInquiryMessage;
+import team017.message.BuildingLocationResponseMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.EnemyLocationMessage;
@@ -76,6 +78,22 @@ public class RecyclerAI extends BuildingAI {
 						break;
 					}
 					
+					case BUILDING_LOCATION_INQUIRY_MESSAGE: {
+						BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
+						if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
+							if(builderDirs.consecutiveEmpties(3) != Direction.NONE){
+								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
+							}
+								
+							else if(builderDirs.consecutiveEmpties(2) != Direction.NONE){
+								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
+							}
+								
+							yield();
+						}
+						break;
+					}
+					
 					case CONSTRUCTION_COMPLETE: {
 						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 						
@@ -110,32 +128,33 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 
-				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 100) {
-					if (Clock.getRoundNum() < 1000) {
-						if (Clock.getRoundNum() % 3 == 0){
-							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-						}
-						else{
-							buildingSystem.constructUnit(UnitType.GRIZZLY);
-							if (enemyBase != null){
-								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
-								yield();
-							}
-						}
 
-					} else {
-						if (Clock.getRoundNum() % 5 == 0)
-							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-						else{
-							buildingSystem.constructUnit(UnitType.GRIZZLY);
-							if (enemyBase != null){
-								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
-								yield();
-							}
-						}
-					}
-				}
-				
+//				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 100) {
+//					if (Clock.getRoundNum() < 1000) {
+//						if (Clock.getRoundNum() % 3 == 0){
+//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+//						}
+//						else{
+//							buildingSystem.constructUnit(UnitType.GRIZZLY);
+//							if (enemyBase != null){
+//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
+//								yield();
+//							}
+//						}
+//
+//					} else {
+//						if (Clock.getRoundNum() % 5 == 0)
+//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+//						else{
+//							buildingSystem.constructUnit(UnitType.GRIZZLY);
+//							if (enemyBase != null){
+//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
+//								yield();
+//							}
+//						}
+//					}
+//				}
+
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
