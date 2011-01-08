@@ -2,6 +2,8 @@ package team017.util;
 
 import java.util.List;
 
+import team017.construction.UnitType;
+
 import battlecode.common.ComponentController;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -55,6 +57,22 @@ public class Util {
 		try {
 			Robot robot = (Robot) controllers.sensor.senseObjectAtLocation(loc, level);
 			return containsComponent(controllers.sensor.senseRobotInfo(robot).components, com);
+		} catch (GameActionException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public static boolean containsComponent(Controllers controllers, MapLocation loc, RobotLevel level, UnitType type) {
+		Robot robot;
+		try {
+			robot = (Robot) controllers.sensor.senseObjectAtLocation(loc, level);
+			ComponentType[] parts = controllers.sensor.senseRobotInfo(robot).components;
+			
+			for (ComponentType com : type.allComs) {
+				if (!containsComponent(parts, com))	return false;
+			}
+			return true;
 		} catch (GameActionException e) {
 			e.printStackTrace();
 			return false;

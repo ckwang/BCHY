@@ -6,6 +6,7 @@ import java.util.List;
 import team017.message.BuildingRequestMessage;
 import team017.message.MessageHandler;
 import team017.util.Controllers;
+import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -59,12 +60,15 @@ public class Builder {
 						controllers.builder.build(com, buildLoc, type.chassis.level);
 					}
 					
-					controllers.myRC.turnOn(buildLoc, type.chassis.level);
+					// turn on if the unit has all the parts
+					if (Util.containsComponent(controllers, buildLoc, type.chassis.level, type))
+						controllers.myRC.turnOn(buildLoc, type.chassis.level);
+					
 					return true;
 				}
 			}
 			return false;
-		}catch (Exception e){
+		} catch (Exception e) {
 			return false;
 		}
 	}
@@ -115,7 +119,11 @@ public class Builder {
 					controllers.myRC.yield();
 				controllers.builder.build(com, buildLoc, type.chassis.level);
 			}
-			controllers.myRC.turnOn(buildLoc, type.chassis.level);
+			
+			// turn on if the unit has all the parts
+			if (Util.containsComponent(controllers, buildLoc, type.chassis.level, type))
+				controllers.myRC.turnOn(buildLoc, type.chassis.level);
+			
 			return true;
 		}catch (Exception e){
 			return false;
