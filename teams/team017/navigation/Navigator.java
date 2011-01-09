@@ -59,6 +59,7 @@ public class Navigator {
 		if (loc.equals(destination))
 			return;
 		else{
+			reset();
 			destination = new MapLocation(loc.x, loc.y);
 			backTraceDes = new MapLocation(loc.x, loc.y);
 		}

@@ -168,29 +168,29 @@ public class RecyclerAI extends BuildingAI {
 
 				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
 					buildingSystem.constructUnit(UnitType.GRIZZLY);
-//					if (Clock.getRoundNum() < 1000) {
-//						if (Clock.getRoundNum() % 3 == 0){
-//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-//						}
-//						else{
-//							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//							if (enemyBase != null){
-//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
-//								yield();
-//							}
-//						}
-//
-//					} else {
-//						if (Clock.getRoundNum() % 5 == 0)
-//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-//						else{
-//							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//							if (enemyBase != null){
-//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
-//								yield();
-//							}
-//						}
-//					}
+					if (Clock.getRoundNum() < 1000) {
+						if (Clock.getRoundNum() % 3 == 0){
+							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+						}
+						else{
+							buildingSystem.constructUnit(UnitType.GRIZZLY);
+							if (enemyBase != null){
+								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
+								yield();
+							}
+						}
+
+					} else {
+						if (Clock.getRoundNum() % 5 == 0)
+							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+						else{
+							buildingSystem.constructUnit(UnitType.GRIZZLY);
+							if (enemyBase != null){
+								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
+								yield();
+							}
+						}
+					}
 				}
 				
 				// turn off when the mine is depleted
