@@ -43,16 +43,11 @@ public class ArmoryAI extends BuildingAI{
 					}
 					}
 				}
-				
-
-
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
 			}
 		}
-
 	}
-
 }

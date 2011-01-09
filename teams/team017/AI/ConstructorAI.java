@@ -76,12 +76,16 @@ public class ConstructorAI extends AI {
 							MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
 							if (handler.getAvailableSpace() == 3) {
 								if (buildBuildingAtLoc(buildLoc,UnitType.FACTORY)) {
+									msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
 									MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
-									buildBuildingAtLoc(nextBuildLoc,UnitType.ARMORY);
+									if(buildBuildingAtLoc(nextBuildLoc,UnitType.ARMORY)){
+										msgHandler.queueMessage(new ConstructionCompleteMessage(nextBuildLoc, ComponentType.ARMORY));
+									}
 									recyclerLocations.remove(handler.getSourceLocation());
 								}
 							} else if(handler.getAvailableSpace() == 2){
 								if(buildBuildingAtLoc(buildLoc, UnitType.FACTORY)){
+									msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
 									recyclerLocations.remove(handler.getSourceLocation());
 								}
 							}

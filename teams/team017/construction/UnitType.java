@@ -13,13 +13,12 @@ public enum UnitType {
 	HAMMER_TANK (Chassis.LIGHT, ComponentType.HAMMER,ComponentType.HAMMER, ComponentType.PLATING, ComponentType.SIGHT),//weak!!!
 	COMMANDER (Chassis.LIGHT, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING, ComponentType.PLATING),
 	TANK_KILLER (Chassis.MEDIUM, ComponentType.RAILGUN,ComponentType.TELESCOPE),
-	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SIGHT, ComponentType.PLATING),
+	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SIGHT, ComponentType.PLATING),
 	APOCALYPSE(Chassis.HEAVY, ComponentType.RAILGUN,ComponentType.RAILGUN, ComponentType.RADAR),
 	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER),
 	ARMORY(Chassis.BUILDING, ComponentType.ARMORY),
 	FACTORY (Chassis.BUILDING, ComponentType.FACTORY);
-	
-	
+		
 	public final Chassis chassis;
 	public final ComponentType[] recyclerComs;
 	public final ComponentType[] armoryComs;
@@ -94,6 +93,4 @@ public enum UnitType {
 				return null;
 		}
 	}
-	
 }
-

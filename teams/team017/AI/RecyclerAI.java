@@ -49,9 +49,7 @@ public class RecyclerAI extends BuildingAI {
 			// turn off if there is already a recycler nearby
 			if (builderDirs.recyclerDirection != null) {
 				try {
-					GameObject object = controllers.sensor.senseObjectAtLocation(
-							controllers.myRC.getLocation().add(builderDirs.recyclerDirection), RobotLevel.ON_GROUND);
-					
+					GameObject object = controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(builderDirs.recyclerDirection), RobotLevel.ON_GROUND);
 					if (object.getID() < controllers.myRC.getRobot().getID())
 						controllers.myRC.turnOff();
 				} catch (GameActionException e) {
@@ -92,7 +90,6 @@ public class RecyclerAI extends BuildingAI {
 								}
 							}
 						}
-						
 						break;
 					}
 					case BUILDING_REQUEST:{

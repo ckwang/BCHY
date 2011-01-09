@@ -16,7 +16,6 @@ public class FactoryAI extends BuildingAI {
 
 	@Override
 	public void proceed() {
-
 		while (true) {
 			try {
 				while (msgHandler.hasMessage()) {
@@ -25,7 +24,6 @@ public class FactoryAI extends BuildingAI {
 					case BUILDING_REQUEST:{
 						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
 						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-							
 							Direction buildDir = controllers.myRC.getLocation().directionTo(handler.getBuildingLocation());
 							if (controllers.myRC.getDirection() != buildDir) {
 								controllers.motor.setDirection(buildDir);
@@ -49,40 +47,13 @@ public class FactoryAI extends BuildingAI {
 						if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
 							builderDirs.setDirections(handler.getBuilderType(), currentLoc.directionTo(handler.getBuildingLocation()));
 						}
-						
 						break;
 					}
 				}
 			}
-//			if (controllers.myRC.getTeamResources() > 180) {
-//				builderDirs.updateEmptyDirections();
-//				Direction recyclerDir = builderDirs.recyclerDirection;
-//				MapLocation myLoc = controllers.myRC.getLocation();
-//				if (recyclerDir != null) {
-//					if (recyclerDir.isDiagonal()) {
-//						// try from left twice to right twice
-//						Direction buildDir = recyclerDir.rotateLeft().rotateLeft();
-//						for(int i = 0; i < 5; ++i){
-//							if(builderDirs.checkDirEmpty(buildDir)){
-//								buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
-//								break;
-//							}
-//							buildDir = buildDir.rotateRight();
-//						}
-//					} else {
-//						Direction buildDir = recyclerDir.rotateLeft();
-//						if (builderDirs.checkDirEmpty(buildDir)) {
-//							buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
-//						} else {
-//							buildDir = buildDir.rotateRight().rotateRight();
-//							buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
-//						}	
-//					}
-//				}
-//			}
 			
 			controllers.myRC.setIndicatorString(2, getEffectiveFluxRate() + "");
-			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
+			if(controllers.myRC.getTeamResources() > UnitType.BATTLE_FORTRESS.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.BATTLE_FORTRESS.chassis.upkeep * 1.5){
 				if(builderDirs.armoryDirection != null){
 					Direction armoryDir = builderDirs.armoryDirection;
 					MapLocation myLoc = controllers.myRC.getLocation();
@@ -91,7 +62,7 @@ public class FactoryAI extends BuildingAI {
 					Direction buildDir = armoryDir.rotateLeft().rotateLeft();
 					for(int i = 0; i < 5; ++i){
 						if(builderDirs.checkDirEmpty(buildDir)){
-							buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.APOCALYPSE, builderDirs);
+							buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
 							break;
 						}
 						buildDir.rotateRight();
