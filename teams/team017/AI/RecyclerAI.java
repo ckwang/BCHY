@@ -67,7 +67,6 @@ public class RecyclerAI extends BuildingAI {
 							yield();						
 						
 						controllers.myRC.turnOff();
-						controllers.myRC.turnOff();
 				} catch (GameActionException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -202,7 +201,7 @@ public class RecyclerAI extends BuildingAI {
 						&& controllers.myRC.getTeamResources() > 150
 						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 200){
 					if (getEffectiveFluxRate() > 0.3) {
-						if (getEffectiveFluxRate() > 3 || Clock.getRoundNum() > 1000) {
+						if (getEffectiveFluxRate() > 3.6 || Clock.getRoundNum() > 1000) {
 							if (unitConstructed % 11 == 10){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
@@ -215,21 +214,8 @@ public class RecyclerAI extends BuildingAI {
 									yield();
 								}
 							}						
-						} else if (getEffectiveFluxRate() < 0.6) {
-							if (unitConstructed % 2 == 0){
-								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
-									++unitConstructed;
-							}
-							else{
-								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
-									++unitConstructed;
-								if (enemyBaseLoc != null){
-									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-									yield();
-								}
-							}						
 						} else if (getEffectiveFluxRate() < 1.2) {
-							if (unitConstructed % 3 == 0){
+							if (unitConstructed % 2 == 1){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
 							}
@@ -242,7 +228,7 @@ public class RecyclerAI extends BuildingAI {
 								}
 							}						
 						} else if (getEffectiveFluxRate() < 1.8) {
-							if (unitConstructed % 4 == 3){
+							if (unitConstructed % 3 == 1){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
 							}
@@ -255,6 +241,19 @@ public class RecyclerAI extends BuildingAI {
 								}
 							}						
 						} else if (getEffectiveFluxRate() < 2.4) {
+							if (unitConstructed % 4 == 3){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
+							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						} else if (getEffectiveFluxRate() < 3) {
 							if (unitConstructed % 5 == 4){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
