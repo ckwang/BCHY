@@ -118,7 +118,7 @@ public class BuilderDirections {
 					RobotInfo info = controllers.sensor.senseRobotInfo(r);
 					MapLocation currentLoc = controllers.myRC.getLocation();
 					
-					if (info.location.isAdjacentTo(currentLoc)) {
+					if (info.location.isAdjacentTo(currentLoc) && info.on) {
 						for (ComponentType com : info.components) {
 							if (com.componentClass == ComponentClass.BUILDER) {
 								setDirections(com, currentLoc.directionTo(info.location));
