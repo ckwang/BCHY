@@ -61,6 +61,8 @@ public class RecyclerAI extends BuildingAI {
 				controllers.myRC.yield();
 			try {
 				// build an antenna on itself
+				while (controllers.builder.isActive())
+					yield();
 				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 			} catch (GameActionException e1) {
 				System.out.println("caught exception:");
