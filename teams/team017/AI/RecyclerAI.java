@@ -52,14 +52,20 @@ public class RecyclerAI extends BuildingAI {
 				try {
 					while (controllers.sensor.isActive())
 						yield();
-						// Build 3 PLATINGs on itself
-						for (int i = 0; i < 3; ++i){
+						// Build 1 PLATING & 2 SHIELDs on itself
 							while (controllers.myRC.getTeamResources() < 9)
 								yield();
 							controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 							yield();
+							while (controllers.myRC.getTeamResources() < 11)
+								yield();
+							controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+							yield();
+							while (controllers.myRC.getTeamResources() < 11)
+								yield();
+							controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+							yield();						
 						
-						}
 						controllers.myRC.turnOff();
 						controllers.myRC.turnOff();
 				} catch (GameActionException e) {
@@ -67,7 +73,7 @@ public class RecyclerAI extends BuildingAI {
 					e.printStackTrace();
 				}
 			} else {
-				while(controllers.myRC.getTeamResources() < 6)
+				while(controllers.myRC.getTeamResources() < 10)
 					controllers.myRC.yield();
 				try {
 					// build an antenna on itself
@@ -75,14 +81,14 @@ public class RecyclerAI extends BuildingAI {
 						controllers.myRC.yield();
 					controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 					yield();
-					for (int i = 0; i < 2; ++i){
-						while (controllers.myRC.getTeamResources() < 9)
-							yield();
-						controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+					while (controllers.myRC.getTeamResources() < 15)
 						yield();
-					
-					}
-
+					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+					yield();
+					while (controllers.myRC.getTeamResources() < 20)
+						yield();
+					controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+					yield();				
 				} catch (GameActionException e1) {
 					System.out.println("caught exception:");
 					e1.printStackTrace();
@@ -138,23 +144,23 @@ public class RecyclerAI extends BuildingAI {
 //						break;
 //					}
 					
-					case BUILDING_LOCATION_INQUIRY_MESSAGE: {
-						BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
-						if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
-							if(builderDirs.armoryDirection != null && builderDirs.factoryDirection != null){
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), -1));
-								controllers.myRC.setIndicatorString(0, "Consecutive -1");
-							} else if (builderDirs.consecutiveEmpties(3) != Direction.NONE) {
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
-								controllers.myRC.setIndicatorString(0, "Consecutive 3");
-							} else if (builderDirs.consecutiveEmpties(2) != Direction.NONE) {
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
-								controllers.myRC.setIndicatorString(0, "Consecutive 2");
-							}
-							yield();
-						}
-						break;
-					}
+//					case BUILDING_LOCATION_INQUIRY_MESSAGE: {
+//						BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
+//						if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
+//							if(builderDirs.armoryDirection != null && builderDirs.factoryDirection != null){
+//								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), -1));
+//								controllers.myRC.setIndicatorString(0, "Consecutive -1");
+//							} else if (builderDirs.consecutiveEmpties(3) != Direction.NONE) {
+//								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
+//								controllers.myRC.setIndicatorString(0, "Consecutive 3");
+//							} else if (builderDirs.consecutiveEmpties(2) != Direction.NONE) {
+//								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
+//								controllers.myRC.setIndicatorString(0, "Consecutive 2");
+//							}
+//							yield();
+//						}
+//						break;
+//					}
 					
 					case CONSTRUCTION_COMPLETE: {
 						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
@@ -192,10 +198,12 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 
-				if (controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 200){
+				if (Clock.getRoundNum() > 200 
+						&& controllers.myRC.getTeamResources() > 150
+						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 200){
 					if (getEffectiveFluxRate() > 0.3) {
 						if (getEffectiveFluxRate() > 3 || Clock.getRoundNum() > 1000) {
-							if (unitConstructed % 11 == 0){
+							if (unitConstructed % 11 == 10){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
 							}
@@ -234,7 +242,7 @@ public class RecyclerAI extends BuildingAI {
 								}
 							}						
 						} else if (getEffectiveFluxRate() < 1.8) {
-							if (unitConstructed % 4 == 0){
+							if (unitConstructed % 4 == 3){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
 							}
@@ -247,7 +255,7 @@ public class RecyclerAI extends BuildingAI {
 								}
 							}						
 						} else if (getEffectiveFluxRate() < 2.4) {
-							if (unitConstructed % 5 == 0){
+							if (unitConstructed % 5 == 4){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
 							}
@@ -319,25 +327,34 @@ public class RecyclerAI extends BuildingAI {
 			// Turn off 1 of the initial recyclers
 			RobotInfo otherRecycler = senseAdjacentChassis(Chassis.BUILDING);
 			if(otherRecycler != null && Util.containsComponent(otherRecycler.components, ComponentType.ANTENNA)){
-				// Build 3 PLATINGs on itself
-				for (int i = 0; i < 3; ++i){
-					while (controllers.myRC.getTeamResources() < 9)
-						yield();
-					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-						yield();
-				}
+				
+				// Build 1 PLATING & 2 SHIELDs on itself
+				while (controllers.myRC.getTeamResources() < 9)
+					yield();
+				controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+				yield();
+				while (controllers.myRC.getTeamResources() < 11)
+					yield();
+				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+				yield();
+				while (controllers.myRC.getTeamResources() < 11)
+					yield();
+				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+				yield();				
 				controllers.myRC.turnOff();
 			}
 			else{
 				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 				yield();
-				for (int i = 0; i < 2; ++i){
-					while (controllers.myRC.getTeamResources() < 9)
-						yield();
-					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+				// Build 1 PLATING & 1 SHIELD on itself
+				while (controllers.myRC.getTeamResources() < 9)
 					yield();
-				}
-
+				controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+				yield();
+				while (controllers.myRC.getTeamResources() < 11)
+					yield();
+				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+				yield();				
 			}
 		} catch (Exception e) {
 			System.out.println("caught exception:");

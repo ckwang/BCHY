@@ -85,9 +85,7 @@ public class Builder {
 					controllers.builder.build(type.chassis, buildLoc);
 					controllers.myRC.yield();
 					for (ComponentType com : type.getComponentList(controllers.builder.type())) {
-						while(controllers.myRC.getTeamResources() < com.cost * 1.1)
-							controllers.myRC.yield();
-						while(controllers.builder.isActive())
+						while(controllers.builder.isActive() || controllers.myRC.getTeamResources() < com.cost * 1.1)
 							controllers.myRC.yield();
 						controllers.builder.build(com, buildLoc, type.chassis.level);
 					}
@@ -97,6 +95,7 @@ public class Builder {
 			}
 			return false;
 		}catch (Exception e){
+			e.printStackTrace();
 			return false;
 		}
 	}
