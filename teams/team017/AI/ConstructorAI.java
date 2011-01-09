@@ -107,6 +107,11 @@ public class ConstructorAI extends AI {
 						}
 						break;
 					}
+					case ENEMY_LOCATION: {
+						EnemyLocationMessage handler = new EnemyLocationMessage(msg);
+						enemyBaseLoc = handler.getEnemyLocation();
+						break;
+					}
 					}
 				}
 				
@@ -124,7 +129,6 @@ public class ConstructorAI extends AI {
 	}
 
 	private void init() {
-		enemyBaseLoc = controllers.myRC.getLocation();
 		try {
 			for (int i = 0; i < 4; ++i) {
 				// Rotate twice Right for a 90 degrees turn
@@ -325,7 +329,8 @@ public class ConstructorAI extends AI {
 					}
 					msgHandler.queueMessage(new ConstructionCompleteMessage(mineLoc, ComponentType.RECYCLER));
 					msgHandler.queueMessage(new BorderMessage(borders));
-					msgHandler.queueMessage(new BorderMessage(borders));
+					if (enemyBaseLoc != null)
+						msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
 					controllers.myRC.yield();
 					return true;
 				}
@@ -354,13 +359,15 @@ public class ConstructorAI extends AI {
 //						while(controllers.motor.isActive()){
 //							yield();
 //						}
-						controllers.motor.moveBackward();
+						if (controllers.motor.canMove(controllers.myRC.getDirection().opposite()))
+							controllers.motor.moveBackward();
 						break;				
 					}
 					if (controllers.myRC.getDirection() != nextDir) {
 						controllers.motor.setDirection(nextDir);
 					} else {
-						controllers.motor.moveForward();
+						if (controllers.motor.canMove(controllers.myRC.getDirection()))
+							controllers.motor.moveForward();
 					}
 				} else if (!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)) {
 					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(buildLoc));
