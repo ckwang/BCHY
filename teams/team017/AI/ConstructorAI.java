@@ -8,6 +8,7 @@ import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.FollowMeMessage;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -90,6 +91,7 @@ public class ConstructorAI extends AI {
 					}
 					}
 				}
+				msgHandler.queueMessage(new FollowMeMessage());
 				yield();
 
 				// Conditions of building factories/armories
@@ -343,9 +345,17 @@ public class ConstructorAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
-
-		if (!controllers.motor.isActive()) {
-			if (!mineLocations.isEmpty()) {
+		Direction nextDir = navigator.getNextDir(2);
+		if (nextDir != Direction.OMNI) {
+			if (!controllers.motor.isActive() && controllers.motor.canMove(nextDir)) {
+				if (controllers.myRC.getDirection() == nextDir) {
+					controllers.motor.moveForward();
+				} else {
+					controllers.motor.setDirection(nextDir);
+				}
+			}
+		}
+		else if (!mineLocations.isEmpty()) {
 				MapLocation currentLoc = controllers.myRC.getLocation();
 				MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
 				for (MapLocation loc : mineLocations) {
@@ -353,51 +363,29 @@ public class ConstructorAI extends AI {
 							.distanceSquaredTo(nearest))
 						nearest = loc;
 				}
-				
 				navigator.setDestination(nearest);
-				Direction nextDir = navigator.getNextDir(0);
-
-				if (nextDir != Direction.OMNI) {
-					if (controllers.myRC.getDirection() == nextDir) {
-						if (controllers.motor.canMove(nextDir)) {
-							controllers.motor.moveForward();
-						}
-					} else {
-						controllers.motor.setDirection(nextDir);
-					}
-				}
-
-			}
-
-			// else if (!recyclerLocations.isEmpty()) {
-			// MapLocation currentLoc = controllers.myRC.getLocation();
-			// MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
-			// for (MapLocation loc : recyclerLocations) {
-			// if (currentLoc.distanceSquaredTo(loc) < currentLoc
-			// .distanceSquaredTo(nearest))
-			// nearest = loc;
-			// }
-			//
-			// controllers.myRC.setIndicatorString(0, currentLoc + ","
-			// + nearest);
-			//
-			// navigator.setDestination(nearest);
-			// Direction nextDir = navigator.getNextDir(0);
-			//
-			// if (nextDir != Direction.OMNI) {
-			// if (controllers.myRC.getDirection() == nextDir) {
-			// if (controllers.motor.canMove(nextDir)) {
-			// controllers.motor.moveForward();
-			// }
-			// } else {
-			// controllers.motor.setDirection(nextDir);
-			// }
-			// }
-			//
-			// }
-			else {
-				roachNavigate();
-			}
 		}
+//		 else if (!recyclerLocations.isEmpty()) {
+//					MapLocation currentLoc = controllers.myRC.getLocation();
+//					MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
+//					for (MapLocation loc : recyclerLocations) {
+//						if (currentLoc.distanceSquaredTo(loc) < currentLoc
+//								.distanceSquaredTo(nearest))
+//							nearest = loc;
+//					}
+//		
+//					controllers.myRC.setIndicatorString(0, currentLoc + "," + nearest);
+//		
+//					navigator.setDestination(nearest);
+//		}
+			
+		else {
+			if ( !controllers.motor.isActive() )
+				roachNavigate();
+		}
+		
 	}
 }
+
+
+
