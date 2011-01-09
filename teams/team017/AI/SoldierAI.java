@@ -1,5 +1,7 @@
 package team017.AI;
 
+import java.util.List;
+
 import team017.combat.CombatSystem;
 import team017.message.EnemyLocationMessage;
 import team017.message.FollowMeMessage;
@@ -12,6 +14,7 @@ import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.SensorController;
 import battlecode.common.TerrainTile;
+import battlecode.common.WeaponController;
 
 public class SoldierAI extends AI {
 
@@ -20,6 +23,7 @@ public class SoldierAI extends AI {
 	private RobotController rc = controllers.myRC;
 	private MovementController motor = controllers.motor;
 	private SensorController sensor = controllers.sensor;
+	private List<WeaponController> weapons = controllers.weapons;
 	
 	private int leaderID;
 	private MapLocation leaderLoc;
@@ -36,43 +40,29 @@ public class SoldierAI extends AI {
 		while (true) {
 			rc.setIndicatorString(0, "Soldier");
 			processMessage();
-			//rc.setIndicatorString(1, String.valueOf(combat.enemyNum()));
+			rc.setIndicatorString(1, String.valueOf(combat.enemyNum()));
 			
-			if (isEngaged){
-				if (combat.hasEnemy() && controllers.weaponNum() > 0) {
-					if (combat.chaseTarget())
-						yield();
-					combat.attack();
-				} else {
-					isEngaged = false;
-				}
-			}
-			else {
-				if (combat.hasEnemy() && controllers.weaponNum() > 0) {
-					isEngaged = true;
-				} else {
-					try {
-						navigate();
-					} catch (GameActionException e) {}
-				}
-			}
+			launchAttack();
+				try {
+					navigate();
+				} catch (GameActionException e) {}
 			sense_border();
 			
 			yield();
 		}
 	}
 
-	public boolean trackLeader() {
-		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
-		for (Robot r : robots) {
-			if (r.getID() == leaderID) {
-				leader = r;
-				return true;
-			}
-		}
-		return false;
+	public void launchAttack() {
+		if (controllers.weaponNum() == 0)
+			return;
+		if (combat.hasEnemy()) {
+			combat.chaseTarget();
+			combat.attack();
+		} else
+		combat.destroyDeadEnemy();
+		
 	}
-
+	
 	public void followLeader() {
 		MapLocation loc = null;
 		try {
@@ -100,6 +90,17 @@ public class SoldierAI extends AI {
 //				yield();
 //			}
 //		} catch (GameActionException e) {}
+	}
+	
+	public boolean trackLeader() {
+		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
+		for (Robot r : robots) {
+			if (r.getID() == leaderID) {
+				leader = r;
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private void processMessage() {
@@ -164,7 +165,6 @@ public class SoldierAI extends AI {
 	private void navigate() throws GameActionException {
 		Direction nextDir = navigator.getNextDir(0);
 		if (nextDir != Direction.OMNI) {
-			rc.setIndicatorString(2, rc.getLocation().toString()+" "+navigator.getDestination().toString());
 			if (!motor.isActive() && motor.canMove(nextDir)) {
 				if (rc.getDirection() == nextDir) {
 					motor.moveForward();
@@ -175,11 +175,9 @@ public class SoldierAI extends AI {
 		} else if (enemyBase != null) { 
 			navigator.setDestination(enemyBase);
 			leaderLoc = null;
-			rc.setIndicatorString(2, rc.getLocation().toString()+" "+"enemyBase");
 			//roachNavigate();
 		} else {
 			leaderLoc = null;
-			rc.setIndicatorString(2, rc.getLocation().toString()+" "+"NULL");
 		}
 	}
 

@@ -1,6 +1,7 @@
 package team017.combat;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import team017.util.Controllers;
@@ -19,17 +20,19 @@ public class CombatSystem {
 
 	private Controllers controllers;
 
-	public List<Robot> allies = new ArrayList<Robot>(); // exclude self
-	public List<Robot> enemies = new ArrayList<Robot>(); // exclude off robot
-	public List<Robot> deadEnemies = new ArrayList<Robot>();
+	public List<Robot> allies = new LinkedList<Robot>(); // exclude self
+	public List<Robot> enemies = new LinkedList<Robot>(); // exclude off robot
+	public List<Robot> immobileEnemies = new LinkedList<Robot>();
 	public List<MapLocation> elocs = new ArrayList<MapLocation>();
 	public List<MapLocation> alocs = new ArrayList<MapLocation>();
-
-	private Robot target1 = null;
-	private Robot target2 = null;
-	private int lastUpdate = -10;
-	private Direction nextDir = Direction.NONE;
-	private int attackRange = 16*16;
+	
+	public Robot target1 = null;
+	public Robot target2 = null;
+	
+	public MapLocation selfLoc;
+	public int lastUpdate = -10;
+	public Direction nextDir = Direction.NONE;
+	public int attackRange = 16*16;
 
 	public CombatSystem(Controllers c) {
 		controllers = c;
@@ -125,58 +128,65 @@ public class CombatSystem {
 		}
 	}
 	
-	public void destroyDeadEnemy() {
-		if (deadEnemies.size() == 0)
-			return;
+	public void massacre() {
+//		if (immobileEnemies.size() == 0)
+//			return;
 		int i = 0;
 		for (WeaponController w : controllers.weapons) {
 			if (w.isActive())
 				continue;
 			try {
-				MapLocation loc = controllers.sensor.senseLocationOf(deadEnemies.get(i));
-				w.attackSquare(loc, deadEnemies.get(i).getRobotLevel());
+				MapLocation loc = controllers.sensor.senseLocationOf(immobileEnemies.get(i));
+				w.attackSquare(loc, immobileEnemies.get(i).getRobotLevel());
 			} catch (GameActionException e) {
 				++i;
-				if (i >= deadEnemies.size())
+				if (i >= immobileEnemies.size())
 					return;
 			}
 		}
 	}
 
-	public void attack() {
+	public boolean attack() {
 		if (target1 == null) {
-			destroyDeadEnemy();
-			return;
+//			destroyDeadEnemy();
+			System.out.println("Null target");
+			return false;
 		}
-		try {
-			RobotInfo info = controllers.sensor.senseRobotInfo(target1);
-			if (info.hitpoints < 0)
-				System.out.println("hp less than 0");
-		} catch (GameActionException e1) {}
-		
+		boolean attacked = false;
 		for (WeaponController w : controllers.weapons) {
 			if (w.isActive())
 				continue;
 			try {
+				RobotInfo info = controllers.sensor.senseRobotInfo(target1);
+				if (info.hitpoints < 0) {
+					if (target2 == null)
+						return false;
+					target1 = target2;
+					target2 = null;
+				}
 				MapLocation weakest = controllers.sensor
-						.senseLocationOf(target1);
+				.senseLocationOf(target1);
 				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
-				if (dist > attackRange)
-					return;
+				if (dist > attackRange) {
+					System.out.println("attacking out of range");
+					return attacked;
+				}
 				w.attackSquare(weakest, target1.getRobotLevel());
+				attacked = true;
 			} catch (GameActionException e) {
 				if (target2 == null)
-					return;
+					return false;
 				target1 = target2;
 				target2 = null;
 			}
 		}
+		return attacked;
 	}
 
-	private void senseNearby() {
+	public void senseNearby() {
 		allies.clear();
 		enemies.clear();
-		deadEnemies.clear();
+		immobileEnemies.clear();
 		
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		double leasthp1 = Chassis.HEAVY.maxHp;
@@ -191,14 +201,14 @@ public class CombatSystem {
 				} else if ((r.getTeam() != Team.NEUTRAL)) {
 					if (!info.on || info.chassis == Chassis.BUILDING) {
 //						System.out.println(r.getTeam());
-						deadEnemies.add(r);
+						immobileEnemies.add(r);
 						continue;
 					}
-					enemies.add(r);
 					MapLocation loc = controllers.sensor.senseLocationOf(r);
 					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
 					if (dist > attackRange)
 						continue;
+					enemies.add(r);
 					elocs.add(loc);
 					if (info.hitpoints < leasthp1) {
 						leasthp2 = leasthp1;
@@ -220,13 +230,19 @@ public class CombatSystem {
 	public int enemyNum() {
 		if (outdated())
 			senseNearby();
-		return enemies.size() + deadEnemies.size();
+		return enemies.size();
+	}
+	
+	public int immobileEnemyNum() {
+		if (outdated())
+			senseNearby();
+		return immobileEnemies.size();
 	}
 	
 	public boolean hasEnemy() {
 		if (outdated())
 			senseNearby();
-		return enemies.size() > 0 || deadEnemies.size() > 0;
+		return (enemies.size() + immobileEnemies.size()) > 0;
 	}
 
 	public boolean outdated() {
