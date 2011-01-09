@@ -87,12 +87,12 @@ public class ConstructorAI extends AI {
 								MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
 								if (handler.getAvailableSpace() == 3) {
 									if (buildBuildingAtLoc(buildLoc,UnitType.FACTORY)) {
+										builtLocations.add(handler.getSourceLocation());
 										msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
 										MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
 										if(buildBuildingAtLoc(nextBuildLoc,UnitType.ARMORY)){
 											msgHandler.queueMessage(new ConstructionCompleteMessage(nextBuildLoc, ComponentType.ARMORY));
 										}
-										builtLocations.add(handler.getSourceLocation());
 									}
 								} else if (handler.getAvailableSpace() == 2) {
 									if(buildBuildingAtLoc(buildLoc, UnitType.FACTORY)){
@@ -106,7 +106,9 @@ public class ConstructorAI extends AI {
 					}
 					}
 				}
-				msgHandler.queueMessage(new FollowMeMessage());
+				
+				if (Clock.getRoundNum() % 2 == 0)
+					msgHandler.queueMessage(new FollowMeMessage());
 				yield();
 
 				// Conditions of building factories/armories
@@ -320,29 +322,26 @@ public class ConstructorAI extends AI {
 	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type) throws GameActionException {
 		while (!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)) {
 			MapLocation currentLoc = controllers.myRC.getLocation();
-			if(currentLoc.equals(buildLoc)){
-				while(controllers.motor.isActive()){
-					yield();
-				}
+			if(currentLoc.equals(buildLoc) && !controllers.motor.isActive()){
+//				while(controllers.motor.isActive()){
+//					yield();
+//				}
 				controllers.motor.moveBackward();
-				while (!buildingSystem.constructUnit(buildLoc, type)) {
-					if (controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
-						return false;
-					yield();
-				}
-				return true;
+				break;
 			}
-			if (controllers.sensor.canSenseSquare(buildLoc)
-					&& controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
+			if (controllers.sensor.canSenseSquare(buildLoc) && controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
 				return false;
 			if (!controllers.motor.isActive()) {
 				if (!controllers.myRC.getLocation().isAdjacentTo(buildLoc)) {
 					navigator.setDestination(buildLoc);
 					Direction nextDir = navigator.getNextDir(0);
-//					if(controllers.myRC.getDirection() == Direction.OMNI || controllers.myRC.getDirection() == Direction.NONE){
-//						controllers.motor.setDirection(currentLoc.directionTo(buildLoc));
-//						break;
-//					}
+					if(nextDir == Direction.OMNI && !controllers.motor.isActive()){
+//						while(controllers.motor.isActive()){
+//							yield();
+//						}
+						controllers.motor.moveBackward();
+						break;				
+					}
 					if (controllers.myRC.getDirection() != nextDir) {
 						controllers.motor.setDirection(nextDir);
 					} else {

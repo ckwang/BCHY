@@ -3,6 +3,7 @@ package team017.AI;
 import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
+import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
@@ -53,11 +54,18 @@ public class FactoryAI extends BuildingAI {
 				}
 			}
 			
-			controllers.myRC.setIndicatorString(2, getEffectiveFluxRate() + "");
-			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
+//			controllers.myRC.setIndicatorString(2, getEffectiveFluxRate() + "");
+//			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
+//				if(builderDirs.recyclerDirection != null){
+//					MapLocation buildLoc = builderDirs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
+//					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, builderDirs);
+//				}
+//			}
+			if(Clock.getRoundNum() < 1000 && Clock.getRoundNum() > 980 && controllers.myRC.getTeamResources() > UnitType.MEDIUM_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.MEDIUM_CONSTRUCTOR.chassis.upkeep * 1.5){
 				if(builderDirs.recyclerDirection != null){
-					MapLocation buildLoc = builderDirs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
-					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, builderDirs);
+					ComponentType [] builderList = {ComponentType.RECYCLER, ComponentType.FACTORY};
+					MapLocation buildLoc = builderDirs.constructableLocation(ComponentType.FACTORY, builderList);
+					buildingSystem.constructUnit(buildLoc, UnitType.MEDIUM_CONSTRUCTOR, builderDirs);
 				}
 			}
 

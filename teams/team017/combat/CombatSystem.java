@@ -150,8 +150,8 @@ public class CombatSystem {
 		}
 		try {
 			RobotInfo info = controllers.sensor.senseRobotInfo(target1);
-			if (info.hitpoints < 0)
-				System.out.println("hp less than 0");
+//			if (info.hitpoints < 0)
+//				System.out.println("hp less than 0");
 		} catch (GameActionException e1) {}
 		
 		for (WeaponController w : controllers.weapons) {

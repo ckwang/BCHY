@@ -131,6 +131,7 @@ public class RecyclerAI extends BuildingAI {
 					
 					case CONSTRUCTION_COMPLETE: {
 						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
+						controllers.myRC.setIndicatorString(1, "complete!" + Clock.getRoundNum());
 						
 						/*
 						 * When a new building is constructed, we would like to build an antenna on it.
@@ -165,7 +166,8 @@ public class RecyclerAI extends BuildingAI {
 				}
 
 
-//				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 100) {
+				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
+					buildingSystem.constructUnit(UnitType.GRIZZLY);
 //					if (Clock.getRoundNum() < 1000) {
 //						if (Clock.getRoundNum() % 3 == 0){
 //							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
@@ -189,7 +191,7 @@ public class RecyclerAI extends BuildingAI {
 //							}
 //						}
 //					}
-//				}
+				}
 				
 				// turn off when the mine is depleted
 				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0)
