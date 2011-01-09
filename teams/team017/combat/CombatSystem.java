@@ -10,24 +10,14 @@ import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
-import battlecode.common.MovementController;
 import battlecode.common.Robot;
-import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
-import battlecode.common.SensorController;
 import battlecode.common.Team;
 import battlecode.common.WeaponController;
 
 public class CombatSystem {
 
-	// private RobotController rc.
-	// private MovementController motor.;
-	// private Sensorc.ntroller sensor;
-	// private List<WeaponController> weapons;
 	private Controllers controllers;
-	private RobotController rc = controllers.myRC;
-	private MovementController motor = controllers.motor;
-	private SensorController sensor = controllers.sensor;
 
 	public List<Robot> allies = new ArrayList<Robot>(); // exclude self
 	public List<Robot> enemies = new ArrayList<Robot>(); // exclude off robot
@@ -61,12 +51,12 @@ public class CombatSystem {
 
 	
 	public boolean chase(Robot r) {
-		if (motor.isActive())
+		if (controllers.motor.isActive())
 			return false;
-		MapLocation cur = rc.getLocation();
+		MapLocation cur = controllers.myRC.getLocation();
 		try {
-			MapLocation loc = sensor.senseLocationOf(r);
-			RobotInfo info = sensor.senseRobotInfo(r);
+			MapLocation loc = controllers.sensor.senseLocationOf(r);
+			RobotInfo info = controllers.sensor.senseRobotInfo(r);
 			Direction dir1 = cur.directionTo(loc);
 			if (dir1 == Direction.OMNI || dir1 == Direction.NONE)
 				return false;
@@ -80,22 +70,22 @@ public class CombatSystem {
 						newdir = dir2.rotateLeft();
 					else
 						newdir = dir1;
-					motor.setDirection(newdir);
+					controllers.motor.setDirection(newdir);
 					nextDir = dir2;
 					return true;
 			}
 			if (dir2 == Direction.OMNI || dir2 == Direction.NONE)
 				return false;
-			if (rc.getDirection() != dir2) {
-				motor.setDirection(dir2);
+			if (controllers.myRC.getDirection() != dir2) {
+				controllers.motor.setDirection(dir2);
 				return true;
 			}
-			motor.moveForward();
+			controllers.motor.moveForward();
 			return true;
 		} catch (GameActionException e) {
 			if (nextDir != Direction.OMNI && nextDir != Direction.NONE) {
 				try {
-					motor.setDirection(nextDir);
+					controllers.motor.setDirection(nextDir);
 					return true;
 				} catch (GameActionException e1) {}
 			}
@@ -107,27 +97,27 @@ public class CombatSystem {
 	 * return true is moved
 	 */
 	public boolean approach(Robot r) {
-		if (motor.isActive())
+		if (controllers.motor.isActive())
 			return false;
-		MapLocation cur = rc.getLocation();
+		MapLocation cur = controllers.myRC.getLocation();
 		try {
-			MapLocation loc = sensor.senseLocationOf(r);
+			MapLocation loc = controllers.sensor.senseLocationOf(r);
 			Direction dir = cur.directionTo(loc);
 			if (dir == Direction.OMNI || dir == Direction.NONE)
 				return false;
 			if (cur.isAdjacentTo(loc)) {
-				motor.setDirection(dir);
+				controllers.motor.setDirection(dir);
 			}
-			else if (Util.isFacing(rc.getDirection(), dir)
-					&& motor.canMove(dir))
-				motor.moveForward();
-			else if (Util.isFacing(rc.getDirection().opposite(),
+			else if (Util.isFacing(controllers.myRC.getDirection(), dir)
+					&& controllers.motor.canMove(dir))
+				controllers.motor.moveForward();
+			else if (Util.isFacing(controllers.myRC.getDirection().opposite(),
 					dir)
-					&& motor.canMove(rc
+					&& controllers.motor.canMove(controllers.myRC
 							.getDirection().opposite()))
-				motor.moveBackward();
+				controllers.motor.moveBackward();
 			else {
-				motor.setDirection(dir);
+				controllers.motor.setDirection(dir);
 			}
 			return true;
 		} catch (GameActionException e) {
@@ -143,7 +133,7 @@ public class CombatSystem {
 			if (w.isActive())
 				continue;
 			try {
-				MapLocation loc = sensor.senseLocationOf(deadEnemies.get(i));
+				MapLocation loc = controllers.sensor.senseLocationOf(deadEnemies.get(i));
 				w.attackSquare(loc, deadEnemies.get(i).getRobotLevel());
 			} catch (GameActionException e) {
 				++i;
@@ -159,7 +149,7 @@ public class CombatSystem {
 			return;
 		}
 		try {
-			RobotInfo info = sensor.senseRobotInfo(target1);
+			RobotInfo info = controllers.sensor.senseRobotInfo(target1);
 			if (info.hitpoints < 0)
 				System.out.println("hp less than 0");
 		} catch (GameActionException e1) {}
@@ -168,9 +158,9 @@ public class CombatSystem {
 			if (w.isActive())
 				continue;
 			try {
-				MapLocation weakest = sensor
+				MapLocation weakest = controllers.sensor
 						.senseLocationOf(target1);
-				int dist = rc.getLocation().distanceSquaredTo(weakest);
+				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
 				if (dist > attackRange)
 					return;
 				w.attackSquare(weakest, target1.getRobotLevel());
@@ -188,15 +178,15 @@ public class CombatSystem {
 		enemies.clear();
 		deadEnemies.clear();
 		
-		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
+		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		double leasthp1 = Chassis.HEAVY.maxHp;
 		double leasthp2 = Chassis.HEAVY.maxHp;
 		for (Robot r : robots) {
 			try {
-				RobotInfo info = sensor.senseRobotInfo(r);
-				if (r.getTeam() == rc.getTeam()) {
+				RobotInfo info = controllers.sensor.senseRobotInfo(r);
+				if (r.getTeam() == controllers.myRC.getTeam()) {
 					allies.add(r);
-					MapLocation loc = sensor.senseLocationOf(r);
+					MapLocation loc = controllers.sensor.senseLocationOf(r);
 					alocs.add(loc);
 				} else if ((r.getTeam() != Team.NEUTRAL)) {
 					if (!info.on || info.chassis == Chassis.BUILDING) {
@@ -205,8 +195,8 @@ public class CombatSystem {
 						continue;
 					}
 					enemies.add(r);
-					MapLocation loc = sensor.senseLocationOf(r);
-					int dist = rc.getLocation().distanceSquaredTo(loc);
+					MapLocation loc = controllers.sensor.senseLocationOf(r);
+					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
 					if (dist > attackRange)
 						continue;
 					elocs.add(loc);
