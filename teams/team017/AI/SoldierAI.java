@@ -10,7 +10,6 @@ import battlecode.common.Message;
 import battlecode.common.MovementController;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
-import battlecode.common.RobotInfo;
 import battlecode.common.SensorController;
 import battlecode.common.TerrainTile;
 
@@ -25,7 +24,6 @@ public class SoldierAI extends AI {
 	private int leaderID;
 	private MapLocation leaderLoc;
 	private Robot leader = null;
-	
 	private boolean isEngaged = false;
 
 	public SoldierAI(RobotController rc) {
@@ -43,6 +41,7 @@ public class SoldierAI extends AI {
 			if (isEngaged){
 				if (combat.hasEnemy() && controllers.weaponNum() > 0) {
 					if (combat.chaseTarget())
+						yield();
 					combat.attack();
 				} else {
 					isEngaged = false;
@@ -75,8 +74,32 @@ public class SoldierAI extends AI {
 	}
 
 	public void followLeader() {
-//		RobotInfo info = sensor.senseRobotInfo(leader);
-//		if (leader.)
+		MapLocation loc = null;
+		try {
+			loc = sensor.senseLocationOf(leader);
+		} catch (GameActionException e1) {
+			loc = leaderLoc;
+			if (loc == null)
+				return;
+		}
+		navigator.setDestination(loc);
+		try {
+			Direction dir = navigator.getNextDir(2);
+			if (dir == Direction.OMNI || dir == Direction.NONE)
+				dir = rc.getLocation().directionTo(loc);
+			if (!rc.getDirection().equals(dir)) {
+				motor.setDirection(dir);
+			}
+			if (!motor.isActive())
+				motor.moveForward();
+		} catch (GameActionException e1) {}
+//		try {
+//			RobotInfo info = sensor.senseRobotInfo(leader);
+//			if (rc.getLocation().isAdjacentTo(loc)) {
+//				motor.setDirection(info.direction);
+//				yield();
+//			}
+//		} catch (GameActionException e) {}
 	}
 	
 	private void processMessage() {
