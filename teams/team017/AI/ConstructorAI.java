@@ -65,9 +65,7 @@ public class ConstructorAI extends AI {
 //				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "");
 
 //				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "");
-				if (controllers.motor != null) {
-					navigate();
-				}
+				navigate();
 				
 				buildRecyclers();
 				
@@ -494,7 +492,7 @@ public class ConstructorAI extends AI {
 				}
 				
 				navigator.setDestination(nearest);
-				Direction nextDir = navigator.getNextDir(0);
+				Direction nextDir = navigator.getNextDir(2);
 
 				if (nextDir != Direction.OMNI) {
 					if (controllers.myRC.getDirection() == nextDir) {

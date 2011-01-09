@@ -59,6 +59,10 @@ public abstract class BuildingAI extends AI {
 		
 		return fluxRate[0] + (sum / n);
 	}
+	
+	protected double getFluxAcceleration() {
+		return (fluxRate[0] = fluxRate[1]) / (roundRecord[0] - roundRecord[1]);
+	}
 
 	/***
 	 * Sense nearby robots and return the location of one robot with specific
