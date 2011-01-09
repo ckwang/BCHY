@@ -24,12 +24,11 @@ import battlecode.common.RobotLevel;
 
 public class RecyclerAI extends BuildingAI {
 
-	private MapLocation enemyBase;
 	private Mine myMine;
 	
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
-		enemyBase = controllers.myRC.getLocation();
+		//enemyBase = controllers.myRC.getLocation();
 		
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
@@ -78,7 +77,7 @@ public class RecyclerAI extends BuildingAI {
 					switch (msgHandler.getMessageType(msg)) {
 					case BORDER: {
 						BorderMessage handler = new BorderMessage(msg);
-
+//						enemyBase = controllers.myRC.getLocation();
 						// update the borders
 						int[] newBorders = handler.getBorderDirection();
 
@@ -86,11 +85,15 @@ public class RecyclerAI extends BuildingAI {
 							if (newBorders[i] != -1){
 								if (borders[i] != newBorders[i]){
 									borders[i] = newBorders[i];
-									enemyBase = enemyBase.add(enemyDir[i],60);
+//									enemyBase = enemyBase.add(enemyDir[i],60);
 								}
 							}
 						}
 						break;
+					}
+					case ENEMY_LOCATION: {
+						EnemyLocationMessage handler = new EnemyLocationMessage(msg);
+						enemyBaseLoc = handler.getEnemyLocation();
 					}
 					case BUILDING_REQUEST:{
 						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
@@ -174,8 +177,8 @@ public class RecyclerAI extends BuildingAI {
 						}
 						else{
 							buildingSystem.constructUnit(UnitType.GRIZZLY);
-							if (enemyBase != null){
-								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
+							if (enemyBaseLoc != null){
+								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
 								yield();
 							}
 						}
@@ -185,8 +188,8 @@ public class RecyclerAI extends BuildingAI {
 							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
 						else{
 							buildingSystem.constructUnit(UnitType.GRIZZLY);
-							if (enemyBase != null){
-								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
+							if (enemyBaseLoc != null){
+								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
 								yield();
 							}
 						}

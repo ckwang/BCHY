@@ -10,6 +10,7 @@ import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.EnemyLocationMessage;
 import battlecode.common.Chassis;
 import team017.message.FollowMeMessage;
 import battlecode.common.Clock;
@@ -30,6 +31,7 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
+	private Direction[] enemyDir = {Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST};
 	
 	public ConstructorAI(RobotController rc) {
 		super(rc);
@@ -48,6 +50,7 @@ public class ConstructorAI extends AI {
 			try {
 				init();
 				init_revolve();
+				init_enemyBase();
 				init_return();
 			} catch (GameActionException e) {
 				e.printStackTrace();
@@ -121,6 +124,7 @@ public class ConstructorAI extends AI {
 	}
 
 	private void init() {
+		enemyBaseLoc = controllers.myRC.getLocation();
 		try {
 			for (int i = 0; i < 4; ++i) {
 				// Rotate twice Right for a 90 degrees turn
@@ -251,6 +255,16 @@ public class ConstructorAI extends AI {
 			}
 		}
 		msgHandler.queueMessage(new BorderMessage(borders));
+		msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+	}
+	
+	private void init_enemyBase() {
+		enemyBaseLoc = controllers.myRC.getLocation();
+		for (int index = 0; index < 4; index++){
+			if (borders[index] != -1){
+				enemyBaseLoc = enemyBaseLoc.add(enemyDir[index], 60);
+			}
+		}
 	}
 
 	private void updateLocationSets() {
@@ -310,6 +324,7 @@ public class ConstructorAI extends AI {
 						controllers.myRC.yield();
 					}
 					msgHandler.queueMessage(new ConstructionCompleteMessage(mineLoc, ComponentType.RECYCLER));
+					msgHandler.queueMessage(new BorderMessage(borders));
 					msgHandler.queueMessage(new BorderMessage(borders));
 					controllers.myRC.yield();
 					return true;
