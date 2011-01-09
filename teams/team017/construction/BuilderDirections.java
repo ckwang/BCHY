@@ -172,4 +172,30 @@ public class BuilderDirections {
 		return emptyDirections[indexMapping(dir)];
 	}
 	
+	public MapLocation constructableLocation(ComponentType thisBuilder, ComponentType[] requiredBuilders) {
+		updateEmptyDirections();
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		
+		MapLocation[] builderLocs = new MapLocation[requiredBuilders.length - 1];
+		int i = 0;
+		for (ComponentType c : requiredBuilders) {
+			if (thisBuilder != c)
+				builderLocs[i++] = currentLoc.add(getDirections(c));
+		}
+		
+		outer:
+		for (i = 0; i < 8; ++i) {
+			if (emptyDirections[i] == true) {
+				MapLocation buildingLoc = currentLoc.add(directionMapping[i]);
+				for (MapLocation builderLoc : builderLocs) {
+					if (!buildingLoc.isAdjacentTo(builderLoc))
+						continue outer;
+				}
+				return buildingLoc;
+			}
+			
+		}
+		return null;
+	}
+	
 }

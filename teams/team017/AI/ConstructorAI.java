@@ -11,6 +11,7 @@ import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import battlecode.common.Chassis;
+import team017.message.FollowMeMessage;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -22,7 +23,6 @@ import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
-import battlecode.common.SensorController;
 import battlecode.common.TerrainTile;
 
 public class ConstructorAI extends AI {
@@ -57,9 +57,9 @@ public class ConstructorAI extends AI {
 		while (true) {
 
 			try {
-				controllers.myRC.setIndicatorString(0, recyclerLocations + "");
-				controllers.myRC.setIndicatorString(1, builtLocations + "");
-				controllers.myRC.setIndicatorString(2, mineLocations + "");
+//				controllers.myRC.setIndicatorString(0, recyclerLocations + "");
+//				controllers.myRC.setIndicatorString(1, builtLocations + "");
+//				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "");
 
 //				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "");
 				if (controllers.motor != null) {
@@ -80,30 +80,33 @@ public class ConstructorAI extends AI {
 					switch (msgHandler.getMessageType(msg)) {
 					case BUILDING_LOCATION_RESPONSE_MESSAGE: {
 						BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
-						if(handler.getAvailableSpace() == -1){
-							builtLocations.add(handler.getSourceLocation());
-						} else if (handler.getBuildableDirection() != Direction.NONE) {
-							MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-							if (handler.getAvailableSpace() == 3) {
-								if (buildBuildingAtLoc(buildLoc,UnitType.FACTORY)) {
-									msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
-									MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
-									if(buildBuildingAtLoc(nextBuildLoc,UnitType.ARMORY)){
-										msgHandler.queueMessage(new ConstructionCompleteMessage(nextBuildLoc, ComponentType.ARMORY));
+						if (!builtLocations.contains(handler.getSourceLocation())){
+							if(handler.getAvailableSpace() == -1){
+								builtLocations.add(handler.getSourceLocation());
+							} else if (handler.getBuildableDirection() != Direction.NONE) {
+								MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+								if (handler.getAvailableSpace() == 3) {
+									if (buildBuildingAtLoc(buildLoc,UnitType.FACTORY)) {
+										msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
+										MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
+										if(buildBuildingAtLoc(nextBuildLoc,UnitType.ARMORY)){
+											msgHandler.queueMessage(new ConstructionCompleteMessage(nextBuildLoc, ComponentType.ARMORY));
+										}
+										builtLocations.add(handler.getSourceLocation());
 									}
-									builtLocations.add(handler.getSourceLocation());
+								} else if (handler.getAvailableSpace() == 2) {
+									if(buildBuildingAtLoc(buildLoc, UnitType.FACTORY)){
+										msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
+										builtLocations.add(handler.getSourceLocation());
+									}
 								}
-							} else if (handler.getAvailableSpace() == 2) {
-								if(buildBuildingAtLoc(buildLoc, UnitType.FACTORY)){
-									msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
-									builtLocations.add(handler.getSourceLocation());
-								}
-							}
+							}							
 						}
 						break;
 					}
 					}
 				}
+				msgHandler.queueMessage(new FollowMeMessage());
 				yield();
 
 				// Conditions of building factories/armories
@@ -365,8 +368,6 @@ public class ConstructorAI extends AI {
 		if (!controllers.motor.isActive()) {
 			if (!mineLocations.isEmpty()) {
 				MapLocation currentLoc = controllers.myRC.getLocation();
-//				controllers.myRC.setIndicatorString(0, currentLoc + "," + mineLocations);
-				
 				MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
 				for (MapLocation loc : mineLocations) {
 					if (currentLoc.distanceSquaredTo(loc) < currentLoc

@@ -17,10 +17,6 @@ import battlecode.common.WeaponController;
 
 public class CombatSystem {
 
-	// private RobotController controllers.myRC.
-	// private MovementController controllers.motor.;
-	// private Sensocontrollers.myRC.ntroller controllers.sensor;
-	// private List<WeaponController> weapons;
 	private Controllers controllers;
 
 	public List<Robot> allies = new ArrayList<Robot>(); // exclude self
@@ -33,6 +29,7 @@ public class CombatSystem {
 	private Robot target2 = null;
 	private int lastUpdate = -10;
 	private Direction nextDir = Direction.NONE;
+	private int attackRange = 16*16;
 
 	public CombatSystem(Controllers c) {
 		controllers = c;
@@ -151,12 +148,21 @@ public class CombatSystem {
 			destroyDeadEnemy();
 			return;
 		}
+		try {
+			RobotInfo info = controllers.sensor.senseRobotInfo(target1);
+			if (info.hitpoints < 0)
+				System.out.println("hp less than 0");
+		} catch (GameActionException e1) {}
+		
 		for (WeaponController w : controllers.weapons) {
 			if (w.isActive())
 				continue;
 			try {
 				MapLocation weakest = controllers.sensor
 						.senseLocationOf(target1);
+				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
+				if (dist > attackRange)
+					return;
 				w.attackSquare(weakest, target1.getRobotLevel());
 			} catch (GameActionException e) {
 				if (target2 == null)
@@ -190,6 +196,9 @@ public class CombatSystem {
 					}
 					enemies.add(r);
 					MapLocation loc = controllers.sensor.senseLocationOf(r);
+					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
+					if (dist > attackRange)
+						continue;
 					elocs.add(loc);
 					if (info.hitpoints < leasthp1) {
 						leasthp2 = leasthp1;

@@ -3,6 +3,7 @@ package team017.AI;
 import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
+import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
@@ -53,20 +54,10 @@ public class FactoryAI extends BuildingAI {
 			}
 			
 			controllers.myRC.setIndicatorString(2, getEffectiveFluxRate() + "");
-			if(controllers.myRC.getTeamResources() > UnitType.BATTLE_FORTRESS.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.BATTLE_FORTRESS.chassis.upkeep * 1.5){
-				if(builderDirs.armoryDirection != null){
-					Direction armoryDir = builderDirs.armoryDirection;
-					MapLocation myLoc = controllers.myRC.getLocation();
-					builderDirs.updateEmptyDirections();
-					// try from left twice to right twice
-					Direction buildDir = armoryDir.rotateLeft().rotateLeft();
-					for(int i = 0; i < 5; ++i){
-						if(builderDirs.checkDirEmpty(buildDir)){
-							buildingSystem.constructUnit(myLoc.add(buildDir), UnitType.BATTLE_FORTRESS, builderDirs);
-							break;
-						}
-						buildDir.rotateRight();
-					}
+			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
+				if(builderDirs.recyclerDirection != null){
+					MapLocation buildLoc = builderDirs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
+					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, builderDirs);
 				}
 			}
 
