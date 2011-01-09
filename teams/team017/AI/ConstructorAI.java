@@ -72,14 +72,16 @@ public class ConstructorAI extends AI {
 									.add(handler.getBuildableDirection());
 
 							if (handler.getAvailableSpace() == 3) {
-								if (buildBuildingAtLoc(buildLoc, UnitType.FACTORY)) {
-									msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
-									
+								if (buildBuildingAtLoc(buildLoc,
+										UnitType.FACTORY)) {
 									MapLocation nextBuildLoc = handler
 											.getSourceLocation()
-											.add(handler.getBuildableDirection().rotateRight());
-									buildBuildingAtLoc(nextBuildLoc, UnitType.ARMORY);
-									msgHandler.queueMessage(new ConstructionCompleteMessage(nextBuildLoc, ComponentType.ARMORY));
+											.add(
+													handler
+															.getBuildableDirection()
+															.rotateRight());
+									buildBuildingAtLoc(nextBuildLoc,
+											UnitType.ARMORY);
 								}
 							} else {
 								buildBuildingAtLoc(buildLoc, UnitType.FACTORY);
@@ -343,49 +345,61 @@ public class ConstructorAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
-		Direction nextDir = navigator.getNextDir(2);
-		if (nextDir != Direction.OMNI) {
-			if (!controllers.motor.isActive() && controllers.motor.canMove(nextDir)) {
-				if (controllers.myRC.getDirection() == nextDir) {
-					controllers.motor.moveForward();
-				} else {
-					controllers.motor.setDirection(nextDir);
-				}
-			}
-		}
-		else if (!mineLocations.isEmpty()) {
+
+		if (!controllers.motor.isActive()) {
+			if (!mineLocations.isEmpty()) {
 				MapLocation currentLoc = controllers.myRC.getLocation();
-				controllers.myRC.setIndicatorString(0, currentLoc + "," + mineLocations);
-				
 				MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
 				for (MapLocation loc : mineLocations) {
 					if (currentLoc.distanceSquaredTo(loc) < currentLoc
 							.distanceSquaredTo(nearest))
 						nearest = loc;
 				}
+				
 				navigator.setDestination(nearest);
-		}
-//		 else if (!recyclerLocations.isEmpty()) {
-//					MapLocation currentLoc = controllers.myRC.getLocation();
-//					MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
-//					for (MapLocation loc : recyclerLocations) {
-//						if (currentLoc.distanceSquaredTo(loc) < currentLoc
-//								.distanceSquaredTo(nearest))
-//							nearest = loc;
-//					}
-//		
-//					controllers.myRC.setIndicatorString(0, currentLoc + "," + nearest);
-//		
-//					navigator.setDestination(nearest);
-//		}
-			
-		else {
-			if ( !controllers.motor.isActive() )
+				Direction nextDir = navigator.getNextDir(0);
+
+				if (nextDir != Direction.OMNI) {
+					if (controllers.myRC.getDirection() == nextDir) {
+						if (controllers.motor.canMove(nextDir)) {
+							controllers.motor.moveForward();
+						}
+					} else {
+						controllers.motor.setDirection(nextDir);
+					}
+				}
+
+			}
+
+			// else if (!recyclerLocations.isEmpty()) {
+			// MapLocation currentLoc = controllers.myRC.getLocation();
+			// MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
+			// for (MapLocation loc : recyclerLocations) {
+			// if (currentLoc.distanceSquaredTo(loc) < currentLoc
+			// .distanceSquaredTo(nearest))
+			// nearest = loc;
+			// }
+			//
+			// controllers.myRC.setIndicatorString(0, currentLoc + ","
+			// + nearest);
+			//
+			// navigator.setDestination(nearest);
+			// Direction nextDir = navigator.getNextDir(0);
+			//
+			// if (nextDir != Direction.OMNI) {
+			// if (controllers.myRC.getDirection() == nextDir) {
+			// if (controllers.motor.canMove(nextDir)) {
+			// controllers.motor.moveForward();
+			// }
+			// } else {
+			// controllers.motor.setDirection(nextDir);
+			// }
+			// }
+			//
+			// }
+			else {
 				roachNavigate();
+			}
 		}
-		
 	}
 }
-
-
-
