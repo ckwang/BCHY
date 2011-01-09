@@ -147,9 +147,9 @@ public class Builder {
 			throws GameActionException {
 		Direction buildDir = controllers.myRC.getDirection();
 		for (int i = 1; i < 8; ++i) {
-			if (controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(buildDir),
-					chassis.level) == null
-					&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(buildDir)) == TerrainTile.LAND) {
+			if (controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(buildDir), chassis.level) == null
+					&& controllers.myRC.senseTerrainTile(controllers.myRC.getLocation().add(buildDir)) == TerrainTile.LAND
+					&& controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(buildDir), RobotLevel.MINE) == null) {
 				if (controllers.myRC.getDirection() != buildDir){
 					while(controllers.motor.isActive())
 						controllers.myRC.yield();

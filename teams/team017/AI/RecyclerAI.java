@@ -25,10 +25,12 @@ import battlecode.common.RobotLevel;
 public class RecyclerAI extends BuildingAI {
 
 	private Mine myMine;
+	private int unitConstructed = 0;
+	private int birthRoundNum;
 	
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
-		//enemyBase = controllers.myRC.getLocation();
+		birthRoundNum = Clock.getRoundNum();
 		
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
@@ -48,26 +50,45 @@ public class RecyclerAI extends BuildingAI {
 			// turn off if there is already a recycler nearby
 			if (builderDirs.recyclerDirection != null) {
 				try {
-					GameObject object = controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(builderDirs.recyclerDirection), RobotLevel.ON_GROUND);
-					if (object.getID() < controllers.myRC.getRobot().getID())
+					while (controllers.sensor.isActive())
+						yield();
+						// Build 3 PLATINGs on itself
+						for (int i = 0; i < 3; ++i){
+							while (controllers.myRC.getTeamResources() < 9)
+								yield();
+							controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+							yield();
+						
+						}
+						controllers.myRC.turnOff();
 						controllers.myRC.turnOff();
 				} catch (GameActionException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			} else {
+				while(controllers.myRC.getTeamResources() < 6)
+					controllers.myRC.yield();
+				try {
+					// build an antenna on itself
+					while(controllers.builder.isActive())
+						controllers.myRC.yield();
+					controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+					yield();
+					for (int i = 0; i < 2; ++i){
+						while (controllers.myRC.getTeamResources() < 9)
+							yield();
+						controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+						yield();
+					
+					}
+
+				} catch (GameActionException e1) {
+					System.out.println("caught exception:");
+					e1.printStackTrace();
+				}
 			}
 			
-			while(controllers.myRC.getTeamResources() < 6)
-				controllers.myRC.yield();
-			try {
-				// build an antenna on itself
-				while (controllers.builder.isActive())
-					yield();
-				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-			} catch (GameActionException e1) {
-				System.out.println("caught exception:");
-				e1.printStackTrace();
-			}
 		}
 		
 		while (true) {
@@ -171,33 +192,104 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 
-
-				if (Clock.getRoundNum() > 400 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
-					buildingSystem.constructUnit(UnitType.GRIZZLY);
-					if (Clock.getRoundNum() < 1000) {
-						if (Clock.getRoundNum() % 3 == 0){
-							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-						}
-						else{
-							buildingSystem.constructUnit(UnitType.GRIZZLY);
-							if (enemyBaseLoc != null){
-								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-								yield();
+				if (controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 200){
+					if (getEffectiveFluxRate() > 0.3) {
+						if (getEffectiveFluxRate() > 3 || Clock.getRoundNum() > 1000) {
+							if (unitConstructed % 11 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
 							}
-						}
-
-					} else {
-						if (Clock.getRoundNum() % 5 == 0)
-							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-						else{
-							buildingSystem.constructUnit(UnitType.GRIZZLY);
-							if (enemyBaseLoc != null){
-								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-								yield();
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						} else if (getEffectiveFluxRate() < 0.6) {
+							if (unitConstructed % 2 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
 							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						} else if (getEffectiveFluxRate() < 1.2) {
+							if (unitConstructed % 3 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
+							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						} else if (getEffectiveFluxRate() < 1.8) {
+							if (unitConstructed % 4 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
+							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						} else if (getEffectiveFluxRate() < 2.4) {
+							if (unitConstructed % 5 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
+							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
 						}
 					}
 				}
+
+				
+//				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
+//					buildingSystem.constructUnit(UnitType.GRIZZLY);
+//					if (Clock.getRoundNum() < 1000) {
+//						if (Clock.getRoundNum() % 3 == 0){
+//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+//						}
+//						else{
+//							buildingSystem.constructUnit(UnitType.GRIZZLY);
+//							if (enemyBaseLoc != null){
+//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+//								yield();
+//							}
+//						}
+//
+//					} else {
+//						if (Clock.getRoundNum() % 5 == 0)
+//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+//						else{
+//							buildingSystem.constructUnit(UnitType.GRIZZLY);
+//							if (enemyBaseLoc != null){
+//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+//								yield();
+//							}
+//						}
+//					}
+//				}
 				
 				// turn off when the mine is depleted
 				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0)
@@ -223,8 +315,30 @@ public class RecyclerAI extends BuildingAI {
 				controllers.builder.build(ComponentType.ANTENNA, info.location,RobotLevel.ON_GROUND);
 			}
 			yield();
-			// build an antenna on itself
-			controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+
+			// Turn off 1 of the initial recyclers
+			RobotInfo otherRecycler = senseAdjacentChassis(Chassis.BUILDING);
+			if(otherRecycler != null && Util.containsComponent(otherRecycler.components, ComponentType.ANTENNA)){
+				// Build 3 PLATINGs on itself
+				for (int i = 0; i < 3; ++i){
+					while (controllers.myRC.getTeamResources() < 9)
+						yield();
+					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+						yield();
+				}
+				controllers.myRC.turnOff();
+			}
+			else{
+				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+				yield();
+				for (int i = 0; i < 2; ++i){
+					while (controllers.myRC.getTeamResources() < 9)
+						yield();
+					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+					yield();
+				}
+
+			}
 		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
