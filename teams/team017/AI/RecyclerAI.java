@@ -24,12 +24,13 @@ import battlecode.common.RobotLevel;
 
 public class RecyclerAI extends BuildingAI {
 
-	private MapLocation enemyBase;
 	private Mine myMine;
+	private int unitConstructed = 0;
+	private int birthRoundNum;
 	
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
-		enemyBase = controllers.myRC.getLocation();
+		birthRoundNum = Clock.getRoundNum();
 		
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
@@ -51,7 +52,6 @@ public class RecyclerAI extends BuildingAI {
 				try {
 					while (controllers.sensor.isActive())
 						yield();
-//					GameObject object = controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(builderDirs.recyclerDirection), RobotLevel.ON_GROUND);
 						// Build 3 PLATINGs on itself
 						for (int i = 0; i < 3; ++i){
 							while (controllers.myRC.getTeamResources() < 9)
@@ -61,7 +61,6 @@ public class RecyclerAI extends BuildingAI {
 						
 						}
 						controllers.myRC.turnOff();
-//					if (object.getID() < controllers.myRC.getRobot().getID())
 						controllers.myRC.turnOff();
 				} catch (GameActionException e) {
 					// TODO Auto-generated catch block
@@ -90,7 +89,6 @@ public class RecyclerAI extends BuildingAI {
 				}
 			}
 			
-
 		}
 		
 		while (true) {
@@ -102,7 +100,7 @@ public class RecyclerAI extends BuildingAI {
 					switch (msgHandler.getMessageType(msg)) {
 					case BORDER: {
 						BorderMessage handler = new BorderMessage(msg);
-
+//						enemyBase = controllers.myRC.getLocation();
 						// update the borders
 						int[] newBorders = handler.getBorderDirection();
 
@@ -110,30 +108,35 @@ public class RecyclerAI extends BuildingAI {
 							if (newBorders[i] != -1){
 								if (borders[i] != newBorders[i]){
 									borders[i] = newBorders[i];
-									enemyBase = enemyBase.add(enemyDir[i],60);
+//									enemyBase = enemyBase.add(enemyDir[i],60);
 								}
 							}
 						}
 						break;
 					}
-					case BUILDING_REQUEST:{
-						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
-						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-							while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
-								if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
-									break;
-								yield();
-							}	
-						}
+					case ENEMY_LOCATION: {
+						EnemyLocationMessage handler = new EnemyLocationMessage(msg);
+						enemyBaseLoc = handler.getEnemyLocation();
 						break;
-						
+					}
+//					case BUILDING_REQUEST:{
+//						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
+//						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+//							while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
+//								if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
+//									break;
+//								yield();
+//							}	
+//						}
+//						break;
+//						
 //						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
 //						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
 //							buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType());
 //							yield();
 //						}
 //						break;
-					}
+//					}
 					
 					case BUILDING_LOCATION_INQUIRY_MESSAGE: {
 						BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
@@ -189,17 +192,88 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 
+				if (controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 200){
+					if (getEffectiveFluxRate() > 0.3) {
+						if (getEffectiveFluxRate() > 3 || Clock.getRoundNum() > 1000) {
+							if (unitConstructed % 11 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
+							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						} else if (getEffectiveFluxRate() < 0.6) {
+							if (unitConstructed % 2 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
+							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						} else if (getEffectiveFluxRate() < 1.2) {
+							if (unitConstructed % 3 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
+							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						} else if (getEffectiveFluxRate() < 1.8) {
+							if (unitConstructed % 4 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
+							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						} else if (getEffectiveFluxRate() < 2.4) {
+							if (unitConstructed % 5 == 0){
+								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+									++unitConstructed;
+							}
+							else{
+								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
+									++unitConstructed;
+								if (enemyBaseLoc != null){
+									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+									yield();
+								}
+							}						
+						}
+					}
+				}
 
-				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
-					buildingSystem.constructUnit(UnitType.GRIZZLY);
+				
+//				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
+//					buildingSystem.constructUnit(UnitType.GRIZZLY);
 //					if (Clock.getRoundNum() < 1000) {
 //						if (Clock.getRoundNum() % 3 == 0){
 //							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
 //						}
 //						else{
 //							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//							if (enemyBase != null){
-//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
+//							if (enemyBaseLoc != null){
+//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
 //								yield();
 //							}
 //						}
@@ -209,13 +283,13 @@ public class RecyclerAI extends BuildingAI {
 //							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
 //						else{
 //							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//							if (enemyBase != null){
-//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBase));
+//							if (enemyBaseLoc != null){
+//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
 //								yield();
 //							}
 //						}
 //					}
-				}
+//				}
 				
 				// turn off when the mine is depleted
 				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0)

@@ -175,7 +175,6 @@ public class SoldierAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
-		rc.setIndicatorString(2, "I am stucked");
 		Direction nextDir = navigator.getNextDir(0);
 		if (nextDir != Direction.OMNI) {
 			if (!motor.isActive() && motor.canMove(nextDir)) {
@@ -186,9 +185,11 @@ public class SoldierAI extends AI {
 				}
 			}
 		} else if (enemyBase != null) {
+			controllers.myRC.setIndicatorString(2,"enemyBase"+enemyBase.toString());
 			navigator.setDestination(enemyBase);
 			leaderLoc = null;
 		} else {
+			controllers.myRC.setIndicatorString(2,"roachNavigate");
 			leaderLoc = null;
 			roachNavigate();
 		}

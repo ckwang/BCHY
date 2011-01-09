@@ -59,6 +59,7 @@ public class Navigator {
 		if (loc.equals(destination))
 			return;
 		else{
+			reset();
 			destination = new MapLocation(loc.x, loc.y);
 			backTraceDes = new MapLocation(loc.x, loc.y);
 		}
@@ -70,9 +71,9 @@ public class Navigator {
 
 	public Direction getNextDir(int tolerance) throws GameActionException {
 		
-//		controllers.myRC.setIndicatorString(0,"");
-//		controllers.myRC.setIndicatorString(1,"");
-//		controllers.myRC.setIndicatorString(2,"");
+		controllers.myRC.setIndicatorString(0,controllers.myRC.getLocation().toString());
+		controllers.myRC.setIndicatorString(1,"");
+		controllers.myRC.setIndicatorString(2,"");
 		
 		
 		// return same direction at same location (given same destination)
@@ -131,6 +132,7 @@ public class Navigator {
 		
 		switch(navigationState){
 			case RECKONING:
+				controllers.myRC.setIndicatorString(1,"RECKONING");
 				if ( controllers.motor.canMove(initDir) ) {
 					return initDir;
 				}
@@ -140,6 +142,7 @@ public class Navigator {
 					return s.directionTo(nextLoc);
 				}
 			case START:
+				controllers.myRC.setIndicatorString(1,"START");
 				navigationState = State.TRACING;
 				startTracingLoc = controllers.myRC.getLocation();
 				
@@ -150,6 +153,7 @@ public class Navigator {
 				nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
 				return s.directionTo(nextLoc);
 			case TRACING:
+				controllers.myRC.setIndicatorString(1,"TRACING");
 				// Have gone around the obstacle
 				if (controllers.myRC.getLocation().equals(startTracingLoc) ){
 					navigationState = State.ROUNDED;
@@ -167,6 +171,7 @@ public class Navigator {
 //				controllers.myRC.setIndicatorString(1, startTracingLoc.toString()+" "+nextLoc.toString() + " KEEP" );
 				return s.directionTo(nextLoc);
 			case ROUNDED:
+				controllers.myRC.setIndicatorString(1,"ROUNDED");
 				if (  controllers.motor.canMove(initDir) ){
 					navigationState = State.RECKONING;
 					previousTracingLoc = startTracingLoc;
@@ -289,11 +294,16 @@ public class Navigator {
 		// direction to walkable position
 		// Try code reuse in the future
 
+		Direction oriDir = faceDir;
 		if (cw) {
 			while (controllers.motor.canMove(faceDir)/*
 										 * isTraversable(currentLoc.add(faceDir))
 										 */) {
 				faceDir = faceDir.rotateRight();
+				if (faceDir == oriDir){
+					navigationState = State.RECKONING;
+					return currentLoc.add(faceDir);
+				}
 			}
 			while (!controllers.motor.canMove(faceDir)/*
 										 * !isTraversable(currentLoc.add(faceDir)
@@ -305,6 +315,10 @@ public class Navigator {
 										 * isTraversable(currentLoc.add(faceDir))
 										 */) {
 				faceDir = faceDir.rotateLeft();
+				if (faceDir == oriDir){
+					navigationState = State.RECKONING;
+					return currentLoc.add(faceDir);
+				}
 			}
 			while (!controllers.motor.canMove(faceDir)/*
 										 * !isTraversable(currentLoc.add(faceDir)

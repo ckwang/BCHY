@@ -19,7 +19,7 @@ public abstract class AI {
 	
 	// {NORTH, EAST, SOUTH, WEST}
 	protected int[] borders = { -1, -1, -1, -1 };
-	protected Direction[] enemyDir = {Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST};
+	protected MapLocation enemyBaseLoc;
 	protected MapLocation homeLocation;
 
 	public AI(RobotController rc) {
