@@ -172,7 +172,7 @@ public class RecyclerAI extends BuildingAI {
 				}
 
 
-				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
+				if (Clock.getRoundNum() > 400 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
 					buildingSystem.constructUnit(UnitType.GRIZZLY);
 					if (Clock.getRoundNum() < 1000) {
 						if (Clock.getRoundNum() % 3 == 0){
