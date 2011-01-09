@@ -61,11 +61,11 @@ public class FactoryAI extends BuildingAI {
 //					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, builderDirs);
 //				}
 //			}
-			if(Clock.getRoundNum() < 1000 && Clock.getRoundNum() > 980 && controllers.myRC.getTeamResources() > UnitType.MEDIUM_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.MEDIUM_CONSTRUCTOR.chassis.upkeep * 1.5){
+			if(Clock.getRoundNum() < 1000 && Clock.getRoundNum() > 980 && controllers.myRC.getTeamResources() > UnitType.HEAVY_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.HEAVY_CONSTRUCTOR.chassis.upkeep * 1.5){
 				if(builderDirs.recyclerDirection != null){
 					ComponentType [] builderList = {ComponentType.RECYCLER, ComponentType.FACTORY};
 					MapLocation buildLoc = builderDirs.constructableLocation(ComponentType.FACTORY, builderList);
-					buildingSystem.constructUnit(buildLoc, UnitType.MEDIUM_CONSTRUCTOR, builderDirs);
+					buildingSystem.constructUnit(buildLoc, UnitType.HEAVY_CONSTRUCTOR, builderDirs);
 				}
 			}
 

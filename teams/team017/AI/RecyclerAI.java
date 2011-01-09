@@ -49,24 +49,48 @@ public class RecyclerAI extends BuildingAI {
 			// turn off if there is already a recycler nearby
 			if (builderDirs.recyclerDirection != null) {
 				try {
-					GameObject object = controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(builderDirs.recyclerDirection), RobotLevel.ON_GROUND);
-					if (object.getID() < controllers.myRC.getRobot().getID())
+					while (controllers.sensor.isActive())
+						yield();
+//					GameObject object = controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(builderDirs.recyclerDirection), RobotLevel.ON_GROUND);
+						// Build 3 PLATINGs on itself
+						for (int i = 0; i < 3; ++i){
+							while (controllers.myRC.getTeamResources() < 9)
+								yield();
+							controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+							yield();
+						
+						}
+						controllers.myRC.turnOff();
+//					if (object.getID() < controllers.myRC.getRobot().getID())
 						controllers.myRC.turnOff();
 				} catch (GameActionException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			} else {
+				while(controllers.myRC.getTeamResources() < 6)
+					controllers.myRC.yield();
+				try {
+					// build an antenna on itself
+					while(controllers.builder.isActive())
+						controllers.myRC.yield();
+					controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+					yield();
+					for (int i = 0; i < 2; ++i){
+						while (controllers.myRC.getTeamResources() < 9)
+							yield();
+						controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+						yield();
+					
+					}
+
+				} catch (GameActionException e1) {
+					System.out.println("caught exception:");
+					e1.printStackTrace();
+				}
 			}
 			
-			while(controllers.myRC.getTeamResources() < 6)
-				controllers.myRC.yield();
-			try {
-				// build an antenna on itself
-				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-			} catch (GameActionException e1) {
-				System.out.println("caught exception:");
-				e1.printStackTrace();
-			}
+
 		}
 		
 		while (true) {
@@ -217,8 +241,30 @@ public class RecyclerAI extends BuildingAI {
 				controllers.builder.build(ComponentType.ANTENNA, info.location,RobotLevel.ON_GROUND);
 			}
 			yield();
-			// build an antenna on itself
-			controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+
+			// Turn off 1 of the initial recyclers
+			RobotInfo otherRecycler = senseAdjacentChassis(Chassis.BUILDING);
+			if(otherRecycler != null && Util.containsComponent(otherRecycler.components, ComponentType.ANTENNA)){
+				// Build 3 PLATINGs on itself
+				for (int i = 0; i < 3; ++i){
+					while (controllers.myRC.getTeamResources() < 9)
+						yield();
+					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+						yield();
+				}
+				controllers.myRC.turnOff();
+			}
+			else{
+				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+				yield();
+				for (int i = 0; i < 2; ++i){
+					while (controllers.myRC.getTeamResources() < 9)
+						yield();
+					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+					yield();
+				}
+
+			}
 		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
