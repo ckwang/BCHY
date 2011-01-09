@@ -72,16 +72,14 @@ public class ConstructorAI extends AI {
 									.add(handler.getBuildableDirection());
 
 							if (handler.getAvailableSpace() == 3) {
-								if (buildBuildingAtLoc(buildLoc,
-										UnitType.FACTORY)) {
+								if (buildBuildingAtLoc(buildLoc, UnitType.FACTORY)) {
+									msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
+									
 									MapLocation nextBuildLoc = handler
 											.getSourceLocation()
-											.add(
-													handler
-															.getBuildableDirection()
-															.rotateRight());
-									buildBuildingAtLoc(nextBuildLoc,
-											UnitType.ARMORY);
+											.add(handler.getBuildableDirection().rotateRight());
+									buildBuildingAtLoc(nextBuildLoc, UnitType.ARMORY);
+									msgHandler.queueMessage(new ConstructionCompleteMessage(nextBuildLoc, ComponentType.ARMORY));
 								}
 							} else {
 								buildBuildingAtLoc(buildLoc, UnitType.FACTORY);
@@ -357,6 +355,8 @@ public class ConstructorAI extends AI {
 		}
 		else if (!mineLocations.isEmpty()) {
 				MapLocation currentLoc = controllers.myRC.getLocation();
+				controllers.myRC.setIndicatorString(0, currentLoc + "," + mineLocations);
+				
 				MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
 				for (MapLocation loc : mineLocations) {
 					if (currentLoc.distanceSquaredTo(loc) < currentLoc

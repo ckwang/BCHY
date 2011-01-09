@@ -26,6 +26,7 @@ public class BuilderDirections {
 	 * 5 4 3
 	 */
 	public boolean[] emptyDirections = {true, true, true, true, true, true, true, true};
+	public int clusterSize;
 	
 	private static final Direction[] directionMapping = 
 		{Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
@@ -100,7 +101,7 @@ public class BuilderDirections {
 	
 	public boolean isComplete(ComponentType thisBuilder, ComponentType[] builders) {
 		for (ComponentType b : builders) {
-			if (getDirections(b) == null || b != thisBuilder)	return false;
+			if (getDirections(b) == null && b != thisBuilder)	return false;
 		}
 		
 		return true;
@@ -108,7 +109,9 @@ public class BuilderDirections {
 	
 	
 	public void updateBuilderDirs() {
+		clusterSize = 0;
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+		
 		for (Robot r : robots) {
 			if (r.getTeam() == controllers.myRC.getTeam()) {
 				try {
@@ -119,6 +122,8 @@ public class BuilderDirections {
 						for (ComponentType com : info.components) {
 							if (com.componentClass == ComponentClass.BUILDER) {
 								setDirections(com, currentLoc.directionTo(info.location));
+								if (com == ComponentType.RECYCLER)
+									clusterSize++;
 							}
 						}
 					}
