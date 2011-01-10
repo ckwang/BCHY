@@ -159,28 +159,33 @@ public class CombatSystem {
 		}
 	}
 	
-	public void flee() throws GameActionException {
+	public boolean flee() throws GameActionException {
 		if (controllers.motor.isActive())
-			return;
+			return false;
 		MapLocation cur = controllers.myRC.getLocation();
 		MapLocation enemyCenter = Util.aveLocation(elocs);
 		if (enemyCenter == null)
-			System.out.println("no enemy to flee from");
+			return true;
 		Direction edir = cur.directionTo(enemyCenter);
 		Direction mydir = controllers.myRC.getDirection();
 		if (Util.isFacing(mydir, edir)
-				&& controllers.motor.canMove(edir.opposite()))
+				&& controllers.motor.canMove(edir.opposite())) {
 			controllers.motor.moveBackward();
-		else if (Util.isFacing(mydir.opposite(), edir))
+			return true;
+		}
+		else if (Util.isFacing(mydir.opposite(), edir)) {
 			controllers.motor.moveForward();
-		else
+			return true;
+		}
+		else {
 			controllers.motor.setDirection(edir.opposite());
+			return false;
+		}
 	}
 
 	public boolean attack() {
 		if (target1 == null) {
 //			destroyDeadEnemy();
-			System.out.println("Null target");
 			return false;
 		}
 		boolean attacked = false;
@@ -195,11 +200,13 @@ public class CombatSystem {
 					target1 = target2;
 					target2 = null;
 				}
+				if (info.hitpoints > controllers.myRC.getHitpoints())
+					return true;
 				MapLocation weakest = controllers.sensor
 				.senseLocationOf(target1);
 				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
 				if (dist > maxRange) {
-					return attacked;
+					return false;
 				}
 				w.attackSquare(weakest, target1.getRobotLevel());
 				attacked = true;
@@ -210,7 +217,7 @@ public class CombatSystem {
 				target2 = null;
 			}
 		}
-		return attacked;
+		return false;
 	}
 
 	public void senseNearby() {
