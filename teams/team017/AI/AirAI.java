@@ -28,4 +28,10 @@ public class AirAI extends AI {
 	private void init() {
 		
 	}
+
+	@Override
+	protected void processMessages() throws GameActionException {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -36,6 +36,7 @@ public abstract class AI {
 	}
 
 	abstract public void proceed();
+	abstract protected void processMessages() throws GameActionException;
 	
 	public void yield() {
 		controllers.myRC.yield();
