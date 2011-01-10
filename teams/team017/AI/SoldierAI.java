@@ -21,11 +21,7 @@ public class SoldierAI extends AI {
 	private MovementController motor = controllers.motor;
 	private SensorController sensor = controllers.sensor;
 	private List<WeaponController> weapons = controllers.weapons;
-
 	private MapLocation leaderLoc;
-//	private boolean isEngaged = false;
-
-// private boolean massacre = true;
 
 	public SoldierAI(RobotController rc) {
 		super(rc);
