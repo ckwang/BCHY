@@ -23,6 +23,8 @@ public class SoldierAI extends AI {
 	private List<WeaponController> weapons = controllers.weapons;
 	private MapLocation leaderLoc;
 
+	private Direction followDir;
+	
 	public SoldierAI(RobotController rc) {
 		super(rc);
 		combat = new CombatSystem(controllers);
@@ -151,13 +153,14 @@ public class SoldierAI extends AI {
 				// System.out.println("follow me message");
 				FollowMeMessage fhandler = new FollowMeMessage(msg);
 				MapLocation loc = fhandler.getSourceLocation();
+				followDir = fhandler.getFollowDirection();
 				if (leaderLoc != null) {
 					int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
 					int newdist = rc.getLocation().distanceSquaredTo(loc);
 					if (newdist < curdist)
-						leaderLoc = loc;
+						leaderLoc = loc.add(followDir, 3);
 				} else
-					leaderLoc = loc;
+					leaderLoc = loc.add(followDir, 3);
 				navigator.setDestination(leaderLoc);
 				break;
 
@@ -168,9 +171,19 @@ public class SoldierAI extends AI {
 	private void navigate() throws GameActionException {
 		if (leaderLoc == null && enemyBaseLoc != null) {
 			navigator.setDestination(enemyBaseLoc);
-		}
+		} 
 		
-		Direction nextDir = navigator.getNextDir(0);
+		Direction nextDir = Direction.OMNI;
+		
+		if (leaderLoc != null) {
+			if (controllers.myRC.getLocation().distanceSquaredTo(leaderLoc) < 4){
+				nextDir = followDir;
+			} 		
+		} else {
+			nextDir = navigator.getNextDir(0);
+		}	
+
+		
 		if (nextDir != Direction.OMNI) {
 			if (!motor.isActive() && motor.canMove(nextDir)) {
 				if (rc.getDirection() == nextDir) {
