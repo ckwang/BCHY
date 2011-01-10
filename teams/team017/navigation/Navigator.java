@@ -71,9 +71,9 @@ public class Navigator {
 
 	public Direction getNextDir(int tolerance) throws GameActionException {
 		
-		controllers.myRC.setIndicatorString(0,controllers.myRC.getLocation().toString());
-		controllers.myRC.setIndicatorString(1,"");
-		controllers.myRC.setIndicatorString(2,"");
+//		controllers.myRC.setIndicatorString(0,controllers.myRC.getLocation().toString());
+//		controllers.myRC.setIndicatorString(1,"");
+//		controllers.myRC.setIndicatorString(2,"");
 		
 		
 		// return same direction at same location (given same destination)

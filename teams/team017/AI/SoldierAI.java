@@ -3,7 +3,7 @@ package team017.AI;
 import java.util.List;
 
 import team017.combat.CombatSystem;
-import team017.message.EnemyLocationMessage;
+import team017.message.BorderMessage;
 import team017.message.FollowMeMessage;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -19,7 +19,6 @@ import battlecode.common.WeaponController;
 public class SoldierAI extends AI {
 
 	private CombatSystem combat;
-	private MapLocation enemyBase;
 	private RobotController rc = controllers.myRC;
 	private MovementController motor = controllers.motor;
 	private SensorController sensor = controllers.sensor;
@@ -39,10 +38,10 @@ public class SoldierAI extends AI {
 	public void proceed() {
 
 		while (true) {
-			rc.setIndicatorString(0, "Soldier");
+//			rc.setIndicatorString(0, "Soldier");
 			processMessage();
-			rc.setIndicatorString(1, String.valueOf(combat.enemyNum()));
-			rc.setIndicatorString(2, isEngaged? "true": "false");
+//			rc.setIndicatorString(1, String.valueOf(combat.enemyNum()));
+//			rc.setIndicatorString(2, isEngaged? "true": "false");
 			if (isEngaged) {
 				if (combat.hasEnemy()) {
 					if (combat.enemyNum() > 0)
@@ -61,7 +60,6 @@ public class SoldierAI extends AI {
 			}
 
 			sense_border();
-
 			yield();
 		}
 	}
@@ -80,8 +78,10 @@ public class SoldierAI extends AI {
 			loc = sensor.senseLocationOf(leader);
 		} catch (GameActionException e1) {
 			loc = leaderLoc;
-			if (loc == null)
+			if (loc == null) {
+				leaderLoc = null;
 				return;
+			}
 		}
 		navigator.setDestination(loc);
 		try {
@@ -119,9 +119,22 @@ public class SoldierAI extends AI {
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
-			case ENEMY_LOCATION:
-				EnemyLocationMessage handler = new EnemyLocationMessage(msg);
-				enemyBase = handler.getEnemyLocation();
+			case BORDER:
+				BorderMessage handler = new BorderMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorderDirection();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				controllers.myRC.setIndicatorString(1, homeLocation + "," + borders[0] + "," +borders[1] + "," +borders[2] + "," +borders[3] + "," +enemyBaseLoc);
 				break;
 
 			case FOLLOW_ME_MESSAGE:
@@ -138,43 +151,11 @@ public class SoldierAI extends AI {
 		}
 	}
 
-	private void sense_border() {
-		Direction[] addDirs = new Direction[3];
-		if (rc.getDirection().isDiagonal()) {
-			addDirs[0] = rc.getDirection().rotateLeft();
-			addDirs[1] = rc.getDirection().rotateRight();
-		} else {
-			addDirs[0] = rc.getDirection();
-		}
-		int j = -1;
-		while (addDirs[++j] != null) {
-			MapLocation currentLoc = rc.getLocation();
-			int i;
-			for (i = 3; i > 0; i--) {
-				if (rc.senseTerrainTile(currentLoc.add(addDirs[j], i)) != TerrainTile.OFF_MAP)
-					break;
-			}
-			// i == 3 means no OFF_MAP sensed
-			if (i != 3) {
-				switch (addDirs[j]) {
-				case NORTH:
-					borders[0] = currentLoc.y - (i + 1);
-					break;
-				case EAST:
-					borders[1] = currentLoc.x + (i + 1);
-					break;
-				case SOUTH:
-					borders[2] = currentLoc.y + (i + 1);
-					break;
-				case WEST:
-					borders[3] = currentLoc.x - (i + 1);
-					break;
-				}
-			}
-		}
-	}
-
 	private void navigate() throws GameActionException {
+		if (leaderLoc == null && enemyBaseLoc != null) {
+			navigator.setDestination(enemyBaseLoc);
+		}
+		
 		Direction nextDir = navigator.getNextDir(0);
 		if (nextDir != Direction.OMNI) {
 			if (!motor.isActive() && motor.canMove(nextDir)) {
@@ -184,9 +165,8 @@ public class SoldierAI extends AI {
 					motor.setDirection(nextDir);
 				}
 			}
-		} else if (enemyBase != null) {
-			controllers.myRC.setIndicatorString(2,"enemyBase"+enemyBase.toString());
-			navigator.setDestination(enemyBase);
+		} else if (enemyBaseLoc != null) {
+			navigator.setDestination(enemyBaseLoc);
 			leaderLoc = null;
 		} else {
 			controllers.myRC.setIndicatorString(2,"roachNavigate");
