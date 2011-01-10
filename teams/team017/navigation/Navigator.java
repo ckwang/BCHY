@@ -170,7 +170,7 @@ public class Navigator {
 				}
 				
 				// The way is open
-				if (  isOpen(backTraceDes, 10) && controllers.motor.canMove(initDir) ){
+				if (  isOpen(backTraceDes, 20) && controllers.motor.canMove(initDir) ){
 					navigationState = State.RECKONING;
 					previousTracingLoc = startTracingLoc;
 					startTracingLoc = null;
