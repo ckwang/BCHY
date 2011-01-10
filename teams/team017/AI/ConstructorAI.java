@@ -380,7 +380,7 @@ public class ConstructorAI extends AI {
 	private void navigate() throws GameActionException {
 
 		if (!mineLocations.isEmpty()) {
-			controllers.myRC.setIndicatorString(1,"Mine");
+//			controllers.myRC.setIndicatorString(1,"Mine");
 			MapLocation currentLoc = controllers.myRC.getLocation();
 			MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
 			for (MapLocation loc : mineLocations) {
@@ -404,11 +404,11 @@ public class ConstructorAI extends AI {
 			}
 		}
 		else if (scoutLoc != null){
-			controllers.myRC.setIndicatorString(1,"scouting");
+//			controllers.myRC.setIndicatorString(1,"scouting");
 			navigator.setDestination(scoutLoc);
 		}
 		else {
-			controllers.myRC.setIndicatorString(1,"roachNavigate");
+//			controllers.myRC.setIndicatorString(1,"roachNavigate");
 			// do nothing;
 			if (!controllers.motor.isActive() )
 				roachNavigate();
