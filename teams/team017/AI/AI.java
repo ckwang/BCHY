@@ -93,21 +93,27 @@ public abstract class AI {
 	}
 	
 	protected void computeEnemyBaseLocation() {
-		enemyBaseLoc = homeLocation;
+
+		final int[] xmapping = {0, -1, 0, 1};
+		final int[] ymapping = {1, 0, -1, 0};
 		
-		if (borders[0] != -1 && borders[2] != -1 ) {
-			enemyBaseLoc = new MapLocation(homeLocation.x, borders[0] + borders[2] - homeLocation.y);
-		} else if (borders[1] != -1 && borders[3] != -1) {
-			enemyBaseLoc = new MapLocation(borders[1] + borders[3] - homeLocation.x, homeLocation.y);
-		} else {
-			final Direction[] mapping = {Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST};
-			
-			for (int index = 0; index < 4; index++){
-				if (borders[index] != -1){
-					enemyBaseLoc = enemyBaseLoc.add(mapping[index], 60);
-				}
+		int x = homeLocation.x;
+		int y = homeLocation.y;
+		
+		for (int index = 0; index < 4; index++){
+			if (borders[index] != -1){
+				x = xmapping[index] == 0 ? x : 2 * borders[index] + 60 * xmapping[index] - x;
+				y = ymapping[index] == 0 ? y : 2 * borders[index] + 60 * ymapping[index] - y;
 			}
 		}
+		
+		if (borders[0] != -1 && borders[2] != -1 ) {
+			y = borders[0] + borders[2] - homeLocation.y;
+		} else if (borders[1] != -1 && borders[3] != -1) {
+			x = borders[1] + borders[3] - homeLocation.x;
+		}
+		
+		enemyBaseLoc = new MapLocation(x, y);
 	}
 	
 	protected void roachNavigate() throws GameActionException {
