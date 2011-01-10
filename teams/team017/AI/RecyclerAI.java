@@ -6,7 +6,6 @@ import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.message.EnemyLocationMessage;
 import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
@@ -103,9 +102,8 @@ public class RecyclerAI extends BuildingAI {
 				while (msgHandler.hasMessage()) {
 					Message msg = msgHandler.nextMessage();
 					switch (msgHandler.getMessageType(msg)) {
-					case BORDER: {
+					case BORDER: {						
 						BorderMessage handler = new BorderMessage(msg);
-//						enemyBase = controllers.myRC.getLocation();
 						// update the borders
 						int[] newBorders = handler.getBorderDirection();
 
@@ -113,15 +111,13 @@ public class RecyclerAI extends BuildingAI {
 							if (newBorders[i] != -1){
 								if (borders[i] != newBorders[i]){
 									borders[i] = newBorders[i];
-//									enemyBase = enemyBase.add(enemyDir[i],60);
 								}
 							}
 						}
-						break;
-					}
-					case ENEMY_LOCATION: {
-						EnemyLocationMessage handler = new EnemyLocationMessage(msg);
-						enemyBaseLoc = handler.getEnemyLocation();
+						
+						homeLocation = handler.getHomeLocation();
+						computeEnemyBaseLocation();
+
 						break;
 					}
 //					case BUILDING_REQUEST:{
@@ -209,10 +205,8 @@ public class RecyclerAI extends BuildingAI {
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
 									++unitConstructed;
-								if (enemyBaseLoc != null){
-									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-									yield();
-								}
+								msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+								yield();
 							}						
 						} else if (getEffectiveFluxRate() < 1.2) {
 							if (unitConstructed % 2 == 1){
@@ -222,10 +216,8 @@ public class RecyclerAI extends BuildingAI {
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
 									++unitConstructed;
-								if (enemyBaseLoc != null){
-									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-									yield();
-								}
+								msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+								yield();
 							}						
 						} else if (getEffectiveFluxRate() < 1.8) {
 							if (unitConstructed % 3 == 1){
@@ -235,10 +227,8 @@ public class RecyclerAI extends BuildingAI {
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
 									++unitConstructed;
-								if (enemyBaseLoc != null){
-									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-									yield();
-								}
+								msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+								yield();
 							}						
 						} else if (getEffectiveFluxRate() < 2.4) {
 							if (unitConstructed % 4 == 3){
@@ -248,10 +238,8 @@ public class RecyclerAI extends BuildingAI {
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
 									++unitConstructed;
-								if (enemyBaseLoc != null){
-									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-									yield();
-								}
+								msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+								yield();
 							}						
 						} else if (getEffectiveFluxRate() < 3) {
 							if (unitConstructed % 5 == 4){
@@ -261,10 +249,8 @@ public class RecyclerAI extends BuildingAI {
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
 									++unitConstructed;
-								if (enemyBaseLoc != null){
-									msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-									yield();
-								}
+								msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+								yield();
 							}						
 						}
 					}

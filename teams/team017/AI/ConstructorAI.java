@@ -10,7 +10,6 @@ import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.message.EnemyLocationMessage;
 import battlecode.common.Chassis;
 import team017.message.FollowMeMessage;
 import battlecode.common.Clock;
@@ -31,7 +30,6 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
-	private Direction[] enemyDir = {Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST};
 	
 	public ConstructorAI(RobotController rc) {
 		super(rc);
@@ -50,7 +48,7 @@ public class ConstructorAI extends AI {
 			try {
 				init();
 				init_revolve();
-				init_enemyBase();
+				computeEnemyBaseLocation();
 				init_return();
 			} catch (GameActionException e) {
 				e.printStackTrace();
@@ -106,9 +104,21 @@ public class ConstructorAI extends AI {
 //						}
 //						break;
 //					}
-					case ENEMY_LOCATION: {
-						EnemyLocationMessage handler = new EnemyLocationMessage(msg);
-						enemyBaseLoc = handler.getEnemyLocation();
+					case BORDER: {
+						BorderMessage handler = new BorderMessage(msg);
+						// update the borders
+						int[] newBorders = handler.getBorderDirection();
+
+						for (int i = 0; i < 4; ++i) {
+							if (newBorders[i] != -1){
+								if (borders[i] != newBorders[i]){
+									borders[i] = newBorders[i];
+								}
+							}
+						}
+						
+						homeLocation = handler.getHomeLocation();
+						computeEnemyBaseLocation();
 						break;
 					}
 					}
@@ -144,54 +154,6 @@ public class ConstructorAI extends AI {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
-	}
-
-	private void sense_border() {
-		try {
-
-			Direction[] addDirs = new Direction[3];
-
-			if (controllers.myRC.getDirection().isDiagonal()) {
-				addDirs[0] = controllers.myRC.getDirection().rotateLeft();
-				addDirs[1] = controllers.myRC.getDirection().rotateRight();
-			} else {
-				addDirs[0] = controllers.myRC.getDirection();
-			}
-
-			int j = -1;
-			while (addDirs[++j] != null) {
-				MapLocation currentLoc = controllers.myRC.getLocation();
-
-				int i;
-				for (i = 3; i > 0; i--) {
-					if (controllers.myRC.senseTerrainTile(currentLoc.add(
-							addDirs[j], i)) != TerrainTile.OFF_MAP)
-						break;
-				}
-
-				// i == 3 means no OFF_MAP sensed
-				if (i != 3) {
-					switch (addDirs[j]) {
-					case NORTH:
-						borders[0] = currentLoc.y - (i + 1);
-						break;
-					case EAST:
-						borders[1] = currentLoc.x + (i + 1);
-						break;
-					case SOUTH:
-						borders[2] = currentLoc.y + (i + 1);
-						break;
-					case WEST:
-						borders[3] = currentLoc.x - (i + 1);
-						break;
-					}
-				}
-			}
-		} catch (Exception e) {
-			System.out.println("caught exception:");
-			e.printStackTrace();
-		}
-
 	}
 
 	private void init_revolve() {
@@ -257,17 +219,7 @@ public class ConstructorAI extends AI {
 				e.printStackTrace();
 			}
 		}
-		msgHandler.queueMessage(new BorderMessage(borders));
-		msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-	}
-	
-	private void init_enemyBase() {
-		enemyBaseLoc = controllers.myRC.getLocation();
-		for (int index = 0; index < 4; index++){
-			if (borders[index] != -1){
-				enemyBaseLoc = enemyBaseLoc.add(enemyDir[index], 60);
-			}
-		}
+		msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 	}
 
 	private void updateLocationSets() {
@@ -348,9 +300,7 @@ public class ConstructorAI extends AI {
 					yield();
 				}
 				msgHandler.queueMessage(new ConstructionCompleteMessage(target, ComponentType.RECYCLER));
-				msgHandler.queueMessage(new BorderMessage(borders));
-				if (enemyBaseLoc != null)
-					msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
+				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				yield();
 				return true;
 			}

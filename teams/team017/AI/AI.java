@@ -9,6 +9,7 @@ import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
+import battlecode.common.TerrainTile;
 
 public abstract class AI {
 
@@ -39,6 +40,74 @@ public abstract class AI {
 	public void yield() {
 		controllers.myRC.yield();
 		msgHandler.process();
+	}
+	
+	protected void sense_border() {
+		try {
+
+			Direction[] addDirs = new Direction[3];
+
+			if (controllers.myRC.getDirection().isDiagonal()) {
+				addDirs[0] = controllers.myRC.getDirection().rotateLeft();
+				addDirs[1] = controllers.myRC.getDirection().rotateRight();
+			} else {
+				addDirs[0] = controllers.myRC.getDirection();
+			}
+
+			int j = -1;
+			while (addDirs[++j] != null) {
+				MapLocation currentLoc = controllers.myRC.getLocation();
+
+				int i;
+				for (i = 3; i > 0; i--) {
+					if (controllers.myRC.senseTerrainTile(currentLoc.add(
+							addDirs[j], i)) != TerrainTile.OFF_MAP)
+						break;
+				}
+
+				// i == 3 means no OFF_MAP sensed
+				if (i != 3) {
+					switch (addDirs[j]) {
+					case NORTH:
+						borders[0] = currentLoc.y - (i + 1);
+						break;
+					case EAST:
+						borders[1] = currentLoc.x + (i + 1);
+						break;
+					case SOUTH:
+						borders[2] = currentLoc.y + (i + 1);
+						break;
+					case WEST:
+						borders[3] = currentLoc.x - (i + 1);
+						break;
+					}
+				}
+			}
+			
+			computeEnemyBaseLocation();
+		} catch (Exception e) {
+			System.out.println("caught exception:");
+			e.printStackTrace();
+		}
+
+	}
+	
+	protected void computeEnemyBaseLocation() {
+		enemyBaseLoc = homeLocation;
+		
+		if (borders[0] != -1 && borders[2] != -1 ) {
+			enemyBaseLoc = new MapLocation(homeLocation.x, borders[0] + borders[2] - homeLocation.y);
+		} else if (borders[1] != -1 && borders[3] != -1) {
+			enemyBaseLoc = new MapLocation(borders[1] + borders[3] - homeLocation.x, homeLocation.y);
+		} else {
+			final Direction[] mapping = {Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST};
+			
+			for (int index = 0; index < 4; index++){
+				if (borders[index] != -1){
+					enemyBaseLoc = enemyBaseLoc.add(mapping[index], 60);
+				}
+			}
+		}
 	}
 	
 	protected void roachNavigate() throws GameActionException {
