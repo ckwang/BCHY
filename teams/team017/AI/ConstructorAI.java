@@ -6,10 +6,9 @@ import java.util.Set;
 import team017.construction.UnitType;
 import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
-import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
-import battlecode.common.Chassis;
 import team017.message.FollowMeMessage;
+import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -21,7 +20,6 @@ import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
-import battlecode.common.TerrainTile;
 
 public class ConstructorAI extends AI {
 

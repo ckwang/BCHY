@@ -4,6 +4,7 @@ import java.util.List;
 
 import team017.construction.UnitType;
 
+import battlecode.common.ComponentClass;
 import battlecode.common.ComponentController;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -29,6 +30,8 @@ public class Util {
 	}
 	
 	public static MapLocation aveLocation(List<MapLocation> list) {
+		if (list.size() == 0)
+			return null;
 		int x = 0, y = 0;
 		for (MapLocation loc: list) {
 			x += loc.x;
@@ -40,6 +43,14 @@ public class Util {
 	public static boolean containsComponent(ComponentType[] list, ComponentType com) {
 		for (ComponentType c : list) {
 			if (c == com)
+				return true;
+		}
+		return false;
+	}
+	
+	public static boolean hasWeapon(ComponentType[] components) {
+		for (ComponentType c: components) {
+			if (c.componentClass == ComponentClass.WEAPON)
 				return true;
 		}
 		return false;
