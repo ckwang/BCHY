@@ -31,58 +31,42 @@ public class SoldierAI extends AI {
 	public void proceed() {
 
 		while (true) {
-			rc.setIndicatorString(0, "Soldier");
-			processMessage();
-			
-			combat.senseNearby();
-			if (combat.enemyNum() > combat.allyNum() + 3) {
-				try {
-					combat.flee();
-					yield();
-					combat.flee();
-				} catch (GameActionException e1) {}
-			}
-			else {
-				while (combat.enemyNum() > 0) {
-					combat.chaseTarget();
-					combat.attack();
-					yield();
-					combat.senseNearby();
-				}
-			}
-			while (combat.immobileEnemyNum() > 0) {
-				combat.massacre();
-				combat.senseNearby();
-				yield();
-			}
-			
 			try {
+				rc.setIndicatorString(0, "Soldier");
+				processMessages();
+				
+				combat.senseNearby();
+				if (combat.enemyNum() > combat.allyNum() + 3) {
+					try {
+						combat.flee();
+						yield();
+						combat.flee();
+					} catch (GameActionException e1) {}
+				}
+				else {
+					while (combat.enemyNum() > 0) {
+						combat.chaseTarget();
+						combat.attack();
+						yield();
+						combat.senseNearby();
+					}
+				}
+				while (combat.immobileEnemyNum() > 0) {
+					combat.massacre();
+					combat.senseNearby();
+					yield();
+				}
+				
 				navigate();
-			} catch (GameActionException e) {}
-
+				
+				
+	
+				sense_border();
+				yield();
 			
-			
-			
-//			if (isEngaged) {
-//				if (combat.hasEnemy()) {
-//					if (combat.enemyNum() > 0)
-//						launchAttack();
-//					else if (combat.immobileEnemyNum() > 0)
-//						combat.massacre();
-//
-//				} else
-//					isEngaged = false;
-//			} else {
-//				try {
-//					navigate();
-//				} catch (GameActionException e) {
-//				}
-//				if (combat.hasEnemy())
-//					isEngaged = true;
-//			}
-
-			sense_border();
-			yield();
+			}catch (GameActionException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -126,7 +110,8 @@ public class SoldierAI extends AI {
 //		return false;
 //	}
 
-	private void processMessage() {
+	@Override
+	protected void processMessages() throws GameActionException{
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {

@@ -8,6 +8,7 @@ import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.FollowMeMessage;
+import team017.message.ScoutingMessage;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
@@ -56,11 +57,9 @@ public class ConstructorAI extends AI {
 		while (true) {
 
 			try {
-//				controllers.myRC.setIndicatorString(0, recyclerLocations + "");
-//				controllers.myRC.setIndicatorString(1, builtLocations + "");
-//				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "");
-
-//				controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "");
+				
+				processMessages();
+				
 				navigate();
 				
 				buildRecyclers();
@@ -72,55 +71,6 @@ public class ConstructorAI extends AI {
 				if (controllers.myRC.getTeamResources() > 100)
 					checkEmptyRecyclers();
 
-				// Check messages
-				while (msgHandler.hasMessage()) {
-					Message msg = msgHandler.nextMessage();
-					switch (msgHandler.getMessageType(msg)) {
-//					case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-//						BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
-//						if (!builtLocations.contains(handler.getSourceLocation())){
-//							if(handler.getAvailableSpace() == -1){
-//								builtLocations.add(handler.getSourceLocation());
-//							} else if (handler.getBuildableDirection() != Direction.NONE) {
-//								MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-//								if (handler.getAvailableSpace() == 3) {
-//									if (buildBuildingAtLoc(buildLoc,UnitType.FACTORY)) {
-//										builtLocations.add(handler.getSourceLocation());
-//										msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
-//										MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
-//										if(buildBuildingAtLoc(nextBuildLoc,UnitType.ARMORY)){
-//											msgHandler.queueMessage(new ConstructionCompleteMessage(nextBuildLoc, ComponentType.ARMORY));
-//										}
-//									}
-//								} else if (handler.getAvailableSpace() == 2) {
-//									if(buildBuildingAtLoc(buildLoc, UnitType.FACTORY)){
-//										msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
-//										builtLocations.add(handler.getSourceLocation());
-//									}
-//								}
-//							}							
-//						}
-//						break;
-//					}
-					case BORDER: {
-						BorderMessage handler = new BorderMessage(msg);
-						// update the borders
-						int[] newBorders = handler.getBorderDirection();
-
-						for (int i = 0; i < 4; ++i) {
-							if (newBorders[i] != -1){
-								if (borders[i] != newBorders[i]){
-									borders[i] = newBorders[i];
-								}
-							}
-						}
-						
-						homeLocation = handler.getHomeLocation();
-						computeEnemyBaseLocation();
-						break;
-					}
-					}
-				}
 				
 				if (Clock.getRoundNum() % 2 == 0)
 					msgHandler.queueMessage(new FollowMeMessage());
@@ -454,6 +404,7 @@ public class ConstructorAI extends AI {
 			}
 		}
 		else if (scoutLoc != null){
+			controllers.myRC.setIndicatorString(1,"scouting");
 			navigator.setDestination(scoutLoc);
 		}
 		else {
@@ -491,5 +442,65 @@ public class ConstructorAI extends AI {
 			// }
 			
 		
+	}
+
+	@Override
+	protected void processMessages() throws GameActionException {
+		// Check messages
+		while (msgHandler.hasMessage()) {
+			Message msg = msgHandler.nextMessage();
+			switch (msgHandler.getMessageType(msg)) {
+//			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
+//				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
+//				if (!builtLocations.contains(handler.getSourceLocation())){
+//					if(handler.getAvailableSpace() == -1){
+//						builtLocations.add(handler.getSourceLocation());
+//					} else if (handler.getBuildableDirection() != Direction.NONE) {
+//						MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+//						if (handler.getAvailableSpace() == 3) {
+//							if (buildBuildingAtLoc(buildLoc,UnitType.FACTORY)) {
+//								builtLocations.add(handler.getSourceLocation());
+//								msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
+//								MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
+//								if(buildBuildingAtLoc(nextBuildLoc,UnitType.ARMORY)){
+//									msgHandler.queueMessage(new ConstructionCompleteMessage(nextBuildLoc, ComponentType.ARMORY));
+//								}
+//							}
+//						} else if (handler.getAvailableSpace() == 2) {
+//							if(buildBuildingAtLoc(buildLoc, UnitType.FACTORY)){
+//								msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
+//								builtLocations.add(handler.getSourceLocation());
+//							}
+//						}
+//					}							
+//				}
+//				break;
+//			}
+			case BORDER: {
+				BorderMessage handler = new BorderMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorderDirection();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				break;
+			}
+			case SCOUTING_MESSAGE: {						
+				ScoutingMessage handler = new ScoutingMessage(msg);
+				// update the borders
+				scoutLoc = handler.getScoutLocation();
+
+				break;
+			}
+			}
+		}
 	}
 }

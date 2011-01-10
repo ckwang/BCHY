@@ -6,6 +6,7 @@ import team017.message.ConstructionCompleteMessage;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
+import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
@@ -20,40 +21,8 @@ public class FactoryAI extends BuildingAI {
 	public void proceed() {
 		while (true) {
 			try {
-				while (msgHandler.hasMessage()) {
-					Message msg = msgHandler.nextMessage();
-					switch (msgHandler.getMessageType(msg)) {
-					case BUILDING_REQUEST:{
-						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
-						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-							Direction buildDir = controllers.myRC.getLocation().directionTo(handler.getBuildingLocation());
-							if (controllers.myRC.getDirection() != buildDir) {
-								controllers.motor.setDirection(buildDir);
-								yield();
-							}
-							
-							while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
-								if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
-									break;
-								yield();
-							}
-							yield();
-						}
-						break;
-					}
-					case CONSTRUCTION_COMPLETE: {
-						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
-						
-						MapLocation currentLoc = controllers.myRC.getLocation();
-						
-						if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
-							builderDirs.setDirections(handler.getBuilderType(), currentLoc.directionTo(handler.getBuildingLocation()));
-						}
-						break;
-					}
-				}
-			}
-			
+
+				processMessages();
 //			controllers.myRC.setIndicatorString(2, getEffectiveFluxRate() + "");
 //			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
 //				if(builderDirs.recyclerDirection != null){
@@ -79,6 +48,43 @@ public class FactoryAI extends BuildingAI {
 			}
 		}
 
+	}
+
+	@Override
+	protected void processMessages() throws GameActionException {
+		while (msgHandler.hasMessage()) {
+			Message msg = msgHandler.nextMessage();
+			switch (msgHandler.getMessageType(msg)) {
+			case BUILDING_REQUEST:{
+				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
+				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+					Direction buildDir = controllers.myRC.getLocation().directionTo(handler.getBuildingLocation());
+					if (controllers.myRC.getDirection() != buildDir) {
+						controllers.motor.setDirection(buildDir);
+						yield();
+					}
+					
+					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
+						if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
+							break;
+						yield();
+					}
+					yield();
+				}
+				break;
+			}
+			case CONSTRUCTION_COMPLETE: {
+				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
+				
+				MapLocation currentLoc = controllers.myRC.getLocation();
+				
+				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
+					builderDirs.setDirections(handler.getBuilderType(), currentLoc.directionTo(handler.getBuildingLocation()));
+				}
+				break;
+			}
+		}
+	}
 	}
 
 }

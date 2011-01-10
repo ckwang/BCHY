@@ -6,6 +6,7 @@ import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.ScoutingMessage;
 import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
@@ -26,6 +27,9 @@ public class RecyclerAI extends BuildingAI {
 	private Mine myMine;
 	private int unitConstructed = 0;
 	private int birthRoundNum;
+	
+	private Direction[] scoutingDir;
+	private int numOfDir = 0;
 	
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
@@ -97,109 +101,21 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
-
-				// receive messages and handle them
-				while (msgHandler.hasMessage()) {
-					Message msg = msgHandler.nextMessage();
-					switch (msgHandler.getMessageType(msg)) {
-					case BORDER: {						
-						BorderMessage handler = new BorderMessage(msg);
-						// update the borders
-						int[] newBorders = handler.getBorderDirection();
-
-						for (int i = 0; i < 4; ++i) {
-							if (newBorders[i] != -1){
-								if (borders[i] != newBorders[i]){
-									borders[i] = newBorders[i];
-								}
-							}
-						}
-						
-						homeLocation = handler.getHomeLocation();
-						computeEnemyBaseLocation();
-
-						break;
-					}
-//					case BUILDING_REQUEST:{
-//						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
-//						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-//							while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
-//								if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
-//									break;
-//								yield();
-//							}	
-//						}
-//						break;
-//						
-//						BuildingRequestMessage handler = new BuildingRequestMessage(msg);
-//						if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-//							buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType());
-//							yield();
-//						}
-//						break;
-//					}
-					
-//					case BUILDING_LOCATION_INQUIRY_MESSAGE: {
-//						BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
-//						if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
-//							if(builderDirs.armoryDirection != null && builderDirs.factoryDirection != null){
-//								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), -1));
-//								controllers.myRC.setIndicatorString(0, "Consecutive -1");
-//							} else if (builderDirs.consecutiveEmpties(3) != Direction.NONE) {
-//								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
-//								controllers.myRC.setIndicatorString(0, "Consecutive 3");
-//							} else if (builderDirs.consecutiveEmpties(2) != Direction.NONE) {
-//								msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
-//								controllers.myRC.setIndicatorString(0, "Consecutive 2");
-//							}
-//							yield();
-//						}
-//						break;
-//					}
-					
-					case CONSTRUCTION_COMPLETE: {
-						ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
-						controllers.myRC.setIndicatorString(1, "complete!" + Clock.getRoundNum());
-						
-						/*
-						 * When a new building is constructed, we would like to build an antenna on it.
-						 */
-						
-						MapLocation currentLoc = controllers.myRC.getLocation();
-
-						// see if the target is adjacent
-						if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
-							
-							// update the builderDirs
-							Direction builderDir = currentLoc.directionTo(handler.getBuildingLocation());
-							builderDirs.setDirections(handler.getBuilderType(), builderDir);
-							
-							if(handler.getBuilderType() != ComponentType.RECYCLER){
-								// face the correct direction
-								if (controllers.myRC.getDirection() != builderDir){
-									controllers.motor.setDirection(builderDir);
-									yield();
-								}
-								
-								// build an antenna if it doesn't have one
-								if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
-									controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
-								}
-							}
-						}
-						break;
-					}
-
-					}
+				if (enemyBaseLoc != null){
+					controllers.myRC.setIndicatorString(0, enemyBaseLoc.toString());
 				}
+
+				processMessages();
 				
-				/*
-				 * Producing constructor only
-				 */
-//				if (getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 150) {
+//				/*
+//				 * Producing constructor only
+//				 */
+//				if (getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 150 && unitConstructed < 5) {
 //						if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 //							++unitConstructed;
 //						msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+//						if (enemyBaseLoc != null)
+//							msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
 //						yield();
 //				}
 
@@ -211,6 +127,9 @@ public class RecyclerAI extends BuildingAI {
 							if (unitConstructed % 11 == 10){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
+								if (enemyBaseLoc != null)
+									msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
+								yield();
 							}
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
@@ -222,6 +141,8 @@ public class RecyclerAI extends BuildingAI {
 							if (unitConstructed % 2 == 1){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
+								if (enemyBaseLoc != null)
+									msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
 							}
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
@@ -233,6 +154,8 @@ public class RecyclerAI extends BuildingAI {
 							if (unitConstructed % 3 == 1){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
+								if (enemyBaseLoc != null)
+									msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
 							}
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
@@ -244,6 +167,8 @@ public class RecyclerAI extends BuildingAI {
 							if (unitConstructed % 4 == 3){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
+								if (enemyBaseLoc != null)
+									msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
 							}
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
@@ -255,6 +180,8 @@ public class RecyclerAI extends BuildingAI {
 							if (unitConstructed % 5 == 4){
 								if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
 									++unitConstructed;
+								if (enemyBaseLoc != null)
+									msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
 							}
 							else{
 								if (buildingSystem.constructUnit(UnitType.GRIZZLY))
@@ -355,6 +282,130 @@ public class RecyclerAI extends BuildingAI {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
+	}
+	@Override
+	protected void processMessages() throws GameActionException {
+		// receive messages and handle them
+		while (msgHandler.hasMessage()) {
+			Message msg = msgHandler.nextMessage();
+			switch (msgHandler.getMessageType(msg)) {
+			case BORDER: {						
+				BorderMessage handler = new BorderMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorderDirection();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				determinScoutDirs();
+				break;
+			}
+//			case BUILDING_REQUEST:{
+//				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
+//				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+//					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
+//						if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
+//							break;
+//						yield();
+//					}	
+//				}
+//				break;
+//				
+//				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
+//				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+//					buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType());
+//					yield();
+//				}
+//				break;
+//			}
+			
+//			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
+//				BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
+//				if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
+//					if(builderDirs.armoryDirection != null && builderDirs.factoryDirection != null){
+//						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), -1));
+//						controllers.myRC.setIndicatorString(0, "Consecutive -1");
+//					} else if (builderDirs.consecutiveEmpties(3) != Direction.NONE) {
+//						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
+//						controllers.myRC.setIndicatorString(0, "Consecutive 3");
+//					} else if (builderDirs.consecutiveEmpties(2) != Direction.NONE) {
+//						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
+//						controllers.myRC.setIndicatorString(0, "Consecutive 2");
+//					}
+//					yield();
+//				}
+//				break;
+//			}
+			
+			case CONSTRUCTION_COMPLETE: {
+				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
+				controllers.myRC.setIndicatorString(1, "complete!" + Clock.getRoundNum());
+				
+				/*
+				 * When a new building is constructed, we would like to build an antenna on it.
+				 */
+				
+				MapLocation currentLoc = controllers.myRC.getLocation();
+
+				// see if the target is adjacent
+				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
+					
+					// update the builderDirs
+					Direction builderDir = currentLoc.directionTo(handler.getBuildingLocation());
+					builderDirs.setDirections(handler.getBuilderType(), builderDir);
+					
+					if(handler.getBuilderType() != ComponentType.RECYCLER){
+						// face the correct direction
+						if (controllers.myRC.getDirection() != builderDir){
+							controllers.motor.setDirection(builderDir);
+							yield();
+						}
+						
+						// build an antenna if it doesn't have one
+						if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
+							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
+						}
+					}
+				}
+				break;
+			}
+
+			}
+		}
+	}
+	
+	
+	private void determinScoutDirs() {
+
+		Direction enemyBaseDir = homeLocation.directionTo(enemyBaseLoc);
+		
+		if ( enemyBaseDir.isDiagonal() ){
+			scoutingDir = new Direction [5];
+			scoutingDir[0] = enemyBaseDir;
+			scoutingDir[1] = enemyBaseDir.rotateLeft();
+			scoutingDir[2] = enemyBaseDir.rotateRight();
+			scoutingDir[3] = scoutingDir[1].rotateLeft();
+			scoutingDir[4] = scoutingDir[2].rotateRight();
+			numOfDir = 5;
+		} else {
+			scoutingDir = new Direction [7];
+			scoutingDir[0] = enemyBaseDir;
+			scoutingDir[1] = enemyBaseDir.rotateLeft();
+			scoutingDir[2] = enemyBaseDir.rotateRight();
+			scoutingDir[3] = scoutingDir[1].rotateLeft();
+			scoutingDir[4] = scoutingDir[2].rotateRight();
+			scoutingDir[5] = scoutingDir[3].rotateLeft();
+			scoutingDir[6] = scoutingDir[4].rotateRight();
+			numOfDir = 7;
+		}
+		
 	}
 
 	/***
