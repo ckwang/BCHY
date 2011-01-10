@@ -107,56 +107,22 @@ public class RecyclerAI extends BuildingAI {
 
 				processMessages();
 				
-//				/*
-//				 * Producing constructor only
-//				 */
-//				if (getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 150 && unitConstructed < 5) {
-//						if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
-//							++unitConstructed;
-//						msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-//						if (enemyBaseLoc != null)
-//							msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
-//						yield();
-//				}
 				
 				double fluxRate = getEffectiveFluxRate();
 				double [] thresholds = {3, 2.4, 1.8, 1.2, 0.3};
 				int [][] unitRatio = {{10, 1}, {5, 1}, {4, 1}, {3, 1}, {2, 1}};
 				UnitType [][] types = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
-				if (Clock.getRoundNum() > 200 
+				
+				if (Clock.getRoundNum() < 300 && controllers.myRC.getTeamResources() > 100)
+					buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
+					
+				else if (Clock.getRoundNum() > 300 
 						&& controllers.myRC.getTeamResources() > 150
 //						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 200
 						){
 					constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
 				}
 
-				
-//				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
-//					buildingSystem.constructUnit(UnitType.GRIZZLY);
-//					if (Clock.getRoundNum() < 1000) {
-//						if (Clock.getRoundNum() % 3 == 0){
-//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-//						}
-//						else{
-//							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//							if (enemyBaseLoc != null){
-//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-//								yield();
-//							}
-//						}
-//
-//					} else {
-//						if (Clock.getRoundNum() % 5 == 0)
-//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-//						else{
-//							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//							if (enemyBaseLoc != null){
-//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-//								yield();
-//							}
-//						}
-//					}
-//				}
 				
 				// turn off when the mine is depleted
 				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0)

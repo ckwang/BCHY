@@ -198,8 +198,7 @@ public class SoldierAI extends AI {
 		} else {
 			controllers.myRC.setIndicatorString(2, "roachNavigate");
 			leaderLoc = null;
-			if (!motor.isActive())
-				roachNavigate();
+			roachNavigate();
 		}
 	}
 

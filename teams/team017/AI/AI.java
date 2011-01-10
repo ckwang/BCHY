@@ -119,15 +119,17 @@ public abstract class AI {
 	
 	protected void roachNavigate() throws GameActionException {
 		// navigate();
-		if (controllers.motor.canMove(controllers.myRC.getDirection())) {
-			controllers.motor.moveForward();
-		} else {
-			Direction tempDir = controllers.myRC.getDirection();
-			int rotationTimes = (Clock.getRoundNum() / 10) % 7;
-			for (int i = 0; i <= rotationTimes; ++i) {
-				tempDir = tempDir.rotateRight();
-			}
-			controllers.motor.setDirection(tempDir);
+		if (!controllers.motor.isActive()) {
+			if (controllers.motor.canMove(controllers.myRC.getDirection())) {
+				controllers.motor.moveForward();
+			} else {
+				Direction tempDir = controllers.myRC.getDirection();
+				int rotationTimes = (Clock.getRoundNum() / 10) % 7;
+				for (int i = 0; i <= rotationTimes; ++i) {
+					tempDir = tempDir.rotateRight();
+				}
+				controllers.motor.setDirection(tempDir);
+			}	
 		}
 	} 
 
