@@ -25,8 +25,6 @@ public class SoldierAI extends AI {
 	private MapLocation leaderLoc;
 //	private boolean isEngaged = false;
 
-// private boolean massacre = true;
-
 	public SoldierAI(RobotController rc) {
 		super(rc);
 		combat = new CombatSystem(controllers);
