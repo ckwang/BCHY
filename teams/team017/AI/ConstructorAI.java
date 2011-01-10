@@ -27,6 +27,8 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
+	private MapLocation scoutLoc;
+	
 	public ConstructorAI(RobotController rc) {
 		super(rc);
 	}
@@ -427,6 +429,18 @@ public class ConstructorAI extends AI {
 
 	private void navigate() throws GameActionException {
 
+		if (!mineLocations.isEmpty()) {
+			controllers.myRC.setIndicatorString(1,"Mine");
+			MapLocation currentLoc = controllers.myRC.getLocation();
+			MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
+			for (MapLocation loc : mineLocations) {
+				if (currentLoc.distanceSquaredTo(loc) < currentLoc.distanceSquaredTo(nearest))
+					nearest = loc;
+				}
+				
+			navigator.setDestination(nearest);
+		}
+		
 		Direction nextDir = navigator.getNextDir(2);
 		if (nextDir != Direction.OMNI) {
 			if (!controllers.motor.isActive() ) {
@@ -439,18 +453,12 @@ public class ConstructorAI extends AI {
 				}
 			}
 		}
-		
-		else if (!mineLocations.isEmpty()) {
-			MapLocation currentLoc = controllers.myRC.getLocation();
-			MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
-			for (MapLocation loc : mineLocations) {
-				if (currentLoc.distanceSquaredTo(loc) < currentLoc.distanceSquaredTo(nearest))
-					nearest = loc;
-				}
-				
-			navigator.setDestination(nearest);
+		else if (scoutLoc != null){
+			navigator.setDestination(scoutLoc);
 		}
 		else {
+			controllers.myRC.setIndicatorString(1,"roachNavigate");
+			// do nothing;
 			if (!controllers.motor.isActive() )
 				roachNavigate();
 		}

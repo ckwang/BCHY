@@ -192,6 +192,16 @@ public class RecyclerAI extends BuildingAI {
 
 					}
 				}
+				
+				/*
+				 * Producing constructor only
+				 */
+//				if (getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 150) {
+//						if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+//							++unitConstructed;
+//						msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+//						yield();
+//				}
 
 				if (Clock.getRoundNum() > 200 
 						&& controllers.myRC.getTeamResources() > 150
