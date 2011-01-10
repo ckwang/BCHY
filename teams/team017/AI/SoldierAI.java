@@ -161,7 +161,7 @@ public class SoldierAI extends AI {
 
 	private void navigate() throws GameActionException {
 		if (leaderLoc == null && enemyBaseLoc != null) {
-			navigator.setDestination(enemyBaseLoc);
+			navigator.setDestination(enemyBaseLoc[0]);
 		}
 
 		Direction nextDir = navigator.getNextDir(0);
@@ -174,7 +174,7 @@ public class SoldierAI extends AI {
 				}
 			}
 		} else if (enemyBaseLoc != null) {
-			navigator.setDestination(enemyBaseLoc);
+			navigator.setDestination(enemyBaseLoc[0]);
 			leaderLoc = null;
 		} else {
 			controllers.myRC.setIndicatorString(2, "roachNavigate");
