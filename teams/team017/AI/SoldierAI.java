@@ -24,6 +24,8 @@ public class SoldierAI extends AI {
 	private MapLocation leaderLoc;
 	private boolean toFlee = false;
 
+	private Direction followDir;
+	
 	public SoldierAI(RobotController rc) {
 		super(rc);
 		combat = new CombatSystem(controllers);
@@ -145,13 +147,14 @@ public class SoldierAI extends AI {
 				// System.out.println("follow me message");
 				FollowMeMessage fhandler = new FollowMeMessage(msg);
 				MapLocation loc = fhandler.getSourceLocation();
+				followDir = fhandler.getFollowDirection();
 				if (leaderLoc != null) {
 					int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
 					int newdist = rc.getLocation().distanceSquaredTo(loc);
 					if (newdist < curdist)
-						leaderLoc = loc;
+						leaderLoc = loc.add(followDir, 3);
 				} else
-					leaderLoc = loc;
+					leaderLoc = loc.add(followDir, 3);
 				navigator.setDestination(leaderLoc);
 				break;
 
@@ -160,11 +163,27 @@ public class SoldierAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
-		if (leaderLoc == null && enemyBaseLoc != null) {
+		if (leaderLoc == null && enemyBaseLoc[0] != null) {
 			navigator.setDestination(enemyBaseLoc[0]);
+//<<<<<<< HEAD
+//		} 
+//		
+//		Direction nextDir = Direction.OMNI;
+//		
+//		if (leaderLoc != null) {
+//			if (controllers.myRC.getLocation().distanceSquaredTo(leaderLoc) < 4){
+//				nextDir = followDir;
+//			} 		
+//		} else {
+//			nextDir = navigator.getNextDir(0);
+//		}	
+//
+//		
+//=======
 		}
 
 		Direction nextDir = navigator.getNextDir(0);
+//>>>>>>> refs/remotes/origin/sprint_tournament
 		if (nextDir != Direction.OMNI) {
 			if (!motor.isActive() && motor.canMove(nextDir)) {
 				if (rc.getDirection() == nextDir) {
@@ -173,13 +192,14 @@ public class SoldierAI extends AI {
 					motor.setDirection(nextDir);
 				}
 			}
-		} else if (enemyBaseLoc != null) {
+		} else if (enemyBaseLoc[0] != null) {
 			navigator.setDestination(enemyBaseLoc[0]);
 			leaderLoc = null;
 		} else {
 			controllers.myRC.setIndicatorString(2, "roachNavigate");
 			leaderLoc = null;
-			roachNavigate();
+			if (!motor.isActive())
+				roachNavigate();
 		}
 	}
 

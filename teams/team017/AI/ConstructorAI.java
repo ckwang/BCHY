@@ -73,7 +73,7 @@ public class ConstructorAI extends AI {
 
 				
 				if (Clock.getRoundNum() % 2 == 0)
-					msgHandler.queueMessage(new FollowMeMessage());
+					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 				yield();
 
 				// Conditions of building factories/armories
