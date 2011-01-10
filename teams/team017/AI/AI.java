@@ -119,7 +119,6 @@ public abstract class AI {
 	protected void roachNavigate() throws GameActionException {
 		// navigate();
 		if (controllers.motor.canMove(controllers.myRC.getDirection())) {
-			// System.out.println("about to move");
 			controllers.motor.moveForward();
 		} else {
 			Direction tempDir = controllers.myRC.getDirection();

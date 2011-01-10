@@ -8,6 +8,7 @@ import team017.util.Controllers;
 import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
+import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -28,14 +29,26 @@ public class CombatSystem {
 	
 	public Robot target1 = null;
 	public Robot target2 = null;
+	public int totalEnemiesHp = 0;
 	
 	public MapLocation selfLoc;
 	public int lastUpdate = -10;
 	public Direction nextDir = Direction.NONE;
-	public int attackRange = 16*16;
-
+	
+	
+	public float totalDamage = 0;
+	public float aveDamage = 0;
+	public int maxRange = 0;
+	
 	public CombatSystem(Controllers c) {
 		controllers = c;
+		for (WeaponController w: c.weapons) {
+			totalDamage += w.type().attackPower;
+			int r = w.type().range * w.type().range;
+			if (maxRange < r)
+				maxRange = r;
+		}
+		aveDamage = totalDamage/(float)c.weapons.size();
 	}
 
 	public boolean approachTarget() {
@@ -145,6 +158,24 @@ public class CombatSystem {
 			}
 		}
 	}
+	
+	public void flee() throws GameActionException {
+		if (controllers.motor.isActive())
+			return;
+		MapLocation cur = controllers.myRC.getLocation();
+		MapLocation enemyCenter = Util.aveLocation(elocs);
+		if (enemyCenter == null)
+			System.out.println("no enemy to flee from");
+		Direction edir = cur.directionTo(enemyCenter);
+		Direction mydir = controllers.myRC.getDirection();
+		if (Util.isFacing(mydir, edir)
+				&& controllers.motor.canMove(edir.opposite()))
+			controllers.motor.moveBackward();
+		else if (Util.isFacing(mydir.opposite(), edir))
+			controllers.motor.moveForward();
+		else
+			controllers.motor.setDirection(edir.opposite());
+	}
 
 	public boolean attack() {
 		if (target1 == null) {
@@ -167,8 +198,7 @@ public class CombatSystem {
 				MapLocation weakest = controllers.sensor
 				.senseLocationOf(target1);
 				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
-				if (dist > attackRange) {
-					System.out.println("attacking out of range");
+				if (dist > maxRange) {
 					return attacked;
 				}
 				w.attackSquare(weakest, target1.getRobotLevel());
@@ -184,10 +214,7 @@ public class CombatSystem {
 	}
 
 	public void senseNearby() {
-		allies.clear();
-		enemies.clear();
-		immobileEnemies.clear();
-		
+		reset();
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		double leasthp1 = Chassis.HEAVY.maxHp;
 		double leasthp2 = Chassis.HEAVY.maxHp;
@@ -195,21 +222,22 @@ public class CombatSystem {
 			try {
 				RobotInfo info = controllers.sensor.senseRobotInfo(r);
 				if (r.getTeam() == controllers.myRC.getTeam()) {
-					allies.add(r);
-					MapLocation loc = controllers.sensor.senseLocationOf(r);
-					alocs.add(loc);
+					ComponentType[] components = info.components;
+					if (Util.hasWeapon(components)) {
+						allies.add(r);
+						MapLocation loc = controllers.sensor.senseLocationOf(r);
+						alocs.add(loc);
+					}
 				} else if ((r.getTeam() != Team.NEUTRAL)) {
 					if (!info.on || info.chassis == Chassis.BUILDING) {
-//						System.out.println(r.getTeam());
 						immobileEnemies.add(r);
 						continue;
 					}
 					MapLocation loc = controllers.sensor.senseLocationOf(r);
 					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
-					if (dist > attackRange)
+					if (dist > maxRange)
 						continue;
-					enemies.add(r);
-					elocs.add(loc);
+					totalEnemiesHp += info.hitpoints;
 					if (info.hitpoints < leasthp1) {
 						leasthp2 = leasthp1;
 						target2 = target1;
@@ -218,6 +246,14 @@ public class CombatSystem {
 					} else if (info.hitpoints < leasthp2) {
 						target2 = r;
 						leasthp2 = info.hitpoints;
+					} else {
+						enemies.add(r);
+						elocs.add(loc);
+					}
+					if (target1 != null) {
+						enemies.add(target1);
+						if (target2 != null)
+							enemies.add(target2);
 					}
 				}
 			} catch (GameActionException e) {
@@ -227,6 +263,21 @@ public class CombatSystem {
 		lastUpdate = Clock.getRoundNum();
 	}
 
+	public void reset() {
+		allies.clear();
+		enemies.clear();
+		immobileEnemies.clear();
+		elocs.clear();
+		alocs.clear();
+		totalEnemiesHp = 0;
+		target1 = null;
+		target2 = null;
+	}
+	
+	public int allyNum() {
+		return allies.size();
+	}
+	
 	public int enemyNum() {
 		if (outdated())
 			senseNearby();

@@ -1,17 +1,14 @@
 package team017.AI;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
 import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
-import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
-import battlecode.common.Chassis;
 import team017.message.FollowMeMessage;
+import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -23,7 +20,6 @@ import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
-import battlecode.common.TerrainTile;
 
 public class ConstructorAI extends AI {
 
@@ -431,30 +427,33 @@ public class ConstructorAI extends AI {
 
 	private void navigate() throws GameActionException {
 
-		if (!controllers.motor.isActive()) {
-			if (!mineLocations.isEmpty()) {
-				MapLocation currentLoc = controllers.myRC.getLocation();
-				MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
-				for (MapLocation loc : mineLocations) {
-					if (currentLoc.distanceSquaredTo(loc) < currentLoc
-							.distanceSquaredTo(nearest))
-						nearest = loc;
+		Direction nextDir = navigator.getNextDir(2);
+		if (nextDir != Direction.OMNI) {
+			if (!controllers.motor.isActive() ) {
+				if (controllers.myRC.getDirection() == nextDir) {
+					if (controllers.motor.canMove(nextDir)) {
+						controllers.motor.moveForward();
+					}
+				} else {
+					controllers.motor.setDirection(nextDir);
+				}
+			}
+		}
+		
+		else if (!mineLocations.isEmpty()) {
+			MapLocation currentLoc = controllers.myRC.getLocation();
+			MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
+			for (MapLocation loc : mineLocations) {
+				if (currentLoc.distanceSquaredTo(loc) < currentLoc.distanceSquaredTo(nearest))
+					nearest = loc;
 				}
 				
-				navigator.setDestination(nearest);
-				Direction nextDir = navigator.getNextDir(2);
-
-				if (nextDir != Direction.OMNI) {
-					if (controllers.myRC.getDirection() == nextDir) {
-						if (controllers.motor.canMove(nextDir)) {
-							controllers.motor.moveForward();
-						}
-					} else {
-						controllers.motor.setDirection(nextDir);
-					}
-				}
-
-			}
+			navigator.setDestination(nearest);
+		}
+		else {
+			if (!controllers.motor.isActive() )
+				roachNavigate();
+		}
 
 			// else if (!recyclerLocations.isEmpty()) {
 			// MapLocation currentLoc = controllers.myRC.getLocation();
@@ -482,9 +481,7 @@ public class ConstructorAI extends AI {
 			// }
 			//
 			// }
-			else {
-				roachNavigate();
-			}
-		}
+			
+		
 	}
 }
