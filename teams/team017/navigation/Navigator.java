@@ -85,7 +85,7 @@ public class Navigator {
 		}
 		// using (BUG/ TangentBug) algorithm to find direction to destination
 		else{
-			controllers.myRC.setIndicatorString(0,controllers.myRC.getLocation().toString() + backTraceDes.toString());
+//			controllers.myRC.setIndicatorString(0,controllers.myRC.getLocation().toString() + backTraceDes.toString());
 			previousRobLoc = controllers.myRC.getLocation();
 			if (destination == null){
 				reset();
@@ -130,7 +130,7 @@ public class Navigator {
 		
 		switch(navigationState){
 			case RECKONING:
-				controllers.myRC.setIndicatorString(1,"RECKONING");
+//				controllers.myRC.setIndicatorString(1,"RECKONING");
 				if ( controllers.motor.canMove(initDir) ) {
 					return initDir;
 				}
@@ -151,7 +151,7 @@ public class Navigator {
 					return s.directionTo(nextLoc);
 				}
 			case START:
-				controllers.myRC.setIndicatorString(1,"START");
+//				controllers.myRC.setIndicatorString(1,"START");
 				navigationState = State.TRACING;
 				startTracingLoc = controllers.myRC.getLocation();
 				
@@ -163,7 +163,7 @@ public class Navigator {
 				
 				return s.directionTo(nextLoc);
 			case TRACING:
-				controllers.myRC.setIndicatorString(1,"TRACING");
+//				controllers.myRC.setIndicatorString(1,"TRACING");
 				// Have gone around the obstacle
 				if (controllers.myRC.getLocation().equals(startTracingLoc) ){
 					navigationState = State.ROUNDED;
@@ -181,7 +181,7 @@ public class Navigator {
 //				controllers.myRC.setIndicatorString(1, startTracingLoc.toString()+" "+nextLoc.toString() + " KEEP" );
 				return s.directionTo(nextLoc);
 			case ROUNDED:
-				controllers.myRC.setIndicatorString(1,"ROUNDED");
+//				controllers.myRC.setIndicatorString(1,"ROUNDED");
 				if (  controllers.motor.canMove(initDir) ){
 					navigationState = State.RECKONING;
 					previousTracingLoc = startTracingLoc;
