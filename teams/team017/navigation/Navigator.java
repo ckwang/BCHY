@@ -1,15 +1,11 @@
 package team017.navigation;
 
-import java.util.LinkedList;
-import java.util.List;
-
+import team017.util.Controllers;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotLevel;
 import battlecode.common.TerrainTile;
-
-import team017.util.*;
 
 /**
  * Navigator object that navigates the robot using tangent bug algorithm
@@ -37,6 +33,7 @@ public class Navigator {
 	private State navigationState = State.RECKONING;
 	
 	private boolean isCCW;
+	private boolean isInConcave;
 
 	public Navigator(Controllers cs) {
 		controllers = cs;
@@ -88,6 +85,7 @@ public class Navigator {
 		}
 		// using (BUG/ TangentBug) algorithm to find direction to destination
 		else{
+			controllers.myRC.setIndicatorString(0,controllers.myRC.getLocation().toString() + backTraceDes.toString());
 			previousRobLoc = controllers.myRC.getLocation();
 			if (destination == null){
 				reset();
@@ -138,7 +136,18 @@ public class Navigator {
 				}
 				else {
 					navigationState = State.START;
-					nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
+					MapLocation nextLocCW = traceNext(s, controllers.myRC.getDirection(), true);
+					MapLocation nextLocCCW = traceNext(s, controllers.myRC.getDirection(), false);
+					
+					if (nextLocCW.distanceSquaredTo(t) < nextLocCCW.distanceSquaredTo(t)){
+						isCCW = false;
+						nextLoc = nextLocCW;
+					}
+					else {
+						isCCW = true;
+						nextLoc = nextLocCCW;
+					}
+//					nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
 					return s.directionTo(nextLoc);
 				}
 			case START:
@@ -151,6 +160,7 @@ public class Navigator {
 					previousTracingLoc = null;
 				}
 				nextLoc = traceNext(s, controllers.myRC.getDirection(), !isCCW);
+				
 				return s.directionTo(nextLoc);
 			case TRACING:
 				controllers.myRC.setIndicatorString(1,"TRACING");
@@ -160,7 +170,7 @@ public class Navigator {
 				}
 				
 				// The way is open
-				if (  isOpen(backTraceDes) && controllers.motor.canMove(initDir) ){
+				if (  isOpen(backTraceDes, 10) && controllers.motor.canMove(initDir) ){
 					navigationState = State.RECKONING;
 					previousTracingLoc = startTracingLoc;
 					startTracingLoc = null;
@@ -269,16 +279,17 @@ public class Navigator {
 		// }
 	}
 
-	private boolean isOpen(MapLocation destLoc) throws GameActionException {
+	private boolean isOpen(MapLocation destLoc, int threshold) throws GameActionException {
 		MapLocation testLoc = controllers.myRC.getLocation();
-		
-		while(!testLoc.equals(destLoc)){
+		int step = 0;
+		while(!testLoc.equals(destLoc) && step < threshold){
 			testLoc = testLoc.add(testLoc.directionTo(destLoc));
 			if ( !isTraversable(testLoc) ){
 				return false;
 			}
+			step++;
 		}
-		return true;
+		return true;//!controllers.motor.canMove(controllers.myRC.getLocation().directionTo(startTracingLoc));
 	}
 	
 	private boolean isOpen(MapLocation sourceLoc, MapLocation destLoc,
