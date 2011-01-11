@@ -403,10 +403,10 @@ public class ConstructorAI extends AI {
 				}
 			}
 		}
-		else if (scoutLoc != null){
-//			controllers.myRC.setIndicatorString(1,"scouting");
-			navigator.setDestination(scoutLoc);
-		}
+//		else if (scoutLoc != null){
+////			controllers.myRC.setIndicatorString(1,"scouting");
+//			navigator.setDestination(scoutLoc);
+//		}
 		else {
 //			controllers.myRC.setIndicatorString(1,"roachNavigate");
 			// do nothing;

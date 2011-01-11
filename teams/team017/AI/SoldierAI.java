@@ -24,6 +24,8 @@ public class SoldierAI extends AI {
 	private MapLocation leaderLoc;
 	private boolean toFlee = false;
 
+	private boolean reachedFirstBase = false;
+	
 	private Direction followDir;
 	
 	public SoldierAI(RobotController rc) {
@@ -164,26 +166,13 @@ public class SoldierAI extends AI {
 
 	private void navigate() throws GameActionException {
 		if (leaderLoc == null && enemyBaseLoc[0] != null) {
-			navigator.setDestination(enemyBaseLoc[0]);
-//<<<<<<< HEAD
-//		} 
-//		
-//		Direction nextDir = Direction.OMNI;
-//		
-//		if (leaderLoc != null) {
-//			if (controllers.myRC.getLocation().distanceSquaredTo(leaderLoc) < 4){
-//				nextDir = followDir;
-//			} 		
-//		} else {
-//			nextDir = navigator.getNextDir(0);
-//		}	
-//
-//		
-//=======
+			if (reachedFirstBase)
+				navigator.setDestination(enemyBaseLoc[controllers.myRC.getRobot().getID() % 2+1]);
+			else 
+				navigator.setDestination(enemyBaseLoc[0]);
 		}
 
 		Direction nextDir = navigator.getNextDir(0);
-//>>>>>>> refs/remotes/origin/sprint_tournament
 		if (nextDir != Direction.OMNI) {
 			if (!motor.isActive() && motor.canMove(nextDir)) {
 				if (rc.getDirection() == nextDir) {
@@ -192,8 +181,14 @@ public class SoldierAI extends AI {
 					motor.setDirection(nextDir);
 				}
 			}
+			if (controllers.myRC.getLocation().distanceSquaredTo(enemyBaseLoc[0]) < 25)
+				reachedFirstBase = true;
 		} else if (enemyBaseLoc[0] != null) {
-			navigator.setDestination(enemyBaseLoc[0]);
+			if (reachedFirstBase)
+				navigator.setDestination(enemyBaseLoc[controllers.myRC.getRobot().getID() % 2+1]);
+			else 
+				navigator.setDestination(enemyBaseLoc[0]);
+			
 			leaderLoc = null;
 		} else {
 			controllers.myRC.setIndicatorString(2, "roachNavigate");

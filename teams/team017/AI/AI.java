@@ -114,13 +114,8 @@ public abstract class AI {
 	}
 	
 	protected void computeEnemyBaseLocation() {
-
-		final int[] xmapping = {0, -1, 0, 1};
-		final int[] ymapping = {1, 0, -1, 0};
-		
 		int [] virtualBorders = Arrays.copyOf(borders, 4);
 		
-		int nearbyNum = 0;
 		for (int i = 0; i < 4; i++) {
 			if (virtualBorders[i] == -1) {
 				int otherValue = virtualBorders[(i+2)%4];
@@ -135,44 +130,34 @@ public abstract class AI {
 						virtualBorders[3] = homeLocation.x - 30;
 					}
 				}
-			} else {
-				if (Math.abs(((i % 2 == 0) ? homeLocation.y : homeLocation.x) - virtualBorders[i]) <= 8) {
-					nearbyNum++;
-				}
-			}
+			} 
 		}
 		
-		boolean atCorner = nearbyNum >= 2;
+		/*
+		 * 1 ~ 2
+		 * ~ # ~
+		 * 4 ~ 3
+		 */
+		MapLocation[] corners = {
+				new MapLocation(virtualBorders[3] + 5, virtualBorders[0] - 5),
+				new MapLocation(virtualBorders[1] - 5, virtualBorders[0] - 5),
+				new MapLocation(virtualBorders[1] - 5, virtualBorders[2] + 5),
+				new MapLocation(virtualBorders[3] + 5, virtualBorders[2] + 5)
+		};
 		
-		int x, y;
-		
-		// if corner case
-//		if (atCorner) {
-			x = virtualBorders[1] + virtualBorders[3] - homeLocation.x;
-			y = virtualBorders[0] + virtualBorders[2] - homeLocation.y;
-			
-			enemyBaseLoc[0] = new MapLocation(x, y);
-//		} else {
-//			
-//		}
-		
-//		int x = homeLocation.x;
-//		int y = homeLocation.y;
-//		
-//		for (int index = 0; index < 4; index++){
-//			if (borders[index] != -1){
-//				x = xmapping[index] == 0 ? x : 2 * borders[index] + 60 * xmapping[index] - x;
-//				y = ymapping[index] == 0 ? y : 2 * borders[index] + 60 * ymapping[index] - y;
-//			}
-//		}
-//		
-//		if (borders[0] != -1 && borders[2] != -1 ) {
-//			y = borders[0] + borders[2] - homeLocation.y;
-//		} else if (borders[1] != -1 && borders[3] != -1) {
-//			x = borders[1] + borders[3] - homeLocation.x;
-//		}
-//		
-//		enemyBaseLoc = new MapLocation(x, y);
+		int x = virtualBorders[1] + virtualBorders[3] - homeLocation.x;
+		int y = virtualBorders[0] + virtualBorders[2] - homeLocation.y;
+		enemyBaseLoc[0] = new MapLocation(x, y);
+
+		enemyBaseLoc[1] = enemyBaseLoc[2] = null;
+		for (MapLocation corner : corners) {
+			if (corner.distanceSquaredTo(enemyBaseLoc[0]) > 100 && corner.distanceSquaredTo(homeLocation) > 100) {
+				if (enemyBaseLoc[1] == null)
+					enemyBaseLoc[1] = corner;
+				else
+					enemyBaseLoc[2] = corner;
+			}
+		}
 	}
 	
 	protected void roachNavigate() throws GameActionException {
