@@ -28,7 +28,8 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
-	private MapLocation scoutLoc;
+	private Direction scoutDir = Direction.NONE;
+	private int roachRounds = 100;
 	
 	public ConstructorAI(RobotController rc) {
 		super(rc);
@@ -46,7 +47,7 @@ public class ConstructorAI extends AI {
 		if (Clock.getRoundNum() == 0) {
 			try {
 				init();
-				init_revolve();
+//				init_revolve();
 				computeEnemyBaseLocation();
 				init_return();
 			} catch (GameActionException e) {
@@ -72,8 +73,9 @@ public class ConstructorAI extends AI {
 					checkEmptyRecyclers();
 
 				
-				if (Clock.getRoundNum() % 2 == 0)
-					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+//				if (Clock.getRoundNum() % 2 == 0)
+//					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				yield();
 
 				// Conditions of building factories/armories
@@ -403,9 +405,17 @@ public class ConstructorAI extends AI {
 				}
 			}
 		}
-		else if (scoutLoc != null){
+		else if (scoutDir != Direction.NONE){
 //			controllers.myRC.setIndicatorString(1,"scouting");
-			navigator.setDestination(scoutLoc);
+			if ( roachRounds > 0 ){
+				roachNavigate();
+				roachRounds--;
+			} else {
+				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
+				roachRounds = 100;
+			}
+				
+			
 		}
 		else {
 //			controllers.myRC.setIndicatorString(1,"roachNavigate");
@@ -496,8 +506,7 @@ public class ConstructorAI extends AI {
 			case SCOUTING_MESSAGE: {						
 				ScoutingMessage handler = new ScoutingMessage(msg);
 				// update the borders
-				scoutLoc = handler.getScoutLocation();
-
+				scoutDir = handler.getScoutDirection();
 				break;
 			}
 			}

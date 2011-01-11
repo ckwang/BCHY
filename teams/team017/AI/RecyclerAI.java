@@ -26,6 +26,7 @@ public class RecyclerAI extends BuildingAI {
 
 	private Mine myMine;
 	private int unitConstructed = 0;
+	private int numOfConstructors = 0;
 	private int birthRoundNum;
 	
 	private Direction[] scoutingDir;
@@ -110,25 +111,29 @@ public class RecyclerAI extends BuildingAI {
 //				/*
 //				 * Producing constructor only
 //				 */
-//				if (getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 150 && unitConstructed < 5) {
-//						if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+//				if (getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 150 && unitConstructed < numOfDir) {
+//						if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR)){
+//							msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+//							if (enemyBaseLoc != null)
+//								msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(scoutingDir[unitConstructed%numOfDir], 10) ) );
 //							++unitConstructed;
-//						msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-//						if (enemyBaseLoc != null)
-//							msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
-//						yield();
+//							yield();
+//						}
+//						
 //				}
 				
 				double fluxRate = getEffectiveFluxRate();
 				double [] thresholds = {3, 2.4, 1.8, 1.2, 0.3};
-				int [][] unitRatio = {{10, 1}, {5, 1}, {4, 1}, {3, 1}, {2, 1}};
-				UnitType [][] types = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
+				int [][] unitRatio = {{2, 1, 2}, {2, 1, 1}, {1, 1, 1}, {2, 1}, {1, 1}};
+				UnitType [][] types = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY}, {UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
 				if (Clock.getRoundNum() > 200 
 						&& controllers.myRC.getTeamResources() > 150
 //						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 200
 						){
 					constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
 				}
+				if (enemyBaseLoc != null)
+					msgHandler.queueMessage(new ScoutingMessage( scoutingDir[numOfConstructors%numOfDir] ) );
 
 				
 //				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
@@ -324,6 +329,12 @@ public class RecyclerAI extends BuildingAI {
 		Direction enemyBaseDir = homeLocation.directionTo(enemyBaseLoc);
 		
 		if ( enemyBaseDir.isDiagonal() ){
+			scoutingDir = new Direction [3];
+			scoutingDir[0] = enemyBaseDir;
+			scoutingDir[1] = enemyBaseDir.rotateLeft();
+			scoutingDir[2] = enemyBaseDir.rotateRight();
+			numOfDir = 3;
+		} else {
 			scoutingDir = new Direction [5];
 			scoutingDir[0] = enemyBaseDir;
 			scoutingDir[1] = enemyBaseDir.rotateLeft();
@@ -331,16 +342,6 @@ public class RecyclerAI extends BuildingAI {
 			scoutingDir[3] = scoutingDir[1].rotateLeft();
 			scoutingDir[4] = scoutingDir[2].rotateRight();
 			numOfDir = 5;
-		} else {
-			scoutingDir = new Direction [7];
-			scoutingDir[0] = enemyBaseDir;
-			scoutingDir[1] = enemyBaseDir.rotateLeft();
-			scoutingDir[2] = enemyBaseDir.rotateRight();
-			scoutingDir[3] = scoutingDir[1].rotateLeft();
-			scoutingDir[4] = scoutingDir[2].rotateRight();
-			scoutingDir[5] = scoutingDir[3].rotateLeft();
-			scoutingDir[6] = scoutingDir[4].rotateRight();
-			numOfDir = 7;
 		}
 		
 	}
@@ -374,12 +375,13 @@ public class RecyclerAI extends BuildingAI {
 					ratioPartialSum[j] = ratioTotalSum;
 				}
 				
-				for (ratioPointer = 0; unitConstructed % ratioTotalSum > ratioPartialSum[ratioPointer]; ++ ratioPointer);
+				for (ratioPointer = 0; unitConstructed % ratioTotalSum >= ratioPartialSum[ratioPointer]; ++ ratioPointer);
 				if (buildingSystem.constructUnit(types[i][ratioPointer]))
 					++unitConstructed;
-				msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
-				if (enemyBaseLoc != null && types[i][ratioPointer] == UnitType.CONSTRUCTOR);
-					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+
+				if (enemyBaseLoc != null && types[i][ratioPointer] == UnitType.CONSTRUCTOR)			
+					numOfConstructors++;
+				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				yield();
 				break;
 			}

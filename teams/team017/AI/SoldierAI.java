@@ -38,21 +38,13 @@ public class SoldierAI extends AI {
 				processMessages();
 				
 				combat.senseNearby();
-				if (combat.enemyNum() > combat.allyNum() + 3) {
-					try {
-						combat.flee();
-						yield();
-						combat.flee();
-					} catch (GameActionException e1) {}
+				while (combat.enemyNum() > 0) {
+					combat.chaseTarget();
+					combat.attack();
+					yield();
+					combat.senseNearby();
 				}
-				else {
-					while (combat.enemyNum() > 0) {
-						combat.chaseTarget();
-						combat.attack();
-						yield();
-						combat.senseNearby();
-					}
-				}
+				
 				while (combat.immobileEnemyNum() > 0) {
 					combat.massacre();
 					combat.senseNearby();

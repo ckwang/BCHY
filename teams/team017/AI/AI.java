@@ -119,6 +119,9 @@ public abstract class AI {
 	
 	protected void roachNavigate() throws GameActionException {
 		// navigate();
+		if (controllers.motor.isActive())
+			return;
+		
 		if (controllers.motor.canMove(controllers.myRC.getDirection())) {
 			controllers.motor.moveForward();
 		} else {
