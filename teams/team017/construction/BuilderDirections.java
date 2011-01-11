@@ -20,6 +20,7 @@ public class BuilderDirections {
 	public Direction recyclerDirection;
 	public Direction armoryDirection;
 	public Direction factoryDirection;
+	public Direction towerDirection;
 	/*
 	 * 7 0 1
 	 * 6 * 2
@@ -63,6 +64,8 @@ public class BuilderDirections {
 	}
 	
 	public Direction getDirections(ComponentType type){
+		if (type == null)
+			return towerDirection;
 		switch(type){
 		case RECYCLER:
 			return recyclerDirection;

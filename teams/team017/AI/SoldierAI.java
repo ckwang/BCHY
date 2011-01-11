@@ -152,9 +152,9 @@ public class SoldierAI extends AI {
 					int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
 					int newdist = rc.getLocation().distanceSquaredTo(loc);
 					if (newdist < curdist)
-						leaderLoc = loc.add(followDir, 3);
+						leaderLoc = loc.add(followDir, 5);
 				} else
-					leaderLoc = loc.add(followDir, 3);
+					leaderLoc = loc.add(followDir, 5);
 				navigator.setDestination(leaderLoc);
 				break;
 
@@ -165,25 +165,18 @@ public class SoldierAI extends AI {
 	private void navigate() throws GameActionException {
 		if (leaderLoc == null && enemyBaseLoc != null) {
 			navigator.setDestination(enemyBaseLoc);
-//<<<<<<< HEAD
-//		} 
-//		
-//		Direction nextDir = Direction.OMNI;
-//		
-//		if (leaderLoc != null) {
-//			if (controllers.myRC.getLocation().distanceSquaredTo(leaderLoc) < 4){
-//				nextDir = followDir;
-//			} 		
-//		} else {
-//			nextDir = navigator.getNextDir(0);
-//		}	
-//
-//		
-//=======
-		}
+		} 
+		
+		Direction nextDir = Direction.OMNI;
+		
+		if (leaderLoc != null) {
+			if (controllers.myRC.getLocation().distanceSquaredTo(leaderLoc) < 4){
+				nextDir = followDir;
+			} 		
+		} else {
+			nextDir = navigator.getNextDir(0);
+		}	
 
-		Direction nextDir = navigator.getNextDir(0);
-//>>>>>>> refs/remotes/origin/sprint_tournament
 		if (nextDir != Direction.OMNI) {
 			if (!motor.isActive() && motor.canMove(nextDir)) {
 				if (rc.getDirection() == nextDir) {

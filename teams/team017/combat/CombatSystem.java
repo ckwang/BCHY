@@ -96,7 +96,7 @@ public class CombatSystem {
 				controllers.motor.setDirection(dir2);
 				return true;
 			}
-			controllers.motor.moveForward();
+//			controllers.motor.moveForward();
 			return true;
 		} catch (GameActionException e) {
 			if (nextDir != Direction.OMNI && nextDir != Direction.NONE) {
@@ -200,14 +200,18 @@ public class CombatSystem {
 					target1 = target2;
 					target2 = null;
 				}
-				if (info.hitpoints > controllers.myRC.getHitpoints())
-					return true;
+//				if (info.hitpoints > controllers.myRC.getHitpoints())
+//					return true;
 				MapLocation weakest = controllers.sensor
 				.senseLocationOf(target1);
 				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
-				if (dist > maxRange) {
-					return false;
-				}
+//				if (dist > maxRange) {
+//					return false;
+//					if (target2 == null)
+//						return false;
+//					target1 = target2;
+//					target2 = null;
+//				}
 				w.attackSquare(weakest, target1.getRobotLevel());
 				attacked = true;
 			} catch (GameActionException e) {
@@ -242,8 +246,8 @@ public class CombatSystem {
 					}
 					MapLocation loc = controllers.sensor.senseLocationOf(r);
 					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
-					if (dist > maxRange)
-						continue;
+//					if (dist > maxRange)
+//						continue;
 					totalEnemiesHp += info.hitpoints;
 					if (info.hitpoints < leasthp1) {
 						leasthp2 = leasthp1;

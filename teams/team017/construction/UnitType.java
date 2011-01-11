@@ -19,7 +19,8 @@ public enum UnitType {
 	APOCALYPSE(Chassis.HEAVY, ComponentType.RAILGUN,ComponentType.RAILGUN, ComponentType.RADAR),
 	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER),
 	ARMORY(Chassis.BUILDING, ComponentType.ARMORY),
-	FACTORY (Chassis.BUILDING, ComponentType.FACTORY);
+	FACTORY (Chassis.BUILDING, ComponentType.FACTORY),
+	TOWER (Chassis.BUILDING, ComponentType.ANTENNA, ComponentType.RADAR, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER);
 		
 	public final Chassis chassis;
 	public final ComponentType[] recyclerComs;
