@@ -1,24 +1,25 @@
 package team017.message;
 
+import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 
 public class ScoutingMessage extends GenericMessage {
-	private MapLocation ScoutLoc;
+	private Direction ScoutDir;
 	
-	public ScoutingMessage(MapLocation ScoutLoc) {
+	public ScoutingMessage(Direction dir) {
 		super(MessageType.SCOUTING_MESSAGE);
 		
-		msg.locations[locCounter++] = ScoutLoc;
+		msg.ints[intCounter++] = dir.ordinal();
 	}
 	
 	public ScoutingMessage(Message msg) {
 		super(msg);
 		
-		ScoutLoc = msg.locations[locCounter++];
+		ScoutDir = Direction.values()[msg.ints[intCounter++]] ;
 	}
 	
-	public MapLocation getScoutLocation() {
-		return ScoutLoc;
+	public Direction getScoutDirection() {
+		return ScoutDir;
 	}
 }

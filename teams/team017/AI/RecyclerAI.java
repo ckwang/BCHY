@@ -26,6 +26,7 @@ public class RecyclerAI extends BuildingAI {
 
 	private Mine myMine;
 	private int unitConstructed = 0;
+	private int numOfConstructors = 0;
 	private int birthRoundNum;
 	
 	private Direction[] scoutingDir;
@@ -110,13 +111,15 @@ public class RecyclerAI extends BuildingAI {
 //				/*
 //				 * Producing constructor only
 //				 */
-//				if (getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 150 && unitConstructed < 5) {
-//						if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR))
+//				if (getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 150 && unitConstructed < numOfDir) {
+//						if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR)){
+//							msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+//							if (enemyBaseLoc != null)
+//								msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(scoutingDir[unitConstructed%numOfDir], 10) ) );
 //							++unitConstructed;
-//						msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-//						if (enemyBaseLoc != null)
-//							msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc), unitConstructed*5) ) );
-//						yield();
+//							yield();
+//						}
+//						
 //				}
 				
 				double fluxRate = getEffectiveFluxRate();
@@ -147,35 +150,6 @@ public class RecyclerAI extends BuildingAI {
 						constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
 					}
 				}
-
-
-				
-//				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
-//					buildingSystem.constructUnit(UnitType.GRIZZLY);
-//					if (Clock.getRoundNum() < 1000) {
-//						if (Clock.getRoundNum() % 3 == 0){
-//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-//						}
-//						else{
-//							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//							if (enemyBaseLoc != null){
-//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-//								yield();
-//							}
-//						}
-//
-//					} else {
-//						if (Clock.getRoundNum() % 5 == 0)
-//							buildingSystem.constructUnit(UnitType.CONSTRUCTOR);
-//						else{
-//							buildingSystem.constructUnit(UnitType.GRIZZLY);
-//							if (enemyBaseLoc != null){
-//								msgHandler.queueMessage(new EnemyLocationMessage(enemyBaseLoc));
-//								yield();
-//							}
-//						}
-//					}
-//				}
 				
 				// turn off when the mine is depleted
 				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0)
@@ -340,26 +314,34 @@ public class RecyclerAI extends BuildingAI {
 	
 	private void determinScoutDirs() {
 
-		Direction enemyBaseDir = homeLocation.directionTo(enemyBaseLoc[0]);
 		
-		if ( enemyBaseDir.isDiagonal() ){
-			scoutingDir = new Direction [5];
-			scoutingDir[0] = enemyBaseDir;
-			scoutingDir[1] = enemyBaseDir.rotateLeft();
-			scoutingDir[2] = enemyBaseDir.rotateRight();
-			scoutingDir[3] = scoutingDir[1].rotateLeft();
-			scoutingDir[4] = scoutingDir[2].rotateRight();
-			numOfDir = 5;
-		} else {
-			scoutingDir = new Direction [7];
-			scoutingDir[0] = enemyBaseDir;
-			scoutingDir[1] = enemyBaseDir.rotateLeft();
-			scoutingDir[2] = enemyBaseDir.rotateRight();
-			scoutingDir[3] = scoutingDir[1].rotateLeft();
-			scoutingDir[4] = scoutingDir[2].rotateRight();
-			scoutingDir[5] = scoutingDir[3].rotateLeft();
-			scoutingDir[6] = scoutingDir[4].rotateRight();
-			numOfDir = 7;
+		if (enemyBaseLoc[0] == null){
+			scoutingDir = new Direction [4];
+			scoutingDir[0] = Direction.NORTH;
+			scoutingDir[1] = Direction.EAST;
+			scoutingDir[2] = Direction.SOUTH;
+			scoutingDir[3] = Direction.WEST;
+			numOfDir = 4;
+		}
+		else{
+			Direction enemyBaseDir = homeLocation.directionTo(enemyBaseLoc[0]);
+//			controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString()+enemyBaseDir.toString());
+			
+			if ( enemyBaseDir.isDiagonal() ){
+				scoutingDir = new Direction [3];
+				scoutingDir[0] = enemyBaseDir;
+				scoutingDir[1] = enemyBaseDir.rotateLeft();
+				scoutingDir[2] = enemyBaseDir.rotateRight();
+				numOfDir = 3;
+			} else {
+				scoutingDir = new Direction [5];
+				scoutingDir[0] = enemyBaseDir;
+				scoutingDir[1] = enemyBaseDir.rotateLeft();
+				scoutingDir[2] = enemyBaseDir.rotateRight();
+				scoutingDir[3] = scoutingDir[1].rotateLeft();
+				scoutingDir[4] = scoutingDir[2].rotateRight();
+				numOfDir = 5;
+			}
 		}
 		
 	}
@@ -396,12 +378,16 @@ public class RecyclerAI extends BuildingAI {
 				for (ratioPointer = 0; (unitConstructed + controllers.myRC.getRobot().getID()) % ratioTotalSum >= ratioPartialSum[ratioPointer]; ++ ratioPointer);
 				if (buildingSystem.constructUnit(types[i][ratioPointer])) {
 					++unitConstructed;
-					controllers.myRC.setIndicatorString(2, ratioPointer + "");
-				}
 
-				msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]), unitConstructed*5) ) );
-				if (enemyBaseLoc != null && types[i][ratioPointer] == UnitType.CONSTRUCTOR);
-					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+					if (types[i][ratioPointer] == UnitType.CONSTRUCTOR){	
+	//					controllers.myRC.setIndicatorString(2, Clock.getRoundNum()+" sent!");
+						if (numOfDir!= 0) {
+							msgHandler.queueMessage(new ScoutingMessage( scoutingDir[numOfConstructors%numOfDir] ) );
+						}
+						numOfConstructors++;
+					}
+				}
+				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				yield();
 				break;
 			}

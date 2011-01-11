@@ -59,12 +59,15 @@ public class CombatSystem {
 	};
 	
 	public boolean chaseTarget() {
-		if (target1 != null)
-			return chase(target1);
-		else
-			return false;
+//		if (target1 != null)
+//			return chase(target1);
+//		else
+//			return false;
+		if (enemies.size() > 0)
+			return chase(enemies.get(0));
+		return false;
 	}
-
+	
 	
 	public boolean chase(Robot r) {
 		if (controllers.motor.isActive())
@@ -141,15 +144,58 @@ public class CombatSystem {
 		}
 	}
 	
+	public MapLocation mass() {
+		Robot r;
+		MapLocation buildingLoc = null;
+		for (WeaponController w : controllers.weapons) {
+			if (w.isActive())
+				continue;
+			while (immobileEnemies.size() > 0) {
+				r = immobileEnemies.get(0);
+				try {
+					RobotInfo info = controllers.sensor.senseRobotInfo(r);
+					if (info.hitpoints <= 0) {
+						immobileEnemies.remove(0);
+						continue;
+					}
+					MapLocation loc = controllers.sensor
+					.senseLocationOf(r);
+					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
+					if (dist > maxRange) {
+						immobileEnemies.remove(0);
+						continue;
+					}
+					w.attackSquare(loc, r.getRobotLevel());
+					if (info.hitpoints < aveDamage) {
+						immobileEnemies.remove(0);
+						buildingLoc = loc;
+						break;
+					}
+				} catch (GameActionException e) {
+					immobileEnemies.remove(0);
+					continue;
+				}
+			}
+		}
+		return buildingLoc;
+	}
+	
 	public void massacre() {
 //		if (immobileEnemies.size() == 0)
 //			return;
-		int i = 0;
+		int i = 0, dist;
 		for (WeaponController w : controllers.weapons) {
 			if (w.isActive())
 				continue;
 			try {
 				MapLocation loc = controllers.sensor.senseLocationOf(immobileEnemies.get(i));
+				dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
+				if (dist > maxRange) {
+					++i;
+					if (i >= immobileEnemies.size())
+						return;
+					continue;
+				}
 				w.attackSquare(loc, immobileEnemies.get(i).getRobotLevel());
 			} catch (GameActionException e) {
 				++i;
@@ -182,48 +228,79 @@ public class CombatSystem {
 			return false;
 		}
 	}
-
-	public boolean attack() {
-		if (target1 == null) {
-//			destroyDeadEnemy();
-			return false;
-		}
-		boolean attacked = false;
+	
+	public void attack() {
+		Robot r;
 		for (WeaponController w : controllers.weapons) {
 			if (w.isActive())
 				continue;
-			try {
-				RobotInfo info = controllers.sensor.senseRobotInfo(target1);
-				if (info.hitpoints < 0) {
-					if (target2 == null)
-						return false;
-					target1 = target2;
-					target2 = null;
+			while (enemies.size() > 0) {
+				r = enemies.get(0);
+				try {
+					RobotInfo info = controllers.sensor.senseRobotInfo(r);
+					if (info.hitpoints <= 0) {
+						enemies.remove(0);
+						continue;
+					}
+					MapLocation loc = controllers.sensor
+					.senseLocationOf(r);
+					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
+					if (dist > maxRange) {
+						enemies.remove(0);
+						continue;
+					}
+					w.attackSquare(loc, r.getRobotLevel());
+					if (info.hitpoints < aveDamage) {
+						enemies.remove(0);
+						break;
+					}
+				} catch (GameActionException e) {
+					enemies.remove(0);
+					continue;
 				}
-				if (info.hitpoints > controllers.myRC.getHitpoints())
-					return true;
-				MapLocation weakest = controllers.sensor.senseLocationOf(target1);
-				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
-				if (dist > maxRange) {
-					return false;
-				}
-				w.attackSquare(weakest, target1.getRobotLevel());
-				attacked = true;
-			} catch (GameActionException e) {
-				if (target2 == null)
-					return false;
-				target1 = target2;
-				target2 = null;
 			}
 		}
-		return false;
 	}
+
+//	public boolean attack() {
+//		if (target1 == null) {
+////			destroyDeadEnemy();
+//			return false;
+//		}
+//		boolean attacked = false;
+//		for (WeaponController w : controllers.weapons) {
+//			if (w.isActive())
+//				continue;
+//			try {
+//				RobotInfo info = controllers.sensor.senseRobotInfo(target1);
+//				if (info.hitpoints < 0) {
+////					if (target2 == null)
+////						return false;
+////					target1 = target2;
+////					target2 = null;
+//				}
+//				MapLocation weakest = controllers.sensor
+//				.senseLocationOf(target1);
+//				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
+//				if (dist > maxRange) {
+//					return false;
+//				}
+//				w.attackSquare(weakest, target1.getRobotLevel());
+//				attacked = true;
+//			} catch (GameActionException e) {
+//				if (target2 == null)
+//					return false;
+//				target1 = target2;
+//				target2 = null;
+//			}
+//		}
+//		return false;
+//	}
 
 	public void senseNearby() {
 		reset();
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-		double leasthp1 = Chassis.HEAVY.maxHp;
-		double leasthp2 = Chassis.HEAVY.maxHp;
+		List<Double> hps = new ArrayList<Double>();
 		for (Robot r : robots) {
 			try {
 				RobotInfo info = controllers.sensor.senseRobotInfo(r);
@@ -240,34 +317,66 @@ public class CombatSystem {
 						continue;
 					}
 					MapLocation loc = controllers.sensor.senseLocationOf(r);
-					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
-					if (dist > maxRange)
-						continue;
-					totalEnemiesHp += info.hitpoints;
-					if (info.hitpoints < leasthp1) {
-						leasthp2 = leasthp1;
-						target2 = target1;
-						target1 = r;
-						leasthp1 = info.hitpoints;
-					} else if (info.hitpoints < leasthp2) {
-						target2 = r;
-						leasthp2 = info.hitpoints;
-					} else {
-						enemies.add(r);
-						elocs.add(loc);
-					}
-					if (target1 != null) {
-						enemies.add(target1);
-						if (target2 != null)
-							enemies.add(target2);
-					}
+//					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
+					hps.add(info.hitpoints);
+					enemies.add(r);
 				}
 			} catch (GameActionException e) {
 				continue;
 			}
 		}
-		lastUpdate = Clock.getRoundNum();
+		Util.sortHp(hps, enemies);
 	}
+	
+//	public void senseNearby() {
+//		reset();
+//		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+//		double leasthp1 = Chassis.HEAVY.maxHp;
+//		double leasthp2 = Chassis.HEAVY.maxHp;
+//		List<Double> hps = new ArrayList<Double>();
+//		for (Robot r : robots) {
+//			try {
+//				RobotInfo info = controllers.sensor.senseRobotInfo(r);
+//				if (r.getTeam() == controllers.myRC.getTeam()) {
+//					ComponentType[] components = info.components;
+//					if (Util.hasWeapon(components)) {
+//						allies.add(r);
+//						MapLocation loc = controllers.sensor.senseLocationOf(r);
+//						alocs.add(loc);
+//					}
+//				} else if ((r.getTeam() != Team.NEUTRAL)) {
+//					if (!info.on || info.chassis == Chassis.BUILDING) {
+//						immobileEnemies.add(r);
+//						continue;
+//					}
+//					MapLocation loc = controllers.sensor.senseLocationOf(r);
+//					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
+//					hps.add(info.hitpoints);
+//					
+//					totalEnemiesHp += info.hitpoints;
+//					if (info.hitpoints < leasthp1) {
+//						leasthp2 = leasthp1;
+//						target2 = target1;
+//						target1 = r;
+//						leasthp1 = info.hitpoints;
+//					} else if (info.hitpoints < leasthp2) {
+//						target2 = r;
+//						leasthp2 = info.hitpoints;
+//					} else {
+//						enemies.add(r);
+//						elocs.add(loc);
+//					}
+//					if (target1 != null) {
+//						enemies.add(target1);
+//						if (target2 != null)
+//							enemies.add(target2);
+//					}
+//				}
+//			} catch (GameActionException e) {
+//				continue;
+//			}
+//		}
+//	}
 
 	public void reset() {
 		allies.clear();
@@ -285,23 +394,27 @@ public class CombatSystem {
 	}
 	
 	public int enemyNum() {
-		if (outdated())
-			senseNearby();
+//		if (outdated())
+//			senseNearby();
 		return enemies.size();
 	}
 	
 	public int immobileEnemyNum() {
-		if (outdated())
-			senseNearby();
+//		if (outdated())
+//			senseNearby();
 		return immobileEnemies.size();
 	}
 	
 	public boolean hasEnemy() {
-		if (outdated())
-			senseNearby();
+//		if (outdated())
+//			senseNearby();
 		return (enemies.size() + immobileEnemies.size()) > 0;
 	}
 
+	public void print(Object o) {
+		System.out.println(o.toString());
+	}
+	
 	public boolean outdated() {
 		return Clock.getRoundNum() > lastUpdate + 1;
 	}
