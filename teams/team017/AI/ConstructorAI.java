@@ -46,7 +46,7 @@ public class ConstructorAI extends AI {
 		if (Clock.getRoundNum() == 0) {
 			try {
 				init();
-				init_revolve();
+//				init_revolve();
 				computeEnemyBaseLocation();
 				init_return();
 			} catch (GameActionException e) {

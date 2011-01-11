@@ -181,7 +181,7 @@ public class SoldierAI extends AI {
 					motor.setDirection(nextDir);
 				}
 			}
-			if (controllers.myRC.getLocation().distanceSquaredTo(enemyBaseLoc[0]) < 25)
+			if (enemyBaseLoc[0] != null && controllers.myRC.getLocation().distanceSquaredTo(enemyBaseLoc[0]) < 25)
 				reachedFirstBase = true;
 		} else if (enemyBaseLoc[0] != null) {
 			if (reachedFirstBase)
