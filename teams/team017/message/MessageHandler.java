@@ -1,7 +1,9 @@
 package team017.message;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
@@ -15,6 +17,8 @@ public class MessageHandler {
 	final static int INT_TAG_LENGTH = 4;
 	final static int LOC_TAG_LENGTH = 1;
 	
+	Set<Integer> history;
+	
 	Controllers controllers;
 	private Queue<GenericMessage> outQueue;
 	private Queue<Message> inQueue;
@@ -23,6 +27,7 @@ public class MessageHandler {
 		this.controllers = controllers;
 		outQueue = new LinkedList<GenericMessage>();
 		inQueue = new LinkedList<Message>();
+		history = new HashSet<Integer>();
 	}
 	
 	public void process() {
@@ -75,8 +80,17 @@ public class MessageHandler {
 	 * Check if the input message is valid by inspecting the check sum
 	 */
 	private boolean isValid(Message msg) {
-		return (msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3])
-			&& msg.ints[1] != controllers.myRC.getRobot().getID(); 
+		boolean valid = (msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3])
+		&& msg.ints[1] != controllers.myRC.getRobot().getID();
+		
+		if (valid) {
+			return !history.add((msg.ints[0] << 16) | msg.ints[1]);
+		} else {
+			return false;
+		}
+		
+//		return (msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3])
+//			&& msg.ints[1] != controllers.myRC.getRobot().getID(); 
 	}
 	
 	public MessageType getMessageType(Message msg) {
