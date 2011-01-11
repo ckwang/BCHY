@@ -216,6 +216,27 @@ public class SoldierAI extends AI {
 			}
 		}
 	}
+	
+	public void roachNavigate() throws GameActionException {
+		double resource = controllers.myRC.getTeamResources();
+		int round = Clock.getRoundNum();
+		switch (round % 3) {
+		case 0:
+			motor.setDirection(controllers.myRC.getDirection().rotateLeft().rotateLeft());
+			break;
+		case 1:
+			super.roachNavigate();
+			break;
+		case 2:
+			super.roachNavigate();
+			break;
+		case 3:
+			motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
+			break;
+		}
+		return;
+		
+	}
 
 	private void navigate() throws GameActionException {
 		if (leaderLoc == null && enemyBaseLoc[0] != null) {
