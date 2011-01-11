@@ -84,7 +84,7 @@ public class MessageHandler {
 		&& msg.ints[1] != controllers.myRC.getRobot().getID();
 		
 		if (valid) {
-			return !history.add((msg.ints[0] << 16) | msg.ints[1]);
+			return history.add((msg.ints[0] << 16) | msg.ints[1]);
 		} else {
 			return false;
 		}
