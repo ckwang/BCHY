@@ -36,30 +36,35 @@ public class SoldierAI extends AI {
 	public void proceed() {
 		while (true) {
 			try {
-				rc.setIndicatorString(0, "Soldier");
+//				rc.setIndicatorString(0, "Soldier");
 				processMessages();
-				
 				combat.senseNearby();
-				if (combat.enemyNum() > combat.allyNum() + 3) {
-					try {
-						combat.flee();
-						yield();
-						combat.flee();
-					} catch (GameActionException e1) {}
-				}
-				else {
+				
+				controllers.myRC.setIndicatorString (0, controllers.myRC.getLocation() + "");
+				controllers.myRC.setIndicatorString (1, combat.enemyNum() + "");
+				controllers.myRC.setIndicatorString (2, combat.elocs + "");
+				
+//				if (combat.enemyNum() > combat.allyNum() + 3) {
+//					try {
+//						combat.flee();
+//						yield();
+//						combat.flee();
+//					} catch (GameActionException e1) {}
+//				}
+//				else {
 					while (combat.enemyNum() > 0) {
 						combat.chaseTarget();
 						combat.attack();
 						yield();
 						combat.senseNearby();
+						while (combat.immobileEnemyNum() > 0 && combat.enemyNum() == 0) {
+							combat.massacre();
+							yield();
+							combat.senseNearby();
+						}
 					}
-				}
-				while (combat.immobileEnemyNum() > 0) {
-					combat.massacre();
-					combat.senseNearby();
-					yield();
-				}
+//				}
+
 				
 				navigate();	
 				sense_border();
@@ -71,16 +76,16 @@ public class SoldierAI extends AI {
 		}
 	}
 
-	public void flee(int steps) {
-		int a = 0;
-		while (a < steps) {
-			try {
-				if (combat.flee())
-					a++;
-				yield();
-			} catch (GameActionException e1) {}
-		}
-	}
+//	public void flee(int steps) {
+//		int a = 0;
+//		while (a < steps) {
+//			try {
+//				if (combat.flee())
+//					a++;
+//				yield();
+//			} catch (GameActionException e1) {}
+//		}
+//	}
 
 	public boolean launchAttack() {
 		if (combat.hasEnemy() && controllers.weaponNum() > 0) {
@@ -141,9 +146,9 @@ public class SoldierAI extends AI {
 				}
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				controllers.myRC.setIndicatorString(1, homeLocation + ","
-						+ borders[0] + "," + borders[1] + "," + borders[2]
-						+ "," + borders[3] + "," + enemyBaseLoc);
+//				controllers.myRC.setIndicatorString(1, homeLocation + ","
+//						+ borders[0] + "," + borders[1] + "," + borders[2]
+//						+ "," + borders[3] + "," + enemyBaseLoc);
 				break;
 			case FOLLOW_ME_MESSAGE:
 				// System.out.println("follow me message");
@@ -191,7 +196,7 @@ public class SoldierAI extends AI {
 			
 			leaderLoc = null;
 		} else {
-			controllers.myRC.setIndicatorString(2, "roachNavigate");
+//			controllers.myRC.setIndicatorString(2, "roachNavigate");
 			leaderLoc = null;
 			if (!motor.isActive())
 				roachNavigate();

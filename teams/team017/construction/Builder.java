@@ -82,6 +82,8 @@ public class Builder {
 			
 			if (controllers.myRC.getTeamResources() > type.chassis.cost * 1.1) {
 				if (canConstruct(type.chassis.level)) {
+					while (controllers.builder.isActive())
+						controllers.myRC.yield();
 					controllers.builder.build(type.chassis, buildLoc);
 					controllers.myRC.yield();
 					for (ComponentType com : type.getComponentList(controllers.builder.type())) {

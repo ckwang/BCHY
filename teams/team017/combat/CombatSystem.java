@@ -202,8 +202,7 @@ public class CombatSystem {
 				}
 				if (info.hitpoints > controllers.myRC.getHitpoints())
 					return true;
-				MapLocation weakest = controllers.sensor
-				.senseLocationOf(target1);
+				MapLocation weakest = controllers.sensor.senseLocationOf(target1);
 				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
 				if (dist > maxRange) {
 					return false;

@@ -121,14 +121,33 @@ public class RecyclerAI extends BuildingAI {
 				
 				double fluxRate = getEffectiveFluxRate();
 				double [] thresholds = {3, 2.4, 1.8, 1.2, 0.3};
-				int [][] unitRatio = {{5, 1}, {4, 1}, {3, 1}, {2, 1}, {1, 1}};
-				UnitType [][] types = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
-				if (Clock.getRoundNum() > 200 
-						&& controllers.myRC.getTeamResources() > 150
-//						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 200
-						){
-					constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
+				int [][] unitRatio = {{2, 1, 3}, {2, 1, 1}, {1, 1, 1}, {1, 2, 2}, {1, 1}};
+				UnitType [][] types = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
+
+				double [] laterThresholds = {6, 2.4, 1.8, 1.2, 0.3};
+				int [][] laterUnitRatio = {{5, 1, 5}, {2, 2, 2}, {1, 1, 2}, {1, 1}, {1, 1, 1}};
+				UnitType [][] laterTypes = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR},
+						{UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
+
+				if (controllers.myRC.getTeamResources() > 170
+						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 100) {
+					if (Clock.getRoundNum() > 1000) {
+						constructUnitAtRatio (fluxRate, laterThresholds, laterUnitRatio, laterTypes);
+					} else if (Clock.getRoundNum() > 200 
+							&& controllers.myRC.getTeamResources() > 150
+
+							){
+						constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
+					}
 				}
+
 
 				
 //				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
@@ -373,10 +392,8 @@ public class RecyclerAI extends BuildingAI {
 					ratioTotalSum += ratios[i][j];
 					ratioPartialSum[j] = ratioTotalSum;
 				}
-				controllers.myRC.setIndicatorString(0, ratioPartialSum[0] + "," + ratioPartialSum[1] + "");
-				controllers.myRC.setIndicatorString(1, unitConstructed + "");
 
-				for (ratioPointer = 0; unitConstructed % ratioTotalSum >= ratioPartialSum[ratioPointer]; ++ ratioPointer);
+				for (ratioPointer = 0; (unitConstructed + controllers.myRC.getRobot().getID()) % ratioTotalSum >= ratioPartialSum[ratioPointer]; ++ ratioPointer);
 				if (buildingSystem.constructUnit(types[i][ratioPointer])) {
 					++unitConstructed;
 					controllers.myRC.setIndicatorString(2, ratioPointer + "");
