@@ -102,7 +102,7 @@ public class RecyclerAI extends BuildingAI {
 		while (true) {
 			try {
 				if (enemyBaseLoc != null){
-					controllers.myRC.setIndicatorString(0, enemyBaseLoc.toString());
+//					controllers.myRC.setIndicatorString(0, enemyBaseLoc.toString());
 				}
 
 				processMessages();
@@ -121,7 +121,7 @@ public class RecyclerAI extends BuildingAI {
 				
 				double fluxRate = getEffectiveFluxRate();
 				double [] thresholds = {3, 2.4, 1.8, 1.2, 0.3};
-				int [][] unitRatio = {{10, 1}, {5, 1}, {4, 1}, {3, 1}, {2, 1}};
+				int [][] unitRatio = {{5, 1}, {4, 1}, {3, 1}, {2, 1}, {1, 1}};
 				UnitType [][] types = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, {UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
 				if (Clock.getRoundNum() > 200 
 						&& controllers.myRC.getTeamResources() > 150
@@ -283,7 +283,7 @@ public class RecyclerAI extends BuildingAI {
 			
 			case CONSTRUCTION_COMPLETE: {
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
-				controllers.myRC.setIndicatorString(1, "complete!" + Clock.getRoundNum());
+//				controllers.myRC.setIndicatorString(1, "complete!" + Clock.getRoundNum());
 				
 				/*
 				 * When a new building is constructed, we would like to build an antenna on it.
@@ -373,10 +373,15 @@ public class RecyclerAI extends BuildingAI {
 					ratioTotalSum += ratios[i][j];
 					ratioPartialSum[j] = ratioTotalSum;
 				}
-				
-				for (ratioPointer = 0; unitConstructed % ratioTotalSum > ratioPartialSum[ratioPointer]; ++ ratioPointer);
-				if (buildingSystem.constructUnit(types[i][ratioPointer]))
+				controllers.myRC.setIndicatorString(0, ratioPartialSum[0] + "," + ratioPartialSum[1] + "");
+				controllers.myRC.setIndicatorString(1, unitConstructed + "");
+
+				for (ratioPointer = 0; unitConstructed % ratioTotalSum >= ratioPartialSum[ratioPointer]; ++ ratioPointer);
+				if (buildingSystem.constructUnit(types[i][ratioPointer])) {
 					++unitConstructed;
+					controllers.myRC.setIndicatorString(2, ratioPointer + "");
+				}
+
 				msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]), unitConstructed*5) ) );
 				if (enemyBaseLoc != null && types[i][ratioPointer] == UnitType.CONSTRUCTOR);
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
@@ -385,6 +390,4 @@ public class RecyclerAI extends BuildingAI {
 			}
 		}
 	}
-	
-
 }
