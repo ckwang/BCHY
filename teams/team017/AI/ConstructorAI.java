@@ -80,9 +80,9 @@ public class ConstructorAI extends AI {
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
 				
-				if (enemyBaseLoc[0] != null)
-					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());
-				controllers.myRC.setIndicatorString(1, scoutDir.toString());
+//				if (enemyBaseLoc[0] != null)
+//					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());
+//				controllers.myRC.setIndicatorString(1, scoutDir.toString());
 				yield();
 
 				// Conditions of building factories/armories
@@ -410,17 +410,23 @@ public class ConstructorAI extends AI {
 				}
 			}
 		}
-		else if (scoutDir != Direction.NONE){
-//			controllers.myRC.setIndicatorString(1,"scouting");
+		else if (scoutDir != Direction.NONE && scoutDir != Direction.OMNI){
+			controllers.myRC.setIndicatorString(0,"Scouting");
 			if ( roachRounds > 0 ){
+				controllers.myRC.setIndicatorString(0,"roachNavigate");
 				roachNavigate();
 				roachRounds--;
-			} else {
+			} else if (sense_border() == scoutDir) {
+				controllers.myRC.setIndicatorString(0,"enemyBaseLoc");
+				navigator.setDestination(enemyBaseLoc[0]);
+				scoutDir = Direction.OMNI;
+			}
+			else {
+				controllers.myRC.setIndicatorString(0,"Scouting");
 				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
 				roachRounds = 100;
 			}
-				
-			
+
 		}
 		else {
 //			controllers.myRC.setIndicatorString(1,"roachNavigate");
