@@ -1,5 +1,7 @@
 package team017.AI;
 
+import java.util.Arrays;
+
 import team017.construction.Builder;
 import team017.message.MessageHandler;
 import team017.navigation.Navigator;
@@ -20,7 +22,7 @@ public abstract class AI {
 	
 	// {NORTH, EAST, SOUTH, WEST}
 	protected int[] borders = { -1, -1, -1, -1 };
-	protected MapLocation enemyBaseLoc;
+	protected MapLocation[] enemyBaseLoc = new MapLocation[3];
 	protected MapLocation homeLocation;
 
 	public AI(RobotController rc) {
@@ -45,7 +47,8 @@ public abstract class AI {
 	
 	protected void sense_border() {
 		try {
-
+			boolean hasChanged = false;
+			
 			Direction[] addDirs = new Direction[3];
 
 			if (controllers.myRC.getDirection().isDiagonal()) {
@@ -70,22 +73,39 @@ public abstract class AI {
 				if (i != 3) {
 					switch (addDirs[j]) {
 					case NORTH:
-						borders[0] = currentLoc.y - (i + 1);
+						int newBorder = currentLoc.y - (i + 1);
+						if (newBorder != borders[0]) {
+							borders[0] = newBorder;
+							hasChanged = true;
+						}
 						break;
 					case EAST:
-						borders[1] = currentLoc.x + (i + 1);
+						newBorder = currentLoc.x + (i + 1);
+						if (newBorder != borders[1]) {
+							borders[1] = newBorder;
+							hasChanged = true;
+						}
 						break;
 					case SOUTH:
-						borders[2] = currentLoc.y + (i + 1);
+						newBorder = currentLoc.y + (i + 1);
+						if (newBorder != borders[2]) {
+							borders[2] = newBorder;
+							hasChanged = true;
+						}
 						break;
 					case WEST:
-						borders[3] = currentLoc.x - (i + 1);
+						newBorder = currentLoc.x - (i + 1);
+						if (newBorder != borders[3]) {
+							borders[3] = newBorder;
+							hasChanged = true;
+						}
 						break;
 					}
 				}
 			}
 			
-			computeEnemyBaseLocation();
+			if (hasChanged)
+				computeEnemyBaseLocation();
 		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
@@ -94,27 +114,50 @@ public abstract class AI {
 	}
 	
 	protected void computeEnemyBaseLocation() {
+		int [] virtualBorders = Arrays.copyOf(borders, 4);
+		
+		for (int i = 0; i < 4; i++) {
+			if (virtualBorders[i] == -1) {
+				int otherValue = virtualBorders[(i+2)%4];
+				if (otherValue != -1) {
+					virtualBorders[i] = otherValue + ((i == 1 || i == 2) ? 60 : -60);
+				} else {
+					if (i % 2 == 0) {
+						virtualBorders[0] = homeLocation.y - 30;
+						virtualBorders[2] = homeLocation.y + 30;
+					} else {
+						virtualBorders[1] = homeLocation.x + 30;
+						virtualBorders[3] = homeLocation.x - 30;
+					}
+				}
+			} 
+		}
+		
+		/*
+		 * 1 ~ 2
+		 * ~ # ~
+		 * 4 ~ 3
+		 */
+		MapLocation[] corners = {
+				new MapLocation(virtualBorders[3] + 5, virtualBorders[0] - 5),
+				new MapLocation(virtualBorders[1] - 5, virtualBorders[0] - 5),
+				new MapLocation(virtualBorders[1] - 5, virtualBorders[2] + 5),
+				new MapLocation(virtualBorders[3] + 5, virtualBorders[2] + 5)
+		};
+		
+		int x = virtualBorders[1] + virtualBorders[3] - homeLocation.x;
+		int y = virtualBorders[0] + virtualBorders[2] - homeLocation.y;
+		enemyBaseLoc[0] = new MapLocation(x, y);
 
-		final int[] xmapping = {0, -1, 0, 1};
-		final int[] ymapping = {1, 0, -1, 0};
-		
-		int x = homeLocation.x;
-		int y = homeLocation.y;
-		
-		for (int index = 0; index < 4; index++){
-			if (borders[index] != -1){
-				x = xmapping[index] == 0 ? x : 2 * borders[index] + 60 * xmapping[index] - x;
-				y = ymapping[index] == 0 ? y : 2 * borders[index] + 60 * ymapping[index] - y;
+		enemyBaseLoc[1] = enemyBaseLoc[2] = null;
+		for (MapLocation corner : corners) {
+			if (corner.distanceSquaredTo(enemyBaseLoc[0]) > 100 && corner.distanceSquaredTo(homeLocation) > 100) {
+				if (enemyBaseLoc[1] == null)
+					enemyBaseLoc[1] = corner;
+				else
+					enemyBaseLoc[2] = corner;
 			}
 		}
-		
-		if (borders[0] != -1 && borders[2] != -1 ) {
-			y = borders[0] + borders[2] - homeLocation.y;
-		} else if (borders[1] != -1 && borders[3] != -1) {
-			x = borders[1] + borders[3] - homeLocation.x;
-		}
-		
-		enemyBaseLoc = new MapLocation(x, y);
 	}
 	
 	protected void roachNavigate() throws GameActionException {

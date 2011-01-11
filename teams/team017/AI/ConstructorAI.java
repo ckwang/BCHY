@@ -45,14 +45,15 @@ public class ConstructorAI extends AI {
 
 		// Initial movement
 		if (Clock.getRoundNum() == 0) {
-			try {
+//			try {
 				init();
 //				init_revolve();
 				computeEnemyBaseLocation();
-				init_return();
-			} catch (GameActionException e) {
-				e.printStackTrace();
-			}
+//				init_return();
+				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+//			} catch (GameActionException e) {
+//				e.printStackTrace();
+//			}
 		}
 
 		while (true) {
@@ -73,9 +74,11 @@ public class ConstructorAI extends AI {
 					checkEmptyRecyclers();
 
 				
-//				if (Clock.getRoundNum() % 2 == 0)
-//					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+
+				if (Clock.getRoundNum() % 3 == 0) {
+					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+				}
 				yield();
 
 				// Conditions of building factories/armories
@@ -91,8 +94,7 @@ public class ConstructorAI extends AI {
 		try {
 			for (int i = 0; i < 4; ++i) {
 				// Rotate twice Right for a 90 degrees turn
-				controllers.motor.setDirection(controllers.myRC.getDirection()
-						.rotateRight());
+				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
 				yield();
 				controllers.updateComponents();
 				// controllers.myRC.setIndicatorString(0, borders[0] + "," +
@@ -169,7 +171,6 @@ public class ConstructorAI extends AI {
 				e.printStackTrace();
 			}
 		}
-		msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 	}
 
 	private void updateLocationSets() {
