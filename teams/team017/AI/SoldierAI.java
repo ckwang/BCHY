@@ -36,6 +36,8 @@ public class SoldierAI extends AI {
 	}
 
 	public void proceed() {
+		
+		outer:
 		while (true) {
 			
 			rc.setIndicatorString(0, "Soldier");
@@ -46,21 +48,22 @@ public class SoldierAI extends AI {
 			combat.senseNearby();
 			rc.setIndicatorString(1, combat.enemyNum()+"");
 			while (combat.enemyNum() > 0) {
-				
 				combat.chaseTarget();
 				combat.attack();
 				yield();
 				combat.senseNearby();
-
 				rc.setIndicatorString(1, combat.enemyNum()+"");
-				while (combat.enemyNum() == 0 && combat.immobileEnemyNum() > 0) {
-					rc.setIndicatorString(2, combat.immobileEnemyNum() +"");
-					combat.massacre();
-					yield();
-					combat.senseNearby();
-				}
-
 			}
+			
+			while (combat.immobileEnemyNum() > 0) {
+				rc.setIndicatorString(2, combat.immobileEnemyNum() +"");
+				combat.massacre();
+				yield();
+				combat.senseNearby();
+				if (combat.enemyNum() > 0)
+					continue outer;
+			}
+			
 			if (attacked) {
 				if (!motor.isActive()) {
 					try {
@@ -71,6 +74,7 @@ public class SoldierAI extends AI {
 					} catch (GameActionException e) {
 					}
 				}
+				yield();
 			}
 			// if (combat.enemyNum() > combat.allyNum() + 3) {
 			// try {
@@ -162,6 +166,7 @@ public class SoldierAI extends AI {
 	// }
 
 	public void yield() {
+		super.yield();
 		if (controllers.myRC.getHitpoints() < prevHp) {
 			prevHp = controllers.myRC.getHitpoints();
 			attacked = true;

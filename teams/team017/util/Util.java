@@ -102,7 +102,9 @@ public class Util {
 		int j;
 		double tmp;
 		Robot r;
-		if (hps.size() != robots.size())
+		if (hps.size() != robots.size() || hps.size() == 0)
+			return;
+		if (hps.size() == 0)
 			return;
 		for (int i = 1; i < robots.size(); ++i) {
 			tmp = hps.get(i);
@@ -120,7 +122,7 @@ public class Util {
 	public static void sortLocation(List<Integer> dists, List<Robot> robots) {
 		int j, tmp;
 		Robot r;
-		if (dists.size() != robots.size())
+		if (dists.size() != robots.size() || dists.size() == 0)
 			return;
 		for (int i = 1; i < robots.size(); ++i) {
 			tmp = dists.get(i);
