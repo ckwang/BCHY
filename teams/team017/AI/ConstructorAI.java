@@ -29,7 +29,7 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
 	private Direction scoutDir = Direction.NONE;
-	private int roachRounds = 100;
+	private int roachRounds = 0;
 	
 	public ConstructorAI(RobotController rc) {
 		super(rc);
@@ -79,6 +79,10 @@ public class ConstructorAI extends AI {
 					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
+				
+				if (enemyBaseLoc[0] != null)
+					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());
+				controllers.myRC.setIndicatorString(1, scoutDir.toString());
 				yield();
 
 				// Conditions of building factories/armories
@@ -507,7 +511,8 @@ public class ConstructorAI extends AI {
 			case SCOUTING_MESSAGE: {						
 				ScoutingMessage handler = new ScoutingMessage(msg);
 				// update the borders
-				scoutDir = handler.getScoutDirection();
+				if (scoutDir == Direction.NONE)
+					scoutDir = handler.getScoutDirection();
 				break;
 			}
 			}

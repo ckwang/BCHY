@@ -114,6 +114,8 @@ public abstract class AI {
 	}
 	
 	protected void computeEnemyBaseLocation() {
+		if (borders[0] + borders[1] + borders[2] + borders[3] == -4)	return;
+		
 		int [] virtualBorders = Arrays.copyOf(borders, 4);
 		
 		for (int i = 0; i < 4; i++) {

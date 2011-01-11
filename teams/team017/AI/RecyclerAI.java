@@ -133,14 +133,24 @@ public class RecyclerAI extends BuildingAI {
 						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR}, 
 						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
 
+				double [] earlyThresholds = {0.3};
+				
+				int [][] earlyUnitRatio = {{1, 1, 1}};
+				UnitType [][] earlyTypes = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY}};
+
 				if (Clock.getRoundNum() > 200 
 						&& controllers.myRC.getTeamResources() > 150
 //						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 200
 						){
-					constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
+					
+					if (Clock.getRoundNum() < 1000) {
+						constructUnitAtRatio (fluxRate, earlyThresholds, earlyUnitRatio, earlyTypes);
+					} else {
+						constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);	
+					}
+					
 				}
-				if (enemyBaseLoc != null && numOfDir!= 0)
-					msgHandler.queueMessage(new ScoutingMessage( scoutingDir[numOfConstructors%numOfDir] ) );
+				
 
 				
 //				if (Clock.getRoundNum() > 1000 && getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 200) {
@@ -333,22 +343,34 @@ public class RecyclerAI extends BuildingAI {
 	
 	private void determinScoutDirs() {
 
-		Direction enemyBaseDir = homeLocation.directionTo(enemyBaseLoc[0]);
 		
-		if ( enemyBaseDir.isDiagonal() ){
-			scoutingDir = new Direction [3];
-			scoutingDir[0] = enemyBaseDir;
-			scoutingDir[1] = enemyBaseDir.rotateLeft();
-			scoutingDir[2] = enemyBaseDir.rotateRight();
-			numOfDir = 3;
-		} else {
-			scoutingDir = new Direction [5];
-			scoutingDir[0] = enemyBaseDir;
-			scoutingDir[1] = enemyBaseDir.rotateLeft();
-			scoutingDir[2] = enemyBaseDir.rotateRight();
-			scoutingDir[3] = scoutingDir[1].rotateLeft();
-			scoutingDir[4] = scoutingDir[2].rotateRight();
-			numOfDir = 5;
+		if (enemyBaseLoc[0] == null){
+			scoutingDir = new Direction [4];
+			scoutingDir[0] = Direction.NORTH;
+			scoutingDir[1] = Direction.EAST;
+			scoutingDir[2] = Direction.SOUTH;
+			scoutingDir[3] = Direction.WEST;
+			numOfDir = 4;
+		}
+		else{
+			Direction enemyBaseDir = homeLocation.directionTo(enemyBaseLoc[0]);
+//			controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString()+enemyBaseDir.toString());
+			
+			if ( enemyBaseDir.isDiagonal() ){
+				scoutingDir = new Direction [3];
+				scoutingDir[0] = enemyBaseDir;
+				scoutingDir[1] = enemyBaseDir.rotateLeft();
+				scoutingDir[2] = enemyBaseDir.rotateRight();
+				numOfDir = 3;
+			} else {
+				scoutingDir = new Direction [5];
+				scoutingDir[0] = enemyBaseDir;
+				scoutingDir[1] = enemyBaseDir.rotateLeft();
+				scoutingDir[2] = enemyBaseDir.rotateRight();
+				scoutingDir[3] = scoutingDir[1].rotateLeft();
+				scoutingDir[4] = scoutingDir[2].rotateRight();
+				numOfDir = 5;
+			}
 		}
 		
 	}
@@ -383,11 +405,17 @@ public class RecyclerAI extends BuildingAI {
 				}
 		
 				for (ratioPointer = 0; unitConstructed % ratioTotalSum >= ratioPartialSum[ratioPointer]; ++ ratioPointer);
-				if (buildingSystem.constructUnit(types[i][ratioPointer]))
+				if (buildingSystem.constructUnit( types[i][ratioPointer] )){
 					++unitConstructed;
 
-				if (enemyBaseLoc != null && types[i][ratioPointer] == UnitType.CONSTRUCTOR)			
-					numOfConstructors++;
+					if (types[i][ratioPointer] == UnitType.CONSTRUCTOR){	
+	//					controllers.myRC.setIndicatorString(2, Clock.getRoundNum()+" sent!");
+						if (numOfDir!= 0) {
+							msgHandler.queueMessage(new ScoutingMessage( scoutingDir[numOfConstructors%numOfDir] ) );
+						}
+						numOfConstructors++;
+					}
+				}
 				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				yield();
 				break;
