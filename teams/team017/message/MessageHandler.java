@@ -47,6 +47,7 @@ public class MessageHandler {
 			if (isValid(m))
 				inQueue.add(m);
 		}
+		
 	}
 	
 	public void queueMessage(GenericMessage msg) {
@@ -95,5 +96,9 @@ public class MessageHandler {
 	
 	public MessageType getMessageType(Message msg) {
 		return MessageType.values()[msg.ints[2]];
+	}
+	
+	public void clearOutQueue() {
+		outQueue.clear();
 	}
 }

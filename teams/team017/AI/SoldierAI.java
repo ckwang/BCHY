@@ -41,7 +41,7 @@ public class SoldierAI extends AI {
 		combat = new CombatSystem(controllers);
 	}
 
-	public void proceed() {
+	public void proceed() {				
 		
 		outer:
 		while (true) {
@@ -59,11 +59,16 @@ public class SoldierAI extends AI {
 					for (int i = 0; i < combat.enemyInfos.size(); ++i)
 						s += combat.enemyInfos.get(i).location + " ";
 					controllers.myRC.setIndicatorString(1,"Broadcast:" + s);
+					msgHandler.clearOutQueue();
 					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfos));
-				} else {
-					controllers.myRC.setIndicatorString(1, "Follow Me Message Sent");
-					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-				}
+					msgHandler.process();
+				} 
+//				else {
+//					if (Clock.getRoundNum() % 3 == 0) {
+//						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+//						controllers.myRC.setIndicatorString(1, "Follow Me Message Sent");
+//					}
+//				}
 			}
 
 			try {navigate();}
@@ -77,8 +82,8 @@ public class SoldierAI extends AI {
 	}
 
 	public void yield() {
-		combat.reset();
 		super.yield();
+		combat.reset();
 		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + "");
 
 		if (controllers.myRC.getHitpoints() < prevHp) {
