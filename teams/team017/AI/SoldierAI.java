@@ -52,7 +52,21 @@ public class SoldierAI extends AI {
 
 			
 			combat.senseNearby();
-			combat.attack();
+			MapLocation nextLoc = combat.attack();
+			if (nextLoc != null && !controllers.motor.isActive()) {
+				navigator.setDestination(nextLoc);
+				try {
+					Direction nextDir = navigator.getNextDir(0);
+					if (rc.getDirection() == nextDir)
+						controllers.motor.moveForward();
+					else if (nextDir == Direction.OMNI)
+						controllers.motor.moveBackward();
+					else 
+						controllers.motor.setDirection(nextDir);
+				} catch (GameActionException e) {
+					e.printStackTrace();
+				}
+			}
 			if (controllers.comm != null){
 				if (combat.enemyInfos.size() > 0) {
 					String s = "";
@@ -134,16 +148,16 @@ public class SoldierAI extends AI {
 //				
 			case ENEMY_INFORMATION_MESSAGE:
 				EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
-//				if (ehandler.getRoundNum() == Clock.getRoundNum() || (ehandler.getRoundNum() == Clock.getRoundNum() - 1 && ehandler.getSourceID() < rc.getRobot().getID())) {
+				if (ehandler.getRoundNum() == Clock.getRoundNum() || ehandler.getRoundNum() == Clock.getRoundNum() - 1) {
 					for (EnemyInfo e: ehandler.getInfos()) {
 						combat.enemyInfosInbox.add(e);
 					}	
-//				}
+					String s = "";
+					for (int i = 0; i < combat.enemyInfosInbox.size(); ++i)
+						s += combat.enemyInfosInbox.get(i).location + " ";
+					controllers.myRC.setIndicatorString(1, "Mess:" + s + ehandler.getRoundNum());
+				}
 				
-				String s = "";
-				for (int i = 0; i < combat.enemyInfosInbox.size(); ++i)
-					s += combat.enemyInfosInbox.get(i).location + " ";
-				controllers.myRC.setIndicatorString(1, "Mess:" + s + ehandler.getRoundNum());
 				break;
 			}
 		}
@@ -184,14 +198,11 @@ public class SoldierAI extends AI {
 					motor.setDirection(nextDir);
 				}
 			}
-			if (enemyBaseLoc[0] != null
-					&& controllers.myRC.getLocation().distanceSquaredTo(
-							enemyBaseLoc[0]) < 25)
+			if (enemyBaseLoc[0] != null && controllers.myRC.getLocation().distanceSquaredTo(enemyBaseLoc[0]) < 25)
 				reachedFirstBase = true;
 		} else if (enemyBaseLoc[0] != null) {
 			if (reachedFirstBase)
-				navigator.setDestination(enemyBaseLoc[controllers.myRC
-						.getRobot().getID() % 2 + 1]);
+				navigator.setDestination(enemyBaseLoc[controllers.myRC.getRobot().getID() % 2 + 1]);
 			else
 				navigator.setDestination(enemyBaseLoc[0]);
 

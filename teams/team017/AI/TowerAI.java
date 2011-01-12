@@ -20,12 +20,10 @@ public class TowerAI extends AI {
 			try {
 				combat.senseNearby();
 				
-				if (combat.enemyNum() == 0 && !controllers.motor.isActive()) {
-					controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight().rotateRight().rotateRight());
+				if (combat.enemyInfos.size() == 0 && !controllers.motor.isActive()) {
+					controllers.motor.setDirection(controllers.myRC.getDirection().opposite());
 					yield();
 				} else {
-//						combat.chaseTarget();
-//						combat.attack();
 						combat.towerAttack();
 					yield();
 				}
@@ -39,6 +37,11 @@ public class TowerAI extends AI {
 		}
 	}
 
+	public void yield() {
+		super.yield();
+		combat.reset();
+	}
+	
 	@Override
 	protected void processMessages() throws GameActionException {
 		// TODO Auto-generated method stub

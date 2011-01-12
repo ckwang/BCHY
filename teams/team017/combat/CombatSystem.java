@@ -15,7 +15,9 @@ import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+import battlecode.common.MovementController;
 import battlecode.common.Robot;
+import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 import battlecode.common.Team;
@@ -502,14 +504,16 @@ public class CombatSystem {
 		return Clock.getRoundNum() > lastUpdate + 1;
 	}
 	
-	public void attack() {
+	public MapLocation attack() {
 		try {
 			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
 			if (enemyInfos.size() == 0)
-				return;
+				return null;
 			Collections.sort(enemyInfos, comparator);
 			int listPointer = 0;
 			for (WeaponController w : controllers.weapons) {
+				MovementController motor = controllers.motor;
+				RobotController rc = controllers.myRC;
 				if (!w.isActive()) {
 					if (listPointer == enemyInfos.size())
 						--listPointer;
@@ -520,23 +524,25 @@ public class CombatSystem {
 						if (enemy.hp < 0) {
 							++listPointer;
 						}
-						if (!controllers.motor.isActive())
-							controllers.motor.moveBackward();
-					} else if(!controllers.motor.isActive()) {
-						Direction currentDir = controllers.myRC.getDirection();
-						MapLocation currentLoc = controllers.myRC.getLocation();
-						if (currentDir == currentLoc.directionTo(enemy.location)) {
-							controllers.motor.moveForward();
-						} else {
-							controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(enemy.location));
-						}
+						if (!motor.isActive() && controllers.motor.canMove(rc.getDirection().opposite()))
+							return rc.getLocation();
+					} else if(!motor.isActive()) {
+						return enemy.location;
+						
+//						Direction currentDir = rc.getDirection();
+//						MapLocation currentLoc = rc.getLocation();
+//						if (currentDir == currentLoc.directionTo(enemy.location)) {
+//							motor.moveForward();
+//						} else {
+//							motor.setDirection(rc.getLocation().directionTo(enemy.location));
+//						}
 					}
 				}
 			}
 		} catch (GameActionException e) {
 			e.printStackTrace();
 		}
-
+		return null;
 	}
 	
 	public void towerAttack() {
