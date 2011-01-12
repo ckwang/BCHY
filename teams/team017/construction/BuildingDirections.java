@@ -78,6 +78,21 @@ public class BuildingDirections {
 		}
 	}
 	
+	public Direction getDirections(UnitType type){
+		switch(type){
+		case RECYCLER:
+			return recyclerDirection;
+		case ARMORY:
+			return armoryDirection;
+		case FACTORY:
+			return factoryDirection;
+		case TOWER:
+			return towerDirection;
+		default:
+			return null;
+		}
+	}
+	
 	public void setDirections(ComponentType type, Direction dir) {
 		switch(type){
 		case RECYCLER:
@@ -86,6 +101,19 @@ public class BuildingDirections {
 			armoryDirection = dir;
 		case FACTORY:
 			factoryDirection = dir;
+		}
+	}
+	
+	public void setDirections(UnitType type, Direction dir) {
+		switch(type){
+		case RECYCLER:
+			recyclerDirection = dir;
+		case ARMORY:
+			armoryDirection = dir;
+		case FACTORY:
+			factoryDirection = dir;
+		case TOWER:
+			towerDirection = dir;
 		}
 	}
 	
