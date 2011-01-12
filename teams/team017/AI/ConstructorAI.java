@@ -76,7 +76,7 @@ public class ConstructorAI extends AI {
 
 				
 
-				if (Clock.getRoundNum() % 3 == 0) {
+				if (Clock.getRoundNum() % 4 == 0) {
 					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
@@ -317,6 +317,7 @@ public class ConstructorAI extends AI {
 			} else {
 				return false;
 			}
+			yield();
 		}
 		
 		// move to the adjacent of the building site
