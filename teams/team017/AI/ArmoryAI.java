@@ -49,7 +49,7 @@ public class ArmoryAI extends BuildingAI{
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation currentLoc = controllers.myRC.getLocation();
 				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
-					builderDirs.setDirections(handler.getBuilderType(), currentLoc.directionTo(handler.getBuildingLocation()));
+					builderDirs.setDirections(handler.getBuildingType(), currentLoc.directionTo(handler.getBuildingLocation()));
 				}
 				break;
 			}

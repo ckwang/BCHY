@@ -258,19 +258,34 @@ public class RecyclerAI extends BuildingAI {
 			
 			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
 				BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
-				if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
-					if(builderDirs.towerDirection != null){
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), -1));
+				
+				// if the constructor is inquiring it 
+				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+					
+					Direction dir;
+					
+					// if there is already a tower around
+					if (builderDirs.towerDirection != null){
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(Direction.NONE, -1));
 						controllers.myRC.setIndicatorString(0, "Consecutive -1");
-					} else 
+					} else if ( (dir = builderDirs.consecutiveEmpties(4)) != Direction.NONE ) {
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(dir, 4));
+						controllers.myRC.setIndicatorString(0, "Consecutive 4");
+					} else if ( (dir = builderDirs.consecutiveEmpties(3)) != Direction.NONE ) {
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(dir, 3));
+						controllers.myRC.setIndicatorString(0, "Consecutive 3");
+					} else if ( (dir = builderDirs.consecutiveEmpties(2)) != Direction.NONE ) {
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(dir, 2));
+						controllers.myRC.setIndicatorString(0, "Consecutive 2");
+					}
 //					} else if (builderDirs.consecutiveEmpties(3) != Direction.NONE) {
 //						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
 //						controllers.myRC.setIndicatorString(0, "Consecutive 3");
 //					} else 
-					if (builderDirs.consecutiveEmpties(2) != Direction.NONE) {
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
-//						controllers.myRC.setIndicatorString(0, "Consecutive 2");
-					}
+//					if (builderDirs.consecutiveEmpties(2) != Direction.NONE) {
+//						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
+////						controllers.myRC.setIndicatorString(0, "Consecutive 2");
+//					}
 					yield();
 				}
 				break;
@@ -286,27 +301,27 @@ public class RecyclerAI extends BuildingAI {
 				 * When a new building is constructed, we would like to build an antenna on it.
 				 */
 				
-
 				// see if the target is adjacent
 				if (buildingLocation.isAdjacentTo(currentLoc)) {
 					
-					// UnitType.TOWER gives null
-					if (handler.getBuilderType() == null) {
+					// UnitType.TOWER
+					if (handler.getBuildingType() == UnitType.TOWER) {
 						if (handler.getBuildingLocation().isAdjacentTo(controllers.myRC.getLocation())){
 							while(!buildingSystem.constructComponent(buildingLocation, UnitType.TOWER)) {
 								if(controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND).getTeam() != controllers.myRC.getTeam())
 									break;
 								yield();
 							}
+							builderDirs.setDirections(handler.getBuildingType(), builderDir);
 						}
 						break;
 					}
 					
-					builderDirs.setDirections(handler.getBuilderType(), builderDir);
+					builderDirs.setDirections(handler.getBuildingType(), builderDir);
 					// update the builderDirs
 					
 					
-					if(handler.getBuilderType() != ComponentType.RECYCLER){
+					if(handler.getBuildingType() != UnitType.RECYCLER){
 						// face the correct direction
 						if (controllers.myRC.getDirection() != builderDir){
 							controllers.motor.setDirection(builderDir);

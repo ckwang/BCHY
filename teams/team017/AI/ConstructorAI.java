@@ -255,7 +255,7 @@ public class ConstructorAI extends AI {
 						return false;
 					yield();
 				}
-				msgHandler.queueMessage(new ConstructionCompleteMessage(target, ComponentType.RECYCLER));
+				msgHandler.queueMessage(new ConstructionCompleteMessage(target, UnitType.RECYCLER));
 				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				yield();
 				return true;
@@ -471,9 +471,9 @@ public class ConstructorAI extends AI {
 					builtLocations.add(handler.getSourceLocation());
 				} else if (handler.getBuildableDirection() != Direction.NONE) {
 					MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-					if (handler.getAvailableSpace() == 2) {
+					if (handler.getAvailableSpace() >= 2) {
 						if(buildBuildingAtLoc(buildLoc, UnitType.TOWER)){
-							msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, null));
+							msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.TOWER));
 							builtLocations.add(handler.getSourceLocation());
 						}
 					}
