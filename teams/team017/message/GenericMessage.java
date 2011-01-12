@@ -14,9 +14,9 @@ public abstract class GenericMessage {
 	
 	protected GenericMessage(MessageType type) {
 		msg = new Message();
-		msg.ints = new int[10];
-		msg.locations = new MapLocation[10];
-		msg.strings = new String[10];
+		msg.ints = new int[50];
+		msg.locations = new MapLocation[50];
+		msg.strings = new String[50];
 		
 		this.type = type;
 	}

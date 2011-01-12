@@ -13,14 +13,20 @@ public class ConstructionCompleteMessage extends GenericMessage {
 		super(MessageType.CONSTRUCTION_COMPLETE);
 		
 		msg.locations[locCounter++] = buildingLocation;
-		msg.ints[intCounter++] = builderType.ordinal();
+		if (builderType != null)
+			msg.ints[intCounter++] = builderType.ordinal();
+		else
+			msg.ints[intCounter++] = -1;
 	}
 	
 	public ConstructionCompleteMessage(Message msg) {
 		super(msg);
 
 		buildingLocation = msg.locations[locCounter++];
-		builderType = ComponentType.values()[msg.ints[intCounter++]];
+		if (msg.ints[intCounter++] != -1)
+			builderType = ComponentType.values()[msg.ints[intCounter++]];
+		else
+			builderType = null;
 	}
 	
 	public MapLocation getBuildingLocation() {

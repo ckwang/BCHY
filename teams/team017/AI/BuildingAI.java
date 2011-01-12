@@ -1,6 +1,6 @@
 package team017.AI;
 
-import team017.construction.BuilderDirections;
+import team017.construction.BuildingDirections;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
@@ -10,7 +10,7 @@ import battlecode.common.RobotInfo;
 
 public abstract class BuildingAI extends AI {
 
-	protected BuilderDirections builderDirs;
+	protected BuildingDirections builderDirs;
 	
 	private double[] fluxRecord = new double[10];
 	private int[] roundRecord = new int[10];
@@ -19,8 +19,8 @@ public abstract class BuildingAI extends AI {
 	public BuildingAI(RobotController rc) {
 		super(rc);
 
-		builderDirs = new BuilderDirections(controllers);
-		builderDirs.updateBuilderDirs();
+		builderDirs = new BuildingDirections(controllers);
+		builderDirs.updateBuildingDirs();
 	}
 
 	abstract public void proceed();

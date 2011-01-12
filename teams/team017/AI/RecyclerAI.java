@@ -108,47 +108,45 @@ public class RecyclerAI extends BuildingAI {
 
 				processMessages();
 				
-//				/*
-//				 * Producing constructor only
-//				 */
-//				if (getEffectiveFluxRate() > 0.3 && controllers.myRC.getTeamResources() > 150 && unitConstructed < numOfDir) {
-//						if (buildingSystem.constructUnit(UnitType.CONSTRUCTOR)){
-//							msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-//							if (enemyBaseLoc != null)
-//								msgHandler.queueMessage(new ScoutingMessage( controllers.myRC.getLocation().add(scoutingDir[unitConstructed%numOfDir], 10) ) );
-//							++unitConstructed;
-//							yield();
-//						}
-//						
-//				}
 				
 				double fluxRate = getEffectiveFluxRate();
-				double [] thresholds = {3, 2.4, 1.8, 1.2, 0.3};
-				int [][] unitRatio = {{2, 1, 3}, {2, 1, 1}, {1, 1, 1}, {1, 2, 2}, {1, 1}};
-				UnitType [][] types = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
-						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
-						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
-						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
-						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
+//				double [] thresholds = {3, 2.4, 1.8, 1.2, 0.3};
+//				int [][] unitRatio = {{2, 1, 3}, {2, 1, 1}, {1, 1, 1}, {1, 2, 2}, {1, 1}};
+//				UnitType [][] types = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+//						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+//						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+//						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+//						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
+//				double [] laterThresholds = {6, 2.4, 1.8, 1.2, 0.3};
+//				int [][] laterUnitRatio = {{5, 1, 5}, {2, 2, 2}, {1, 1, 2}, {1, 1}, {1, 1, 1}};
+//				UnitType [][] laterTypes = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+//						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+//						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
+//						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR},
+//						{UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
+				
+				/*
+				 * Test
+				 */
+				double [] thresholds = {0.3};
+				int [][] unitRatio = {{1,1,1}};
+				UnitType [][] types = {{UnitType.RADARGUN, UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
 
-				double [] laterThresholds = {6, 2.4, 1.8, 1.2, 0.3};
-				int [][] laterUnitRatio = {{5, 1, 5}, {2, 2, 2}, {1, 1, 2}, {1, 1}, {1, 1, 1}};
-				UnitType [][] laterTypes = {{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
-						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
-						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR, UnitType.GRIZZLY},
-						{UnitType.GRIZZLY, UnitType.CONSTRUCTOR},
-						{UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
-
+				/*
+				 * 
+				 */
 				if (controllers.myRC.getTeamResources() > 170
 						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 100) {
-					if (Clock.getRoundNum() > 1000) {
-						constructUnitAtRatio (fluxRate, laterThresholds, laterUnitRatio, laterTypes);
-					} else if (Clock.getRoundNum() > 200 
-							&& controllers.myRC.getTeamResources() > 150
 
-							){
-						constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
-					}
+					constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
+//					if (Clock.getRoundNum() > 1000) {
+//						constructUnitAtRatio (fluxRate, laterThresholds, laterUnitRatio, laterTypes);
+//					} else if (Clock.getRoundNum() > 200 
+//							&& controllers.myRC.getTeamResources() > 150
+//
+//							){
+//						constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
+//					}
 				}
 				
 				// turn off when the mine is depleted
@@ -215,6 +213,7 @@ public class RecyclerAI extends BuildingAI {
 	}
 	@Override
 	protected void processMessages() throws GameActionException {
+//		controllers.myRC.setIndicatorString (1, Clock.getRoundNum() + "");
 		// receive messages and handle them
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
@@ -237,59 +236,75 @@ public class RecyclerAI extends BuildingAI {
 				determinScoutDirs();
 				break;
 			}
-//			case BUILDING_REQUEST:{
-//				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
-//				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-//					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
-//						if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
-//							break;
-//						yield();
-//					}	
-//				}
-//				break;
-//				
-//				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
-//				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-//					buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType());
+			case BUILDING_REQUEST:{
+//				controllers.myRC.setIndicatorString (0, "Got building request");
+				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
+				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
+						if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
+							break;
+						yield();
+					}	
+				}
+				break;
+				
+//				BuildingRequestMessage bhandler = new BuildingRequestMessage(msg);
+//				if (bhandler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+//					buildingSystem.constructComponent(bhandler.getBuildingLocation(),bhandler.getUnitType());
 //					yield();
 //				}
 //				break;
-//			}
+			}
 			
-//			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
-//				BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
-//				if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
-//					if(builderDirs.armoryDirection != null && builderDirs.factoryDirection != null){
-//						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), -1));
-//						controllers.myRC.setIndicatorString(0, "Consecutive -1");
+			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
+				BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
+				if(handler.getBuilderLocation().equals(controllers.myRC.getLocation())){
+					if(builderDirs.towerDirection != null){
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), -1));
+						controllers.myRC.setIndicatorString(0, "Consecutive -1");
+					} else 
 //					} else if (builderDirs.consecutiveEmpties(3) != Direction.NONE) {
 //						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
 //						controllers.myRC.setIndicatorString(0, "Consecutive 3");
-//					} else if (builderDirs.consecutiveEmpties(2) != Direction.NONE) {
-//						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
+//					} else 
+					if (builderDirs.consecutiveEmpties(2) != Direction.NONE) {
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(2), 2));
 //						controllers.myRC.setIndicatorString(0, "Consecutive 2");
-//					}
-//					yield();
-//				}
-//				break;
-//			}
+					}
+					yield();
+				}
+				break;
+			}
 			
 			case CONSTRUCTION_COMPLETE: {
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
-//				controllers.myRC.setIndicatorString(1, "complete!" + Clock.getRoundNum());
-				
+				MapLocation currentLoc = controllers.myRC.getLocation();
+				MapLocation buildingLocation = handler.getBuildingLocation();
+				Direction builderDir = currentLoc.directionTo(buildingLocation);
+
 				/*
 				 * When a new building is constructed, we would like to build an antenna on it.
 				 */
 				
-				MapLocation currentLoc = controllers.myRC.getLocation();
 
 				// see if the target is adjacent
-				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
+				if (buildingLocation.isAdjacentTo(currentLoc)) {
 					
-					// update the builderDirs
-					Direction builderDir = currentLoc.directionTo(handler.getBuildingLocation());
+					// UnitType.TOWER gives null
+					if (handler.getBuilderType() == null) {
+						if (handler.getBuildingLocation().isAdjacentTo(controllers.myRC.getLocation())){
+							while(!buildingSystem.constructComponent(buildingLocation, UnitType.TOWER)) {
+								if(controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND).getTeam() != controllers.myRC.getTeam())
+									break;
+								yield();
+							}
+						}
+						break;
+					}
+					
 					builderDirs.setDirections(handler.getBuilderType(), builderDir);
+					// update the builderDirs
+					
 					
 					if(handler.getBuilderType() != ComponentType.RECYCLER){
 						// face the correct direction
@@ -297,11 +312,11 @@ public class RecyclerAI extends BuildingAI {
 							controllers.motor.setDirection(builderDir);
 							yield();
 						}
-						
-						// build an antenna if it doesn't have one
-						if (!Util.containsComponent(controllers, handler.getBuildingLocation(), RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
-							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
-						}
+//						
+//						// build an antenna if it doesn't have one
+//						if (!Util.containsComponent(controllers, buildingLocation, RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
+//							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
+//						}
 					}
 				}
 				break;
