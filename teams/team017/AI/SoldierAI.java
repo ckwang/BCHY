@@ -31,7 +31,6 @@ public class SoldierAI extends AI {
 	private double prevHp = 50;
 	private boolean attacked = false;
 	
-	public List<EnemyInfo> enemyInfoInbox = new ArrayList <EnemyInfo>();
 	
 	private boolean reachedFirstBase = false;
 
@@ -59,7 +58,7 @@ public class SoldierAI extends AI {
 					String s = "";
 					for (int i = 0; i < combat.enemyInfos.size(); ++i)
 						s += combat.enemyInfos.get(i).location + " ";
-					controllers.myRC.setIndicatorString(1, s);
+					controllers.myRC.setIndicatorString(1,"Broadcast:" + s);
 					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfos));
 				} else {
 					controllers.myRC.setIndicatorString(1, "Follow Me Message Sent");
@@ -109,35 +108,37 @@ public class SoldierAI extends AI {
 				}
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
+				controllers.myRC.setIndicatorString(1, "Border Message got" + handler.getRoundNum());
 				break;
 				
-			case FOLLOW_ME_MESSAGE:
-				// System.out.println("follow me message");
-				FollowMeMessage fhandler = new FollowMeMessage(msg);
-				MapLocation loc = fhandler.getSourceLocation();
-				followDir = fhandler.getFollowDirection();
-				if (leaderLoc != null) {
-					int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
-					int newdist = rc.getLocation().distanceSquaredTo(loc);
-					if (newdist < curdist)
-						leaderLoc = loc.add(followDir, 5);
-				} else
-					leaderLoc = loc.add(followDir, 5);
-				navigator.setDestination(leaderLoc);
-				break;
-				
+//			case FOLLOW_ME_MESSAGE:
+//				// System.out.println("follow me message");
+//				FollowMeMessage fhandler = new FollowMeMessage(msg);
+//				MapLocation loc = fhandler.getSourceLocation();
+//				followDir = fhandler.getFollowDirection();
+//				if (leaderLoc != null) {
+//					int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
+//					int newdist = rc.getLocation().distanceSquaredTo(loc);
+//					if (newdist < curdist)
+//						leaderLoc = loc.add(followDir, 5);
+//				} else
+//					leaderLoc = loc.add(followDir, 5);
+//				navigator.setDestination(leaderLoc);
+//				controllers.myRC.setIndicatorString(1, "Follow me message got" + fhandler.getRoundNum());
+//				break;
+//				
 			case ENEMY_INFORMATION_MESSAGE:
 				EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
-				if (ehandler.getRoundNum() == Clock.getRoundNum() || (ehandler.getRoundNum() == Clock.getRoundNum() - 1 && ehandler.getSourceID() < rc.getRobot().getID())) {
+//				if (ehandler.getRoundNum() == Clock.getRoundNum() || (ehandler.getRoundNum() == Clock.getRoundNum() - 1 && ehandler.getSourceID() < rc.getRobot().getID())) {
 					for (EnemyInfo e: ehandler.getInfos()) {
-						enemyInfoInbox.add(e);
+						combat.enemyInfosInbox.add(e);
 					}	
-				}
+//				}
 				
-//				String s = "";
-//				for (int i = 0; i < combat.enemyInfos.size(); ++i)
-//					s += combat.enemyInfos.get(i).location + " ";
-//				controllers.myRC.setIndicatorString(1, "1" + s);
+				String s = "";
+				for (int i = 0; i < combat.enemyInfosInbox.size(); ++i)
+					s += combat.enemyInfosInbox.get(i).location + " ";
+				controllers.myRC.setIndicatorString(1, "Mess:" + s + ehandler.getRoundNum());
 				break;
 			}
 		}

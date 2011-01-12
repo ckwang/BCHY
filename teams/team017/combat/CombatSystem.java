@@ -73,6 +73,7 @@ public class CombatSystem {
 	public List<MapLocation> alocs = new ArrayList<MapLocation>();
 	
 	public List <EnemyInfo> enemyInfos = new ArrayList <EnemyInfo>();
+	public List <EnemyInfo> enemyInfosInbox = new ArrayList <EnemyInfo>();
 	
 	public Robot target1 = null;
 	public Robot target2 = null;
@@ -380,56 +381,23 @@ public class CombatSystem {
 //						alocs.add(loc);
 //					}
 //				} else 
-					if ((r.getTeam() != controllers.myRC.getTeam() && r.getTeam() != Team.NEUTRAL)) {
-					
+				if ((r.getTeam() != controllers.myRC.getTeam() && r.getTeam() != Team.NEUTRAL)) {
 					EnemyInfo thisEnemy = new EnemyInfo (r.getID(), info.hitpoints, info.location, r.getRobotLevel(), info.on || info.chassis == Chassis.BUILDING);
 					enemyInfos.add(thisEnemy);
-//					
-//					if (!info.on || info.chassis == Chassis.BUILDING) {
-//						immobileEnemies.add(r);
-//						continue;
-//					}
-//					MapLocation loc = controllers.sensor.senseLocationOf(r);
-					
-					
-//<<<<<<< HEAD
-////					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
-
-					
-//					hps.add(info.hitpoints);
-//					enemies.add(r);
-
-					
-//=======
-//					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
-////					if (dist > maxRange)
-////						continue;
-//					totalEnemiesHp += info.hitpoints;
-//					if (info.hitpoints < leasthp1) {
-//						leasthp2 = leasthp1;
-//						target2 = target1;
-//						target1 = r;
-//						leasthp1 = info.hitpoints;
-//					} else if (info.hitpoints < leasthp2) {
-//						target2 = r;
-//						leasthp2 = info.hitpoints;
-//					} else {
-//						enemies.add(r);
-//						elocs.add(loc);
-//					}
-//					if (target1 != null) {
-//						enemies.add(target1);
-//						if (target2 != null)
-//							enemies.add(target2);
-//					}
-//>>>>>>> refs/heads/Tower
-					
 				}
 				
+				int inboxSize = enemyInfosInbox.size();
+				
+				for (int i = inboxSize - 1; i > -1; --i) {
+					if (!enemyInfos.contains(enemyInfosInbox.get(i))) {
+						enemyInfos.add(enemyInfosInbox.get(i));
+					}
+				}
+					
 			String s = "";
 			for (int i = 0; i < enemyInfos.size(); ++i)
 				s += enemyInfos.get(i).location + " ";
-			controllers.myRC.setIndicatorString (2,",," + s);
+			controllers.myRC.setIndicatorString (2,"Updated:" + s);
 
 			} catch (GameActionException e) {
 				continue;
@@ -493,6 +461,7 @@ public class CombatSystem {
 
 	public void reset() {
 		enemyInfos.clear();
+		enemyInfosInbox.clear();
 		allies.clear();
 		enemies.clear();
 		immobileEnemies.clear();
@@ -597,8 +566,5 @@ public class CombatSystem {
 		} catch (GameActionException e) {
 			e.printStackTrace();
 		}
-		
-		
 	}
-
 }
