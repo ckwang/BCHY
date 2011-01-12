@@ -53,28 +53,29 @@ public class RecyclerAI extends BuildingAI {
 			
 			// turn off if there is already a recycler nearby
 			if (builderDirs.recyclerDirection != null) {
-				try {
-					while (controllers.sensor.isActive())
-						yield();
-						// Build 1 PLATING & 2 SHIELDs on itself
-							while (controllers.myRC.getTeamResources() < 9)
-								yield();
-							controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-							yield();
-							while (controllers.myRC.getTeamResources() < 11)
-								yield();
-							controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-							yield();
-							while (controllers.myRC.getTeamResources() < 11)
-								yield();
-							controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-							yield();						
-						
-						controllers.myRC.turnOff();
-				} catch (GameActionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+//				try {
+//					while (controllers.sensor.isActive())
+//						yield();
+//					
+//					// Build 1 PLATING & 2 SHIELDs on itself
+//					while (controllers.myRC.getTeamResources() < 9)
+//						yield();
+//					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//					yield();
+//					while (controllers.myRC.getTeamResources() < 11)
+//						yield();
+//					controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//					yield();
+//					while (controllers.myRC.getTeamResources() < 11)
+//						yield();
+//					controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//					yield();						
+				
+					controllers.myRC.turnOff();
+//				} catch (GameActionException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 			} else {
 				while(controllers.myRC.getTeamResources() < 10)
 					controllers.myRC.yield();
@@ -84,14 +85,14 @@ public class RecyclerAI extends BuildingAI {
 						controllers.myRC.yield();
 					controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 					yield();
-					while (controllers.myRC.getTeamResources() < 15)
-						yield();
-					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-					yield();
-					while (controllers.myRC.getTeamResources() < 20)
-						yield();
-					controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-					yield();				
+//					while (controllers.myRC.getTeamResources() < 15)
+//						yield();
+//					controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//					yield();
+//					while (controllers.myRC.getTeamResources() < 20)
+//						yield();
+//					controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//					yield();				
 				} catch (GameActionException e1) {
 					System.out.println("caught exception:");
 					e1.printStackTrace();
@@ -170,41 +171,43 @@ public class RecyclerAI extends BuildingAI {
 			if (info != null
 					&& controllers.myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost
 					&& !Util.containsComponent(info.components,ComponentType.ANTENNA)) {
-				controllers.builder.build(ComponentType.ANTENNA, info.location,RobotLevel.ON_GROUND);
+				controllers.builder.build(ComponentType.ANTENNA, info.location, RobotLevel.ON_GROUND);
 			}
-			yield();
+			controllers.myRC.turnOff();
+			while(controllers.builder.isActive())
+				yield();
 
 			// Turn off 1 of the initial recyclers
 			RobotInfo otherRecycler = senseAdjacentChassis(Chassis.BUILDING);
 			if(otherRecycler != null && Util.containsComponent(otherRecycler.components, ComponentType.ANTENNA)){
 				
-				// Build 1 PLATING & 2 SHIELDs on itself
-				while (controllers.myRC.getTeamResources() < 9)
-					yield();
-				controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-				yield();
-				while (controllers.myRC.getTeamResources() < 11)
-					yield();
-				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-				yield();
-				while (controllers.myRC.getTeamResources() < 11)
-					yield();
-				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-				yield();				
+//				// Build 1 PLATING & 2 SHIELDs on itself
+//				while (controllers.myRC.getTeamResources() < 9)
+//					yield();
+//				controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//				yield();
+//				while (controllers.myRC.getTeamResources() < 11)
+//					yield();
+//				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//				yield();
+//				while (controllers.myRC.getTeamResources() < 11)
+//					yield();
+//				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//				yield();				
 				controllers.myRC.turnOff();
 			}
 			else{
 				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 				yield();
-				// Build 1 PLATING & 1 SHIELD on itself
-				while (controllers.myRC.getTeamResources() < 9)
-					yield();
-				controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-				yield();
-				while (controllers.myRC.getTeamResources() < 11)
-					yield();
-				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-				yield();				
+//				// Build 1 PLATING & 1 SHIELD on itself
+//				while (controllers.myRC.getTeamResources() < 9)
+//					yield();
+//				controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//				yield();
+//				while (controllers.myRC.getTeamResources() < 11)
+//					yield();
+//				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+//				yield();				
 			}
 		} catch (Exception e) {
 			System.out.println("caught exception:");

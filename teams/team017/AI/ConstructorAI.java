@@ -97,16 +97,54 @@ public class ConstructorAI extends AI {
 
 	private void init() {
 		try {
+//			int [] recyclerIDs = new int[2];
+//
+//			Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+//			if (robots.length == 2) {
+//				int j = 0;
+//				for (Robot r : robots) {
+//					if (r.getTeam() == controllers.myRC.getTeam()) {
+//						recyclerIDs[j++] = r.getID();
+//					}
+//				}
+//			}
+			
+			// look at the other three angles
 			for (int i = 0; i < 4; ++i) {
 				// Rotate twice Right for a 90 degrees turn
 				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
 				yield();
 				controllers.updateComponents();
-				// controllers.myRC.setIndicatorString(0, borders[0] + "," +
-				// borders[1] + "," + borders[2] + "," + borders[3]);
-				// controllers.myRC.setIndicatorString(1,controllers.myRC.getLocation()
-				// + "");
+				
+//				// sense the initial 2 recyclers
+//				robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+//				if (robots.length >= 2) {
+//					int j = 0;
+//					for (Robot r : robots) {
+//						if (r.getTeam() == controllers.myRC.getTeam()) {
+//							recyclerIDs[j++] = r.getID();
+//						}
+//					}
+//				}
 			}
+			
+//			controllers.myRC.setIndicatorString(0, recyclerIDs[0] + "," + recyclerIDs[1]);
+			
+			// go build recyclers on the other two initial mines
+			if (!mineLocations.isEmpty()) {
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
+			}
+			yield();
+			if (!mineLocations.isEmpty())
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
+			
+			controllers.myRC.setIndicatorString(2, "here");
+			
+//			// wake up one recycler
+//			while(controllers.comm.isActive())
+//				controllers.myRC.yield();
+//			controllers.comm.broadcastTurnOn(recyclerIDs);
+			
 		} catch (GameActionException e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
