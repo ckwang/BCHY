@@ -367,7 +367,7 @@ public class CombatSystem {
 //	}
 
 	public void senseNearby() {
-		reset();
+//		reset();
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		for (Robot r : robots) {
 			try {
@@ -383,8 +383,7 @@ public class CombatSystem {
 					if ((r.getTeam() != controllers.myRC.getTeam() && r.getTeam() != Team.NEUTRAL)) {
 					
 					EnemyInfo thisEnemy = new EnemyInfo (r.getID(), info.hitpoints, info.location, r.getRobotLevel(), info.on || info.chassis == Chassis.BUILDING);
-					if (!enemyInfos.contains(thisEnemy))
-						enemyInfos.add(thisEnemy);
+					enemyInfos.add(thisEnemy);
 //					
 //					if (!info.on || info.chassis == Chassis.BUILDING) {
 //						immobileEnemies.add(r);

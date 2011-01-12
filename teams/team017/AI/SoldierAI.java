@@ -128,7 +128,7 @@ public class SoldierAI extends AI {
 				
 			case ENEMY_INFORMATION_MESSAGE:
 				EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
-				if (ehandler.getRoundNum() == Clock.getRoundNum()) {
+				if (ehandler.getRoundNum() == Clock.getRoundNum() || (ehandler.getRoundNum() == Clock.getRoundNum() - 1 && ehandler.getSourceID() < rc.getRobot().getID())) {
 					for (EnemyInfo e: ehandler.getInfos()) {
 						enemyInfoInbox.add(e);
 					}	
