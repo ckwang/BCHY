@@ -259,7 +259,7 @@ public class ConstructorAI extends AI {
 		MapLocation target = null;
 		for (MapLocation mineLoc : mineLocations) {
 			// it needs to be adjacent
-			if (!controllers.myRC.getLocation().isAdjacentTo(mineLoc)) 
+			if (controllers.myRC.getLocation().distanceSquaredTo(mineLoc) > 2) 
 				continue;
 			
 			// it needs to be empty
@@ -285,6 +285,9 @@ public class ConstructorAI extends AI {
 				controllers.motor.setDirection(buildDir);
 				yield();
 			}
+			
+//			if (!controllers.myRC.getLocation().isAdjacentTo(target))
+//				System.out.println("no!!!");
 			
 			// the building location should be clear
 			if (controllers.sensor.senseObjectAtLocation(target, RobotLevel.ON_GROUND) == null) {

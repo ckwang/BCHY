@@ -506,14 +506,17 @@ public class CombatSystem {
 	
 	public MapLocation attack() {
 		try {
+			RobotController rc = controllers.myRC;
+			MovementController motor = controllers.motor;
 			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
+			
+			boolean attacked = false;
+			
 			if (enemyInfos.size() == 0)
 				return null;
 			Collections.sort(enemyInfos, comparator);
 			int listPointer = 0;
 			for (WeaponController w : controllers.weapons) {
-				MovementController motor = controllers.motor;
-				RobotController rc = controllers.myRC;
 				if (!w.isActive()) {
 					if (listPointer == enemyInfos.size())
 						--listPointer;
@@ -524,8 +527,7 @@ public class CombatSystem {
 						if (enemy.hp < 0) {
 							++listPointer;
 						}
-						if (!motor.isActive() && controllers.motor.canMove(rc.getDirection().opposite()))
-							return rc.getLocation();
+						attacked = true;
 					} else if(!motor.isActive()) {
 						return enemy.location;
 						
@@ -538,6 +540,11 @@ public class CombatSystem {
 //						}
 					}
 				}
+			}
+			
+			if (attacked) {
+				if (!motor.isActive() && controllers.motor.canMove(rc.getDirection().opposite()))
+					return rc.getLocation();
 			}
 		} catch (GameActionException e) {
 			e.printStackTrace();
