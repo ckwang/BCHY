@@ -112,7 +112,7 @@ public class Navigator {
 				return Direction.OMNI;
 			}
 			else {
-				controllers.myRC.setIndicatorString(0, "current: "+ controllers.myRC.getLocation().toString() + " des: " +  modifiedDes.toString());
+//				controllers.myRC.setIndicatorString(0, "current: "+ controllers.myRC.getLocation().toString() + " des: " +  modifiedDes.toString());
 				previousDir = Bug(controllers.myRC.getLocation(), modifiedDes, tolerance);
 				return previousDir;
 			}
@@ -155,10 +155,10 @@ public class Navigator {
 			nextLoc = deTour(s, startTracingDir, iscw);
 			nextDir = s.directionTo(nextLoc);
 			
-			controllers.myRC.setIndicatorString(2, "TRACING to "+nextLoc.toString() );
+//			controllers.myRC.setIndicatorString(2, "TRACING to "+nextLoc.toString() );
 			
 			// The way is open
-			if ( isOpen(faceDir, nextDir, desDir, iscw) && controllers.motor.canMove(desDir)){
+			if ( isOpen(s, faceDir, nextDir, desDir, iscw) && controllers.motor.canMove(desDir) ){
 				istracing = false;
 				return desDir;
 			}
@@ -166,14 +166,42 @@ public class Navigator {
 			return nextDir;
 		
 		} else {
-			controllers.myRC.setIndicatorString(2, "RECKONING to "+modifiedDes.toString());
+//			controllers.myRC.setIndicatorString(2, "RECKONING to "+modifiedDes.toString());
 			if ( controllers.motor.canMove(desDir) ) {
 				return desDir;
 			}
 			else {
 				istracing = true;
-				nextLoc = deTour(s, faceDir, iscw);
-				return s.directionTo(nextLoc);
+				
+				queue.clear();
+
+				MapLocation nextCW = deTour(s, faceDir, true);
+				MapLocation nextCCW = deTour(s, faceDir, false);
+				
+				queue.add(new EnhancedMapLocation(nextCW, null, s.directionTo(nextCW), 0, true, true) );
+				queue.add(new EnhancedMapLocation(nextCW, null, s.directionTo(nextCCW), 0, true, false) );
+				
+				EnhancedMapLocation ibugLoc;
+				do{
+					ibugLoc = queue.poll();
+					
+					Direction startTracingDir = ibugLoc.isCW? ibugLoc.faceDir.rotateRight().rotateRight()
+															: ibugLoc.faceDir.rotateLeft().rotateLeft();
+					nextLoc = traceNext(ibugLoc.loc, startTracingDir, ibugLoc.isCW);
+					nextDir = ibugLoc.loc.directionTo(nextLoc);
+					desDir = ibugLoc.loc.directionTo(t);;
+					
+					if ( isOpen(ibugLoc.loc, ibugLoc.faceDir, nextDir, desDir, ibugLoc.isCW)/* && controllers.motor.canMove(desDir)*/ ){
+						iscw = ibugLoc.isCW;
+						return s.directionTo( iscw? nextCW:nextCCW );
+					} else {
+						queue.add(new EnhancedMapLocation(nextLoc, null, nextDir, computeCost(ibugLoc, nextDir), true, ibugLoc.isCW) );
+					}
+					
+					
+				}while ( !queue.isEmpty() );
+				
+				return Direction.NONE;
 			}
 		}
 		
@@ -232,7 +260,7 @@ public class Navigator {
         			
         			nextDir = bugLoc.loc.directionTo(nextLoc);
         			
-        			if ( isOpen(bugLoc.faceDir, nextDir, desDir , bugLoc.isCW) 
+        			if ( isOpen(bugLoc.loc, bugLoc.faceDir, nextDir, desDir , bugLoc.isCW) 
         				 && isTraversable(bugLoc.loc.add(desDir)) ){
         				queue.add(new EnhancedMapLocation(bugLoc.loc.add(desDir), bugLoc, desDir, computeCost(bugLoc,desDir), false, false ));
         			}
@@ -333,8 +361,8 @@ public class Navigator {
 		}
 	}
 	
-	private boolean isOpen(Direction currentDir, Direction nextDir, Direction desDir, boolean cw){
-		if ( !controllers.motor.canMove(currentDir) )
+	private boolean isOpen(MapLocation currentLoc, Direction currentDir, Direction nextDir, Direction desDir, boolean cw){
+		if ( !isTraversable(currentLoc.add(currentDir)) )
 			return false;
 		
 		if(cw){
