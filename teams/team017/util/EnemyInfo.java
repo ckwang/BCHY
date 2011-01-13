@@ -1,7 +1,9 @@
 package team017.util;
 
 
+import battlecode.common.Chassis;
 import battlecode.common.MapLocation;
+import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 
 public class EnemyInfo {
@@ -11,6 +13,14 @@ public class EnemyInfo {
 	public int id;
 	public boolean mobile;
 
+	public EnemyInfo(RobotInfo info) {
+		this.hp = info.hitpoints;
+		this.location = info.location;
+		this.level = info.robot.getRobotLevel();
+		this.id = info.robot.getID();
+		this.mobile = info.on || info.chassis == Chassis.BUILDING;
+	}
+	
 	public EnemyInfo (int id, double hp, MapLocation location, RobotLevel level, boolean mobile) {
 		this.hp = hp;
 		this.location = location;

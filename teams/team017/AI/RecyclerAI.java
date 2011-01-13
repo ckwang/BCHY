@@ -42,7 +42,7 @@ public class RecyclerAI extends BuildingAI {
 			e.printStackTrace();
 		}
 	}
-
+	
 
 	@Override
 	public void proceed() {
@@ -240,7 +240,6 @@ public class RecyclerAI extends BuildingAI {
 				break;
 			}
 			case BUILDING_REQUEST:{
-//				controllers.myRC.setIndicatorString (0, "Got building request");
 				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
 					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
@@ -312,7 +311,8 @@ public class RecyclerAI extends BuildingAI {
 					if (handler.getBuildingType() == UnitType.TOWER) {
 						if (handler.getBuildingLocation().isAdjacentTo(controllers.myRC.getLocation())){
 							while(!buildingSystem.constructComponent(buildingLocation, UnitType.TOWER)) {
-								if(controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND).getTeam() != controllers.myRC.getTeam())
+								GameObject obj = controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND);
+								if (obj == null || obj.getTeam() != controllers.myRC.getTeam())
 									break;
 								yield();
 							}
@@ -333,9 +333,9 @@ public class RecyclerAI extends BuildingAI {
 						}
 //						
 //						// build an antenna if it doesn't have one
-//						if (!Util.containsComponent(controllers, buildingLocation, RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
-//							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
-//						}
+						if (!Util.containsComponent(controllers, buildingLocation, RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
+							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
+						}
 					}
 				}
 				break;

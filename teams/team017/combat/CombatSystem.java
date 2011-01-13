@@ -1,10 +1,13 @@
 package team017.combat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import team017.util.Controllers;
 import team017.util.EnemyInfo;
@@ -74,8 +77,10 @@ public class CombatSystem {
 	public List<MapLocation> elocs = new ArrayList<MapLocation>();
 	public List<MapLocation> alocs = new ArrayList<MapLocation>();
 	
-	public List <EnemyInfo> enemyInfos = new ArrayList <EnemyInfo>();
-	public List <EnemyInfo> enemyInfosInbox = new ArrayList <EnemyInfo>();
+	public Set<EnemyInfo> enemyInfosSet = new HashSet<EnemyInfo>();
+	
+//	public List <EnemyInfo> enemyInfos = new ArrayList <EnemyInfo>();
+//	public List <EnemyInfo> enemyInfosInbox = new ArrayList <EnemyInfo>();
 	
 	public Robot target1 = null;
 	public Robot target2 = null;
@@ -384,22 +389,15 @@ public class CombatSystem {
 //					}
 //				} else 
 				if ((r.getTeam() != controllers.myRC.getTeam() && r.getTeam() != Team.NEUTRAL)) {
-					EnemyInfo thisEnemy = new EnemyInfo (r.getID(), info.hitpoints, info.location, r.getRobotLevel(), info.on || info.chassis == Chassis.BUILDING);
-					enemyInfos.add(thisEnemy);
+					EnemyInfo thisEnemy = new EnemyInfo(info);
+					enemyInfosSet.remove(thisEnemy);
+					enemyInfosSet.add(thisEnemy);
 				}
-				
-				int inboxSize = enemyInfosInbox.size();
-				
-				for (int i = inboxSize - 1; i > -1; --i) {
-					if (!enemyInfos.contains(enemyInfosInbox.get(i))) {
-						enemyInfos.add(enemyInfosInbox.get(i));
-					}
-				}
-					
-			String s = "";
-			for (int i = 0; i < enemyInfos.size(); ++i)
-				s += enemyInfos.get(i).location + " ";
-			controllers.myRC.setIndicatorString (2,"Updated:" + s);
+													
+//			String s = "";
+//			for (int i = 0; i < enemyInfos.size(); ++i)
+//				s += enemyInfos.get(i).location + " ";
+//			controllers.myRC.setIndicatorString (2,"Updated:" + s);
 
 			} catch (GameActionException e) {
 				continue;
@@ -462,8 +460,7 @@ public class CombatSystem {
 //	}
 
 	public void reset() {
-		enemyInfos.clear();
-		enemyInfosInbox.clear();
+		enemyInfosSet.clear();
 		allies.clear();
 		enemies.clear();
 		immobileEnemies.clear();
@@ -507,68 +504,73 @@ public class CombatSystem {
 	public MapLocation attack() {
 		try {
 			RobotController rc = controllers.myRC;
-			MovementController motor = controllers.motor;
 			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
 			
 			boolean attacked = false;
 			
-			if (enemyInfos.size() == 0)
+			if (enemyInfosSet.size() == 0)
 				return null;
-			Collections.sort(enemyInfos, comparator);
+			
+			EnemyInfo[] enemyInfos = new EnemyInfo[enemyInfosSet.size()];
+			enemyInfosSet.toArray(enemyInfos);
+			Arrays.sort(enemyInfos, comparator);
+			
 			int listPointer = 0;
+			EnemyInfo enemy = enemyInfos[listPointer];
+			
 			for (WeaponController w : controllers.weapons) {
-				if (!w.isActive()) {
-					if (listPointer == enemyInfos.size())
-						--listPointer;
-					EnemyInfo enemy = enemyInfos.get(listPointer);
-					if (w.withinRange(enemy.location)) {
-						w.attackSquare(enemy.location, enemy.level);
-						enemy.hp -= w.type().attackPower;
-						if (enemy.hp < 0) {
-							++listPointer;
+				if (!w.isActive() && w.withinRange(enemy.location)) {
+					w.attackSquare(enemy.location, enemy.level);
+					enemy.hp -= w.type().attackPower;
+					if (enemy.hp < 0) {
+						listPointer++;
+						if (listPointer == enemyInfos.length) {
+							break;
+						} else {
+							enemy = enemyInfos[listPointer];
 						}
-						attacked = true;
 					}
+					attacked = true;
 				}
 			}
 			
-			if (attacked) {
-				if (!motor.isActive() && controllers.motor.canMove(rc.getDirection().opposite()))
-					return rc.getLocation();
-			} else if (!motor.isActive()){
-				return enemyInfos.get(listPointer).location;
-			}
+			return attacked ? rc.getLocation() : enemy.location;
 		} catch (GameActionException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 	
-	public void towerAttack() {
-		try {
-			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
-			if (enemyInfos.size() == 0)
-				return;
-			Collections.sort(enemyInfos, comparator);
-			int listPointer = 0;
-			for (WeaponController w : controllers.weapons) {
-				if (!w.isActive()) {
-					if (listPointer == enemyInfos.size())
-						break;
-					EnemyInfo enemy = enemyInfos.get(listPointer);
-					if (w.withinRange(enemy.location)) {
-						w.attackSquare(enemy.location, enemy.level);
-						enemy.hp -= w.type().attackPower;
-						if (enemy.hp < -1) {
-							++listPointer;
-						}
-					} else if(!controllers.motor.isActive()) {
-						controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(enemy.location));
-					}
-				}
-			}
-		} catch (GameActionException e) {
-			e.printStackTrace();
-		}
-	}
+//	public void towerAttack() {
+//		try {
+//			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
+//			if (enemyInfosSet.size() == 0)
+//				return;
+//			
+//			EnemyInfo[] enemyInfos = new EnemyInfo[enemyInfosSet.size()];
+//			enemyInfosSet.toArray(enemyInfos);
+//			Arrays.sort(enemyInfos, comparator);
+//			
+//			double [] attackedHp = new double [enemyInfos.length];
+//			int listPointer = 0;
+//			for (WeaponController w : controllers.weapons) {
+//				if (!w.isActive()) {
+//					if (listPointer == enemyInfos.length)
+//						--listPointer;
+//					EnemyInfo enemy = enemyInfos[listPointer];
+//					if (w.withinRange(enemy.location)) {
+//						w.attackSquare(enemy.location, enemy.level);
+//						attackedHp [listPointer] += w.type().attackPower;
+//						if (attackedHp [listPointer] > enemy.hp) {
+//							++listPointer;
+//						}
+//					} else if(!controllers.motor.isActive()) {
+//						controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(enemy.location));
+//					}
+//				}
+//			}
+//		} catch (GameActionException e) {
+//			e.printStackTrace();
+//		}
+//	}
 }
