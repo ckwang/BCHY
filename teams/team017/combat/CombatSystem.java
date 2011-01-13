@@ -551,17 +551,16 @@ public class CombatSystem {
 			if (enemyInfos.size() == 0)
 				return;
 			Collections.sort(enemyInfos, comparator);
-			double [] attackedHp = new double [enemyInfos.size()];
 			int listPointer = 0;
 			for (WeaponController w : controllers.weapons) {
 				if (!w.isActive()) {
 					if (listPointer == enemyInfos.size())
-						--listPointer;
+						break;
 					EnemyInfo enemy = enemyInfos.get(listPointer);
 					if (w.withinRange(enemy.location)) {
 						w.attackSquare(enemy.location, enemy.level);
-						attackedHp [listPointer] += w.type().attackPower;
-						if (attackedHp [listPointer] > enemy.hp) {
+						enemy.hp -= w.type().attackPower;
+						if (enemy.hp < -1) {
 							++listPointer;
 						}
 					} else if(!controllers.motor.isActive()) {
