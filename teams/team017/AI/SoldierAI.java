@@ -58,7 +58,8 @@ public class SoldierAI extends AI {
 				try {
 					Direction nextDir = navigator.getNextDir(0);
 					if (rc.getDirection() == nextDir) {
-						controllers.motor.moveForward();
+						if (controllers.motor.canMove(controllers.myRC.getDirection()))
+							controllers.motor.moveForward();
 					} else if (nextDir == Direction.OMNI) {
 						if (controllers.motor.canMove(controllers.myRC.getDirection().opposite()))
 							controllers.motor.moveBackward();

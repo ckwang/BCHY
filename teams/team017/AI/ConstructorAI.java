@@ -63,9 +63,9 @@ public class ConstructorAI extends AI {
 				
 				processMessages();
 				
-				navigate();
-				
 				buildRecyclers();
+				
+				navigate();
 				
 //				if (buildRecyclers()) {
 //					recyclerLocations.add(controllers.myRC.getLocation().add(controllers.myRC.getDirection()));
@@ -507,21 +507,27 @@ public class ConstructorAI extends AI {
 //			}
 			
 			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-			BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
-			if (!builtLocations.contains(handler.getSourceLocation())){
-				if(handler.getAvailableSpace() == -1){
-					builtLocations.add(handler.getSourceLocation());
-				} else if (handler.getBuildableDirection() != Direction.NONE) {
-					MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-					if (handler.getAvailableSpace() >= 2) {
-						if(buildBuildingAtLoc(buildLoc, UnitType.TOWER)){
-							msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.TOWER));
-							builtLocations.add(handler.getSourceLocation());
+				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
+				
+				// see if the message is intended for it
+				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
+					break;
+				
+				if (!builtLocations.contains(handler.getSourceLocation())){
+					if(handler.getAvailableSpace() == -1){
+						builtLocations.add(handler.getSourceLocation());
+					} else if (handler.getBuildableDirection() != Direction.NONE) {
+						MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+						if (handler.getAvailableSpace() >= 2) {
+							if(buildBuildingAtLoc(buildLoc, UnitType.TOWER)){
+								msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.TOWER));
+								builtLocations.add(handler.getSourceLocation());
+								yield();
+							}
 						}
-					}
-				}							
-			}
-			break;
+					}							
+				}
+				break;
 			}
 
 			case BORDER: {
