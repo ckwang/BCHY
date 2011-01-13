@@ -30,7 +30,7 @@ public class SoldierAI extends AI {
 	private MapLocation leaderLoc;
 	private double prevHp = 50;
 	private boolean attacked = false;
-	
+	private int attackRoundCounter = 0;
 	
 	private boolean reachedFirstBase = false;
 
@@ -43,7 +43,6 @@ public class SoldierAI extends AI {
 
 	public void proceed() {				
 		
-		outer:
 		while (true) {
 			
 			try {processMessages();}
@@ -70,14 +69,16 @@ public class SoldierAI extends AI {
 					e.printStackTrace();
 				}
 			}
+			
+			int before = Clock.getBytecodeNum();
 			if (controllers.comm != null){
-				if (combat.enemyInfos.size() > 0) {
-					String s = "";
-					for (int i = 0; i < combat.enemyInfos.size(); ++i)
-						s += combat.enemyInfos.get(i).location + " ";
-					controllers.myRC.setIndicatorString(1,"Broadcast:" + s);
+				if (combat.enemyInfosSet.size() > 0) {
+//					String s = "";
+//					for (int i = 0; i < combat.enemyInfos.size(); ++i)
+//						s += combat.enemyInfos.get(i).location + " ";
+//					controllers.myRC.setIndicatorString(1,"Broadcast:" + s);
 					msgHandler.clearOutQueue();
-					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfos));
+					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));
 					msgHandler.process();
 				} 
 //				else {
@@ -87,10 +88,25 @@ public class SoldierAI extends AI {
 //					}
 //				}
 			}
+			int after = Clock.getBytecodeNum();
 
-			try {navigate();}
-//			controllers.myRC.setIndicatorString(2, "navigate");}
-			catch (GameActionException e) {}
+			rc.setIndicatorString(0, "bytecode: " + (after - before));
+			rc.setIndicatorString(1, "bytecode: " + (after - before));
+			rc.setIndicatorString(2, "bytecode: " + (after - before));
+			
+			if (combat.enemyInfosSet.size() > 0) {
+				attackRoundCounter = 2;
+			} else if (attackRoundCounter > 0) {
+				attackRoundCounter--;
+			}
+			
+			
+			
+			if (attackRoundCounter == 0) {
+				try {navigate();}
+	//			controllers.myRC.setIndicatorString(2, "navigate");}
+				catch (GameActionException e) {}
+			}
 			
 			sense_border();
 			yield();
@@ -151,14 +167,17 @@ public class SoldierAI extends AI {
 //				
 			case ENEMY_INFORMATION_MESSAGE:
 				EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
-				if (ehandler.getRoundNum() == Clock.getRoundNum() || ehandler.getRoundNum() == Clock.getRoundNum() - 1) {
+				if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
 					for (EnemyInfo e: ehandler.getInfos()) {
-						combat.enemyInfosInbox.add(e);
+						if (Clock.getRoundNum() - e.roundNum <= 1) {
+							combat.enemyInfosSet.remove(e);
+							combat.enemyInfosSet.add(e);
+						}
 					}	
-					String s = "";
-					for (int i = 0; i < combat.enemyInfosInbox.size(); ++i)
-						s += combat.enemyInfosInbox.get(i).location + " ";
-					controllers.myRC.setIndicatorString(1, "Mess:" + s + ehandler.getRoundNum());
+//					String s = "";
+//					for (int i = 0; i < combat.enemyInfosInbox.size(); ++i)
+//						s += combat.enemyInfosInbox.get(i).location + " ";
+//					controllers.myRC.setIndicatorString(1, "Mess:" + s + ehandler.getRoundNum());
 				}
 				
 				break;

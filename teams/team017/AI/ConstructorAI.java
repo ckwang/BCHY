@@ -1,6 +1,8 @@
 package team017.AI;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
@@ -249,9 +251,10 @@ public class ConstructorAI extends AI {
 
 	private void checkEmptyRecyclers() throws GameActionException {
 		for (MapLocation recyclerLoc : recyclerLocations) {
-			if (controllers.myRC.getLocation().isAdjacentTo(recyclerLoc)
+			if (controllers.myRC.getLocation().distanceSquaredTo(recyclerLoc) <= 9
 				&& !builtLocations.contains(recyclerLoc)) {
 				msgHandler.queueMessage(new BuildingLocationInquiryMessage(recyclerLoc));
+				break;
 			}
 		}
 	}
@@ -261,21 +264,28 @@ public class ConstructorAI extends AI {
 		
 		// find a eligible mine
 		MapLocation target = null;
+		List<MapLocation> toBeRemoved = new ArrayList<MapLocation>();
 		for (MapLocation mineLoc : mineLocations) {
+			// it needs to be empty
+			if (controllers.sensor.canSenseSquare(mineLoc)){
+				GameObject object = controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND); 
+				if (object != null) {
+					toBeRemoved.add(mineLoc);
+					continue;
+				}
+			}
+			
 			// it needs to be adjacent
 			if (controllers.myRC.getLocation().distanceSquaredTo(mineLoc) > 2) 
 				continue;
-			
-			// it needs to be empty
-			if (controllers.sensor.canSenseSquare(mineLoc)){
-				 if (controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
-					 continue;
-			}
 			
 			// find one!
 			target = mineLoc;
 			break;
 		}
+		
+		// remove mines with buildings on them
+		mineLocations.removeAll(toBeRemoved);
 		
 		// if there is a eligible site
 		if (target != null) {
