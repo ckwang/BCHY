@@ -30,7 +30,7 @@ public class SoldierAI extends AI {
 	private MapLocation leaderLoc;
 	private double prevHp = 50;
 	private boolean attacked = false;
-	
+	private int attackRoundCounter = 0;
 	
 	private boolean reachedFirstBase = false;
 
@@ -87,10 +87,20 @@ public class SoldierAI extends AI {
 //					}
 //				}
 			}
-
-			try {navigate();}
-//			controllers.myRC.setIndicatorString(2, "navigate");}
-			catch (GameActionException e) {}
+			
+			if (combat.enemyInfosSet.size() > 0) {
+				attackRoundCounter = 2;
+			} else if (attackRoundCounter > 0) {
+				attackRoundCounter--;
+			}
+			
+			
+			
+			if (attackRoundCounter == 0) {
+				try {navigate();}
+	//			controllers.myRC.setIndicatorString(2, "navigate");}
+				catch (GameActionException e) {}
+			}
 			
 			sense_border();
 			yield();

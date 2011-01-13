@@ -12,6 +12,8 @@ public class EnemyInfo {
 	public RobotLevel level;
 	public int id;
 	public boolean mobile;
+	
+	public int cost;
 
 	public EnemyInfo(RobotInfo info) {
 		this.hp = info.hitpoints;
@@ -27,6 +29,15 @@ public class EnemyInfo {
 		this.level = level;
 		this.id = id;
 		this.mobile = mobile;
+	}
+	
+	public void calculateCost(MapLocation loc) {
+		cost = 0;
+		
+		cost |= mobile ? (1 << 20) : 0;
+		cost |= loc.distanceSquaredTo(location) << 15;
+		cost |= (level == RobotLevel.IN_AIR) ? (1 << 14) : 0;
+		cost |= (int) (hp * 10);
 	}
 	
 	@Override
