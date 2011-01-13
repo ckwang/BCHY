@@ -1,6 +1,7 @@
 package team017.message;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class EnemyInformationMessage extends GenericMessage{
 //	private int id;
 //	private boolean mobile;
 
-	public EnemyInformationMessage (List<EnemyInfo> infos) {
+	public EnemyInformationMessage (Set<EnemyInfo> infos) {
 		super (MessageType.ENEMY_INFORMATION_MESSAGE);
 		
 		msg.ints[intCounter++] = infos.size();

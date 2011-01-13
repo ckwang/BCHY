@@ -124,9 +124,9 @@ public class Builder {
 	public boolean constructComponent(MapLocation buildLoc, UnitType type){
 		try{
 			for (ComponentType com : type.getComponentList(controllers.builder.type())) {
-				while(rc.getTeamResources() < com.cost * 1.1)
+				while (rc.getTeamResources() < com.cost + 20)
 					rc.yield();
-				while(controllers.builder.isActive())
+				while (controllers.builder.isActive())
 					rc.yield();
 				controllers.builder.build(com, buildLoc, type.chassis.level);
 			}

@@ -1,7 +1,9 @@
 package team017.AI;
 
 import team017.combat.CombatSystem;
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
 public class TowerAI extends AI {
@@ -20,11 +22,18 @@ public class TowerAI extends AI {
 			try {
 				combat.senseNearby();
 				
-				if (combat.enemyInfos.size() == 0 && !controllers.motor.isActive()) {
+				if (combat.enemyInfosSet.size() == 0 && !controllers.motor.isActive()) {
 					controllers.motor.setDirection(controllers.myRC.getDirection().opposite());
 					yield();
 				} else {
-						combat.towerAttack();
+					MapLocation nextLoc = combat.attack();
+					if (nextLoc != null) {
+						Direction nextDir = controllers.myRC.getLocation().directionTo(combat.attack());
+						if (nextDir != Direction.OMNI && !controllers.motor.isActive()) {
+							controllers.motor.setDirection(nextDir);
+						}
+					}
+					
 					yield();
 				}
 				controllers.updateComponents();
