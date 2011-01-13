@@ -144,6 +144,42 @@ public class CombatSystem {
 		}
 	}
 	
+	public MapLocation mass() {
+		Robot r;
+		MapLocation buildingLoc = null;
+		for (WeaponController w : controllers.weapons) {
+			if (w.isActive())
+				continue;
+			while (immobileEnemies.size() > 0) {
+				r = immobileEnemies.get(0);
+				try {
+					RobotInfo info = controllers.sensor.senseRobotInfo(r);
+					if (info.hitpoints <= 0) {
+						immobileEnemies.remove(0);
+						continue;
+					}
+					MapLocation loc = controllers.sensor
+					.senseLocationOf(r);
+					int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
+					if (dist > maxRange) {
+						immobileEnemies.remove(0);
+						continue;
+					}
+					w.attackSquare(loc, r.getRobotLevel());
+					if (info.hitpoints < aveDamage) {
+						immobileEnemies.remove(0);
+						buildingLoc = loc;
+						break;
+					}
+				} catch (GameActionException e) {
+					immobileEnemies.remove(0);
+					continue;
+				}
+			}
+		}
+		return buildingLoc;
+	}
+	
 	public void massacre() {
 //		if (immobileEnemies.size() == 0)
 //			return;

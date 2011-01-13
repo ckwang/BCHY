@@ -57,7 +57,9 @@ public class SoldierAI extends AI {
 			
 			while (combat.immobileEnemyNum() > 0) {
 				rc.setIndicatorString(2, combat.immobileEnemyNum() +"");
-				combat.massacre();
+				MapLocation buildingLoc = combat.mass();
+				if (buildingLoc != null)
+					navigator.setDestination(buildingLoc);
 				yield();
 				combat.senseNearby();
 				if (combat.enemyNum() > 0)
@@ -215,6 +217,25 @@ public class SoldierAI extends AI {
 
 			}
 		}
+	}
+	
+	public void roachNavigate() throws GameActionException {
+		int round = Clock.getRoundNum();
+		switch (round % 3) {
+		case 0:
+			motor.setDirection(controllers.myRC.getDirection().rotateLeft().rotateLeft());
+			break;
+		case 1:
+			super.roachNavigate();
+			break;
+		case 2:
+			super.roachNavigate();
+			break;
+		case 3:
+			motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
+			break;
+		}
+		return;
 	}
 
 	private void navigate() throws GameActionException {
