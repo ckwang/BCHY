@@ -63,9 +63,9 @@ public class ConstructorAI extends AI {
 				
 				processMessages();
 				
-				navigate();
-				
 				buildRecyclers();
+				
+				navigate();
 				
 //				if (buildRecyclers()) {
 //					recyclerLocations.add(controllers.myRC.getLocation().add(controllers.myRC.getDirection()));
@@ -76,7 +76,7 @@ public class ConstructorAI extends AI {
 
 				
 
-				if (Clock.getRoundNum() % 3 == 0) {
+				if (Clock.getRoundNum() % 4 == 0) {
 					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
@@ -97,16 +97,54 @@ public class ConstructorAI extends AI {
 
 	private void init() {
 		try {
+//			int [] recyclerIDs = new int[2];
+//
+//			Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+//			if (robots.length == 2) {
+//				int j = 0;
+//				for (Robot r : robots) {
+//					if (r.getTeam() == controllers.myRC.getTeam()) {
+//						recyclerIDs[j++] = r.getID();
+//					}
+//				}
+//			}
+			
+			// look at the other three angles
 			for (int i = 0; i < 4; ++i) {
 				// Rotate twice Right for a 90 degrees turn
 				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
 				yield();
 				controllers.updateComponents();
-				// controllers.myRC.setIndicatorString(0, borders[0] + "," +
-				// borders[1] + "," + borders[2] + "," + borders[3]);
-				// controllers.myRC.setIndicatorString(1,controllers.myRC.getLocation()
-				// + "");
+				
+//				// sense the initial 2 recyclers
+//				robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+//				if (robots.length >= 2) {
+//					int j = 0;
+//					for (Robot r : robots) {
+//						if (r.getTeam() == controllers.myRC.getTeam()) {
+//							recyclerIDs[j++] = r.getID();
+//						}
+//					}
+//				}
 			}
+			
+//			controllers.myRC.setIndicatorString(0, recyclerIDs[0] + "," + recyclerIDs[1]);
+			
+			// go build recyclers on the other two initial mines
+			if (!mineLocations.isEmpty()) {
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
+			}
+			yield();
+			if (!mineLocations.isEmpty())
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
+			
+			controllers.myRC.setIndicatorString(2, "here");
+			
+//			// wake up one recycler
+//			while(controllers.comm.isActive())
+//				controllers.myRC.yield();
+//			controllers.comm.broadcastTurnOn(recyclerIDs);
+			
 		} catch (GameActionException e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
@@ -221,7 +259,7 @@ public class ConstructorAI extends AI {
 		MapLocation target = null;
 		for (MapLocation mineLoc : mineLocations) {
 			// it needs to be adjacent
-			if (!controllers.myRC.getLocation().isAdjacentTo(mineLoc)) 
+			if (controllers.myRC.getLocation().distanceSquaredTo(mineLoc) > 2) 
 				continue;
 			
 			// it needs to be empty
@@ -247,6 +285,9 @@ public class ConstructorAI extends AI {
 				controllers.motor.setDirection(buildDir);
 				yield();
 			}
+			
+//			if (!controllers.myRC.getLocation().isAdjacentTo(target))
+//				System.out.println("no!!!");
 			
 			// the building location should be clear
 			if (controllers.sensor.senseObjectAtLocation(target, RobotLevel.ON_GROUND) == null) {
@@ -279,6 +320,7 @@ public class ConstructorAI extends AI {
 			} else {
 				return false;
 			}
+			yield();
 		}
 		
 		// move to the adjacent of the building site
@@ -465,21 +507,27 @@ public class ConstructorAI extends AI {
 //			}
 			
 			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-			BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
-			if (!builtLocations.contains(handler.getSourceLocation())){
-				if(handler.getAvailableSpace() == -1){
-					builtLocations.add(handler.getSourceLocation());
-				} else if (handler.getBuildableDirection() != Direction.NONE) {
-					MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-					if (handler.getAvailableSpace() >= 2) {
-						if(buildBuildingAtLoc(buildLoc, UnitType.TOWER)){
-							msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.TOWER));
-							builtLocations.add(handler.getSourceLocation());
+				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
+				
+				// see if the message is intended for it
+				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
+					break;
+				
+				if (!builtLocations.contains(handler.getSourceLocation())){
+					if(handler.getAvailableSpace() == -1){
+						builtLocations.add(handler.getSourceLocation());
+					} else if (handler.getBuildableDirection() != Direction.NONE) {
+						MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+						if (handler.getAvailableSpace() >= 2) {
+							if(buildBuildingAtLoc(buildLoc, UnitType.TOWER)){
+								msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.TOWER));
+								builtLocations.add(handler.getSourceLocation());
+								yield();
+							}
 						}
-					}
-				}							
-			}
-			break;
+					}							
+				}
+				break;
 			}
 
 			case BORDER: {

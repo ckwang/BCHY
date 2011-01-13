@@ -14,12 +14,14 @@ import team017.util.Controllers;
 
 public class MessageHandler {
 
-	final static int INT_TAG_LENGTH = 4;
+	final static int INT_TAG_LENGTH = 5;
 	final static int LOC_TAG_LENGTH = 1;
 	
 	Set<Integer> history;
 	
 	Controllers controllers;
+	int team;
+	
 	private Queue<GenericMessage> outQueue;
 	private Queue<Message> inQueue;
 	
@@ -28,13 +30,15 @@ public class MessageHandler {
 		outQueue = new LinkedList<GenericMessage>();
 		inQueue = new LinkedList<Message>();
 		history = new HashSet<Integer>();
+		
+		team = controllers.myRC.getTeam().ordinal();
 	}
 	
 	public void process() {
 		// send a message
 		if (outQueue.size() != 0 && controllers.comm != null && !controllers.comm.isActive()) {
 			try {
-				controllers.comm.broadcast(outQueue.poll().msg);
+				controllers.comm.broadcast(outQueue.poll().getMessage());
 			} catch (GameActionException e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
@@ -72,16 +76,17 @@ public class MessageHandler {
 		msg.msg.ints[1] = sourceID;
 		msg.msg.locations[0] = sourceLocation;
 		msg.msg.ints[2] = msg.type.ordinal();
+		msg.msg.ints[3] = team;
 		
 		// checksum
-		msg.msg.ints[3] = round + sourceID + sourceLocation.x + sourceLocation.y + msg.type.ordinal(); 
+		msg.msg.ints[4] = round + sourceID + sourceLocation.x + sourceLocation.y + msg.type.ordinal(); 
 	}
 	
 	/*
 	 * Check if the input message is valid by inspecting the check sum
 	 */
 	private boolean isValid(Message msg) {
-		boolean valid = (msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[3])
+		boolean valid =  (msg.ints[3] == team) && (msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[4])
 		&& msg.ints[1] != controllers.myRC.getRobot().getID();
 		
 		if (valid) {

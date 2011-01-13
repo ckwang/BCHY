@@ -84,11 +84,19 @@ public class Builder {
 			Chassis chassis = type.chassis;
 			if (rc.getTeamResources() > chassis.cost + 20) {
 				if (canConstruct(chassis.level)) {
+					// build a chassis there
 					controllers.builder.build(chassis, buildLoc);
 					rc.yield();
+					
+					// build the components
 					for (ComponentType com : type.getComponentList(controllers.builder.type())) {
 						while(controllers.builder.isActive() || rc.getTeamResources() < com.cost + 20)
 							rc.yield();
+						
+						// if the chassis is not there anymore
+						if (controllers.sensor.senseObjectAtLocation(buildLoc, RobotLevel.ON_GROUND) == null)
+							return false;
+						
 						controllers.builder.build(com, buildLoc, chassis.level);
 					}
 					rc.turnOn(buildLoc, chassis.level);
