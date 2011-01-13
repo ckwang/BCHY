@@ -4,11 +4,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import team017.util.*;
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotLevel;
-import battlecode.common.TerrainTile;
+import battlecode.common.*;
 
 /**
  * Navigator object that navigates the robot using tangent bug algorithm
@@ -16,6 +12,8 @@ import battlecode.common.TerrainTile;
 
 public class Navigator {
 	private Controllers controllers;
+
+	private Map myMap;
 	
 	private MapLocation destination;
 	private MapLocation modifiedDes;
@@ -65,6 +63,7 @@ public class Navigator {
 		controllers = cs;
 		iscw = true;
 		istracing = false;
+		myMap = new Map( cs.myRC.getLocation() );
 		comparator = new costComparator();
 		queue = new PriorityQueue<EnhancedMapLocation>(50, comparator);
 	}
@@ -106,13 +105,13 @@ public class Navigator {
 //		 using (BUG/ TangentBug) algorithm to find direction to destination
 		else{
 			previousRobLoc = controllers.myRC.getLocation();
+			updateMap();
 			if (destination == null){
 				reset();
 				previousDir = Direction.OMNI;
 				return Direction.OMNI;
 			}
 			else {
-//				controllers.myRC.setIndicatorString(0, "current: "+ controllers.myRC.getLocation().toString() + " des: " +  modifiedDes.toString());
 				previousDir = Bug(controllers.myRC.getLocation(), modifiedDes, tolerance);
 				return previousDir;
 			}
@@ -388,6 +387,23 @@ public class Navigator {
 		}
 		else {
 			return from.cost + moveOrthogonally + ((from.faceDir==nextDir)? 1: 0);
+		}
+	}
+	
+	private void updateMap(){
+		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+		RobotInfo info;
+		for (Robot r : robots){
+			try {
+				info = controllers.sensor.senseRobotInfo(r);
+				if (info.chassis == Chassis.BUILDING || info.chassis == Chassis.DUMMY){
+					myMap.setScore(info.location, 1);
+				}
+				
+			} catch (GameActionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	

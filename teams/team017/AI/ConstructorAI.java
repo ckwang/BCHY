@@ -60,6 +60,10 @@ public class ConstructorAI extends AI {
 
 			try {
 				
+//				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
+//				controllers.myRC.setIndicatorString(1, "");
+//				controllers.myRC.setIndicatorString(2, "");
+				
 				processMessages();
 				
 				navigate();
@@ -137,7 +141,7 @@ public class ConstructorAI extends AI {
 			if (!mineLocations.isEmpty())
 				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
 			
-			controllers.myRC.setIndicatorString(2, "here");
+//			controllers.myRC.setIndicatorString(2, "here");
 			
 //			// wake up one recycler
 //			while(controllers.comm.isActive())
@@ -434,6 +438,8 @@ public class ConstructorAI extends AI {
 				}
 				
 			navigator.setDestination(nearest);
+		} else if (enemyBaseLoc[0] != null){
+			navigator.setDestination(enemyBaseLoc[0]);
 		}
 		
 		Direction nextDir = navigator.getNextDir(2);
@@ -448,24 +454,24 @@ public class ConstructorAI extends AI {
 				}
 			}
 		}
-		else if (scoutDir != Direction.NONE && scoutDir != Direction.OMNI){
-			controllers.myRC.setIndicatorString(0,"Scouting");
-			if ( roachRounds > 0 ){
-				controllers.myRC.setIndicatorString(0,"roachNavigate");
-				roachNavigate();
-				roachRounds--;
-			} else if (sense_border() == scoutDir) {
-				controllers.myRC.setIndicatorString(0,"enemyBaseLoc");
-				navigator.setDestination(enemyBaseLoc[0]);
-				scoutDir = Direction.OMNI;
-			}
-			else {
-				controllers.myRC.setIndicatorString(0,"Scouting");
-				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
-				roachRounds = 100;
-			}
-
-		}
+//		else if (scoutDir != Direction.NONE && scoutDir != Direction.OMNI){
+////			controllers.myRC.setIndicatorString(0,"Scouting");
+//			if ( roachRounds > 0 ){
+//				controllers.myRC.setIndicatorString(0,"roachNavigate");
+//				roachNavigate();
+//				roachRounds--;
+//			} else if (sense_border() == scoutDir) {
+//				controllers.myRC.setIndicatorString(0,"enemyBaseLoc");
+//				navigator.setDestination(enemyBaseLoc[0]);
+//				scoutDir = Direction.OMNI;
+//			}
+//			else {
+//				controllers.myRC.setIndicatorString(0,"Scouting");
+//				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
+//				roachRounds = 100;
+//			}
+//
+//		}
 		else {
 //			controllers.myRC.setIndicatorString(1,"roachNavigate");
 			// do nothing;
