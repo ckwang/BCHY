@@ -41,8 +41,8 @@ public abstract class AI {
 	abstract protected void processMessages() throws GameActionException;
 	
 	public void yield() {
-		controllers.myRC.yield();
 		msgHandler.process();
+		controllers.myRC.yield();
 	}
 	
 	protected void sense_border() {

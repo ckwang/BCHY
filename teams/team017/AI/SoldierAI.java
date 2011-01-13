@@ -43,7 +43,7 @@ public class SoldierAI extends AI {
 
 	public void proceed() {				
 		
-		outer:
+//		outer:
 		while (true) {
 			
 			try {processMessages();}

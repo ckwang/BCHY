@@ -8,9 +8,12 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
+import battlecode.common.RobotLevel;
+import battlecode.common.SensorController;
 
 public class ArmoryAI extends BuildingAI{
-
+	MapLocation currentLoc = controllers.myRC.getLocation();
+	
 	public ArmoryAI(RobotController rc) {
 		super(rc);
 	}
@@ -21,6 +24,42 @@ public class ArmoryAI extends BuildingAI{
 		while (true) {
 			try {
 				processMessages();
+				
+				double fluxRate = getEffectiveFluxRate();
+				if (controllers.myRC.getTeamResources() > 200 && fluxRate > 0.4) {
+					if (builderDirs.recyclerDirection != null) {
+						Direction recyclerDir = builderDirs.recyclerDirection; 
+						SensorController sensor = controllers.sensor;
+						MapLocation[] buildLocs = {currentLoc.add(recyclerDir.rotateLeft()), currentLoc.add(recyclerDir.rotateRight()), currentLoc.add(recyclerDir.rotateLeft().rotateLeft()), currentLoc.add(recyclerDir.rotateRight().rotateRight())};
+						if (recyclerDir.isDiagonal()) {
+							for (int i = 0; i < 2; ++i) {
+								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
+									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, builderDirs)) {
+										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
+											break;
+										yield();
+									}								
+									break;
+								}
+							}
+						} else {
+							for (int i = 0; i < 4; ++i) {
+								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
+									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, builderDirs)) {
+										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
+											break;
+										yield();
+									}								
+									break;
+								}
+							}
+						}
+					}
+//					while (!buildingSystem.constructUnit(buildLoc, type, builderDirs) {
+//						yield();
+//					}
+				}
+				
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");

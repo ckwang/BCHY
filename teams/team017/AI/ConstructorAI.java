@@ -358,44 +358,6 @@ public class ConstructorAI extends AI {
 			yield();
 		}
 		return true;
-		
-//		while (!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)) {
-//			MapLocation currentLoc = controllers.myRC.getLocation();
-//			if(currentLoc.equals(buildLoc) && !controllers.motor.isActive()){
-////				while(controllers.motor.isActive()){
-////					yield();
-////				}
-//				if (controllers.motor.canMove(controllers.myRC.getDirection().opposite()));
-//					controllers.motor.moveBackward();
-//				yield();
-//				continue;
-//			}
-//			if (controllers.sensor.canSenseSquare(buildLoc) && controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
-//				return false;
-//			if (!controllers.motor.isActive()) {
-//				if (!controllers.myRC.getLocation().isAdjacentTo(buildLoc)) {
-//					navigator.setDestination(buildLoc);
-//					Direction nextDir = navigator.getNextDir(0);
-//					if(nextDir == Direction.OMNI && !controllers.motor.isActive()){
-////						while(controllers.motor.isActive()){
-////							yield();
-////						}
-//						if (controllers.motor.canMove(controllers.myRC.getDirection().opposite()))
-//							controllers.motor.moveBackward();
-//						break;				
-//					}
-//					if (controllers.myRC.getDirection() != nextDir) {
-//						controllers.motor.setDirection(nextDir);
-//					} else {
-//						if (controllers.motor.canMove(controllers.myRC.getDirection()))
-//							controllers.motor.moveForward();
-//					}
-//				} else if (!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)) {
-//					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(buildLoc));
-//				}
-//			}
-//			yield();
-//		}
 	}
 
 	private void navigate() throws GameActionException {

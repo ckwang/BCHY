@@ -35,13 +35,13 @@ public class CombatSystem {
 			int dist1 = currentLoc.distanceSquaredTo(o1.location);
 			int dist2 = currentLoc.distanceSquaredTo(o2.location);
 			
-			// Panelty distance by 2 if not within angle
-			if (dir1 != dir && dir1 != dir.rotateLeft() && dir1 != dir.rotateRight())
-				dist1 += 2;
-			
-			if (dir2 != dir && dir2 != dir.rotateLeft() && dir2 != dir.rotateRight())
-				dist2 += 2;
-			
+//			// Panelty distance by 2 if not within angle
+//			if (dir1 != dir && dir1 != dir.rotateLeft() && dir1 != dir.rotateRight())
+//				dist1 += 2;
+//			
+//			if (dir2 != dir && dir2 != dir.rotateLeft() && dir2 != dir.rotateRight())
+//				dist2 += 2;
+//			
 			
 			// Compare distance
 			if (dist1 > dist2) {
@@ -528,16 +528,6 @@ public class CombatSystem {
 							++listPointer;
 						}
 						attacked = true;
-					} else if(!motor.isActive()) {
-						return enemy.location;
-						
-//						Direction currentDir = rc.getDirection();
-//						MapLocation currentLoc = rc.getLocation();
-//						if (currentDir == currentLoc.directionTo(enemy.location)) {
-//							motor.moveForward();
-//						} else {
-//							motor.setDirection(rc.getLocation().directionTo(enemy.location));
-//						}
 					}
 				}
 			}
@@ -545,6 +535,8 @@ public class CombatSystem {
 			if (attacked) {
 				if (!motor.isActive() && controllers.motor.canMove(rc.getDirection().opposite()))
 					return rc.getLocation();
+			} else if (!motor.isActive()){
+				return enemyInfos.get(listPointer).location;
 			}
 		} catch (GameActionException e) {
 			e.printStackTrace();
