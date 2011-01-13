@@ -1,5 +1,6 @@
 package team017.message;
 
+import team017.construction.UnitType;
 import battlecode.common.ComponentType;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
@@ -7,27 +8,27 @@ import battlecode.common.Message;
 public class ConstructionCompleteMessage extends GenericMessage {
 
 	private MapLocation buildingLocation;
-	private ComponentType builderType;
+	private UnitType buildingType;
 	
-	public ConstructionCompleteMessage(MapLocation buildingLocation, ComponentType builderType) {
+	public ConstructionCompleteMessage(MapLocation buildingLocation, UnitType buildingType) {
 		super(MessageType.CONSTRUCTION_COMPLETE);
 		
 		msg.locations[locCounter++] = buildingLocation;
-		msg.ints[intCounter++] = builderType.ordinal();
+		msg.ints[intCounter++] = buildingType.ordinal();
 	}
 	
 	public ConstructionCompleteMessage(Message msg) {
 		super(msg);
 
 		buildingLocation = msg.locations[locCounter++];
-		builderType = ComponentType.values()[msg.ints[intCounter++]];
+		buildingType = UnitType.values()[msg.ints[intCounter++]];
 	}
 	
 	public MapLocation getBuildingLocation() {
 		return buildingLocation;
 	}
 	
-	public ComponentType getBuilderType() {
-		return builderType;
+	public UnitType getBuildingType() {
+		return buildingType;
 	}
 }

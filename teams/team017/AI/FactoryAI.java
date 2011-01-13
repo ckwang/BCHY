@@ -79,7 +79,7 @@ public class FactoryAI extends BuildingAI {
 				MapLocation currentLoc = controllers.myRC.getLocation();
 				
 				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
-					builderDirs.setDirections(handler.getBuilderType(), currentLoc.directionTo(handler.getBuildingLocation()));
+					builderDirs.setDirections(handler.getBuildingType(), currentLoc.directionTo(handler.getBuildingLocation()));
 				}
 				break;
 			}

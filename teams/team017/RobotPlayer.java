@@ -23,8 +23,10 @@ public class RobotPlayer implements Runnable {
 					new RecyclerAI(myRC).proceed();
 				} else if (Util.containsComponent(myRC.components(), ComponentType.ARMORY)) {
 					new ArmoryAI(myRC).proceed();
-				} else {
+				} else if (Util.containsComponent(myRC.components(), ComponentType.FACTORY)){
 					new FactoryAI(myRC).proceed();
+				} else {
+					new TowerAI(myRC).proceed();
 				}
 				
 				break;

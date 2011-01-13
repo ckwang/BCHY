@@ -13,13 +13,14 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 import battlecode.common.TerrainTile;
 
-public class BuilderDirections {
+public class BuildingDirections {
 	
 	private Controllers controllers;
 	
 	public Direction recyclerDirection;
 	public Direction armoryDirection;
 	public Direction factoryDirection;
+	public Direction towerDirection;
 	/*
 	 * 7 0 1
 	 * 6 * 2
@@ -55,14 +56,16 @@ public class BuilderDirections {
 		}
 	}
 	
-	public BuilderDirections(Controllers controllers) {
+	public BuildingDirections(Controllers controllers) {
 		this.controllers = controllers;
 		
 		updateEmptyDirections();
-		updateBuilderDirs();
+		updateBuildingDirs();
 	}
 	
 	public Direction getDirections(ComponentType type){
+		if (type == null)
+			return towerDirection;
 		switch(type){
 		case RECYCLER:
 			return recyclerDirection;
@@ -70,6 +73,21 @@ public class BuilderDirections {
 			return armoryDirection;
 		case FACTORY:
 			return factoryDirection;
+		default:
+			return null;
+		}
+	}
+	
+	public Direction getDirections(UnitType type){
+		switch(type){
+		case RECYCLER:
+			return recyclerDirection;
+		case ARMORY:
+			return armoryDirection;
+		case FACTORY:
+			return factoryDirection;
+		case TOWER:
+			return towerDirection;
 		default:
 			return null;
 		}
@@ -83,6 +101,19 @@ public class BuilderDirections {
 			armoryDirection = dir;
 		case FACTORY:
 			factoryDirection = dir;
+		}
+	}
+	
+	public void setDirections(UnitType type, Direction dir) {
+		switch(type){
+		case RECYCLER:
+			recyclerDirection = dir;
+		case ARMORY:
+			armoryDirection = dir;
+		case FACTORY:
+			factoryDirection = dir;
+		case TOWER:
+			towerDirection = dir;
 		}
 	}
 	
@@ -108,7 +139,7 @@ public class BuilderDirections {
 	}
 	
 	
-	public void updateBuilderDirs() {
+	public void updateBuildingDirs() {
 		clusterSize = 0;
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		
@@ -120,6 +151,7 @@ public class BuilderDirections {
 					
 					if (info.location.isAdjacentTo(currentLoc) && info.on) {
 						for (ComponentType com : info.components) {
+
 							if (com.componentClass == ComponentClass.BUILDER) {
 								setDirections(com, currentLoc.directionTo(info.location));
 								if (com == ComponentType.RECYCLER)

@@ -16,8 +16,8 @@ public abstract class GenericMessage {
 		public String[] strings;
 		
 		public MessageWrap() {
-			ints = new int[50];
-			locations = new MapLocation[50];
+			ints = new int[100];
+			locations = new MapLocation[100];
 			strings = new String[10];
 		}
 		

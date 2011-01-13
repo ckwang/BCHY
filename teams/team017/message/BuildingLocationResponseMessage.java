@@ -10,12 +10,15 @@ import battlecode.common.Message;
 
 public class BuildingLocationResponseMessage extends GenericMessage {
 
+	private int constructorID;
 	private Direction buildableDirection;
 	private int availableSpace;
+	
 	//	buildableDirection and it's turnRight(s) are available
-	public BuildingLocationResponseMessage(Direction buildableDirection, int availableSpace) {
+	public BuildingLocationResponseMessage(int constructorID, Direction buildableDirection, int availableSpace) {
 		super(MessageType.BUILDING_LOCATION_RESPONSE_MESSAGE);
 		
+		msg.ints[intCounter++] = constructorID;
 		msg.ints[intCounter++] = buildableDirection.ordinal();
 		msg.ints[intCounter++] = availableSpace;
 	}
@@ -23,6 +26,7 @@ public class BuildingLocationResponseMessage extends GenericMessage {
 	public BuildingLocationResponseMessage(Message msg) {
 		super(msg);
 		
+		constructorID = msg.ints[intCounter++];
 		buildableDirection = Direction.values()[msg.ints[intCounter++]];
 		availableSpace = msg.ints[intCounter++];
 	}
@@ -33,5 +37,9 @@ public class BuildingLocationResponseMessage extends GenericMessage {
 	
 	public int getAvailableSpace() {
 		return availableSpace;
+	}
+	
+	public int getConstructorID() {
+		return constructorID;
 	}
 }
