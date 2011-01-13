@@ -70,6 +70,7 @@ public class SoldierAI extends AI {
 				}
 			}
 			
+			int before = Clock.getBytecodeNum();
 			if (controllers.comm != null){
 				if (combat.enemyInfosSet.size() > 0) {
 //					String s = "";
@@ -87,6 +88,11 @@ public class SoldierAI extends AI {
 //					}
 //				}
 			}
+			int after = Clock.getBytecodeNum();
+
+			rc.setIndicatorString(0, "bytecode: " + (after - before));
+			rc.setIndicatorString(1, "bytecode: " + (after - before));
+			rc.setIndicatorString(2, "bytecode: " + (after - before));
 			
 			if (combat.enemyInfosSet.size() > 0) {
 				attackRoundCounter = 2;
@@ -163,8 +169,10 @@ public class SoldierAI extends AI {
 				EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
 				if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
 					for (EnemyInfo e: ehandler.getInfos()) {
-						combat.enemyInfosSet.remove(e);
-						combat.enemyInfosSet.add(e);
+						if (Clock.getRoundNum() - e.roundNum <= 1) {
+							combat.enemyInfosSet.remove(e);
+							combat.enemyInfosSet.add(e);
+						}
 					}	
 //					String s = "";
 //					for (int i = 0; i < combat.enemyInfosInbox.size(); ++i)

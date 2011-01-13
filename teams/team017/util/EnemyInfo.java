@@ -7,15 +7,17 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 
 public class EnemyInfo {
+	public int roundNum;
+	public int id;
 	public double hp;
 	public MapLocation location;
 	public RobotLevel level;
-	public int id;
 	public boolean mobile;
 	
 	public int cost;
 
-	public EnemyInfo(RobotInfo info) {
+	public EnemyInfo(int roundNum, RobotInfo info) {
+		this.roundNum = roundNum;
 		this.hp = info.hitpoints;
 		this.location = info.location;
 		this.level = info.robot.getRobotLevel();
@@ -23,7 +25,8 @@ public class EnemyInfo {
 		this.mobile = info.on || info.chassis == Chassis.BUILDING;
 	}
 	
-	public EnemyInfo (int id, double hp, MapLocation location, RobotLevel level, boolean mobile) {
+	public EnemyInfo (int roundNum, int id, double hp, MapLocation location, RobotLevel level, boolean mobile) {
+		this.roundNum = roundNum;
 		this.hp = hp;
 		this.location = location;
 		this.level = level;
