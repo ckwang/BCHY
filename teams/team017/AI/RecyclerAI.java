@@ -77,6 +77,8 @@ public class RecyclerAI extends BuildingAI {
 //					e.printStackTrace();
 //				}
 			} else {
+				builderDirs.updateBuildingDirs();
+				
 				while(controllers.myRC.getTeamResources() < 10)
 					controllers.myRC.yield();
 				try {

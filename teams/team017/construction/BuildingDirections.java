@@ -177,10 +177,14 @@ public class BuildingDirections {
 				emptyDirections[i] = false;
 			} else {
 				try {
-					GameObject object = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND);
-					if (object != null) {
-						if (controllers.sensor.senseRobotInfo((Robot) object).chassis == Chassis.BUILDING)
+					Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
+					if (objectOnGround != null) {
+						if (controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis == Chassis.BUILDING)
 							emptyDirections[i] = false;
+					} else if (controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null) {
+						emptyDirections[i] = false;
+					} else {
+						emptyDirections[i] = true;
 					}
 					
 				} catch (GameActionException e) {
