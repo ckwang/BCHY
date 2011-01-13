@@ -39,6 +39,7 @@ public class ConstructorAI extends AI {
 	}
 
 	public void yield() {
+		navigator.updateMap();
 		super.yield();
 		updateLocationSets();
 		sense_border();
@@ -63,9 +64,9 @@ public class ConstructorAI extends AI {
 
 			try {
 				
-//				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
-//				controllers.myRC.setIndicatorString(1, "");
-//				controllers.myRC.setIndicatorString(2, "");
+				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
+				controllers.myRC.setIndicatorString(1, "");
+				controllers.myRC.setIndicatorString(2, "");
 				
 				processMessages();
 				

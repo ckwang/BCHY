@@ -95,13 +95,16 @@ public class Navigator {
 //		updateMap();
 		// return same direction at same location (given same destination)
 		if (controllers.myRC.getLocation().equals(previousRobLoc)){
-			if ( !controllers.motor.isActive() && !controllers.motor.canMove(previousDir) ){
+			if ( !controllers.motor.isActive() && 
+				 controllers.myRC.getDirection() == previousDir && 
+				 needDetour(previousDir) ){
 				controllers.myRC.setIndicatorString(1, "DETOUR");
 				Direction faceDir = controllers.myRC.getDirection();
 				faceDir = iscw? faceDir.rotateRight().rotateRight(): faceDir.rotateLeft().rotateLeft();
 				previousDir = detour(faceDir, iscw);
 				istracing = false;
 			}
+			controllers.myRC.setIndicatorString(1, "PRECOMPUTE");
 			return previousDir;
 		}
 		// navigation has been interrupted before
@@ -165,7 +168,7 @@ public class Navigator {
 			nextLoc = traceNext(s, startTracingDir, iscw);
 			nextDir = s.directionTo(nextLoc);
 			
-			controllers.myRC.setIndicatorString(1, "TRACING to "+nextLoc.toString() );
+			controllers.myRC.setIndicatorString(1, "TRACING to "+modifiedDes.toString()+nextLoc.toString() );
 			
 			// The way is open
 			if ( isOpen(s, faceDir, nextDir, desDir, iscw) && isTraversable(s.add(desDir) ) ){
@@ -203,7 +206,7 @@ public class Navigator {
 					
 					if ( isOpen(ibugLoc.loc, ibugLoc.faceDir, nextDir, desDir, ibugLoc.isCW) && isTraversable(ibugLoc.loc.add(desDir) )  ){
 						iscw = ibugLoc.isCW;
-						controllers.myRC.setIndicatorString(1, modifiedDes.toString() + "TRACING DIR: " + (iscw? "CW" : "CCW"));
+						controllers.myRC.setIndicatorString(1,"TRACING DIR: " + (iscw? "CW" : "CCW") + modifiedDes.toString());
 						return s.directionTo( iscw? nextCW:nextCCW );
 					} else {
 						queue.add(new EnhancedMapLocation(nextLoc, null, nextDir, computeCost(ibugLoc, nextDir), true, ibugLoc.isCW) );
@@ -427,7 +430,7 @@ public class Navigator {
 				}
 				
 			} catch (GameActionException e) {
-//				e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
 	}

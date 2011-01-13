@@ -48,6 +48,9 @@ public class SoldierAI extends AI {
 			try {processMessages();}
 			catch (GameActionException e1) {}
 
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
+			controllers.myRC.setIndicatorString(1, "");
+			controllers.myRC.setIndicatorString(2, "");
 
 			
 			combat.senseNearby();
@@ -90,9 +93,9 @@ public class SoldierAI extends AI {
 			}
 			int after = Clock.getBytecodeNum();
 
-			rc.setIndicatorString(0, "bytecode: " + (after - before));
-			rc.setIndicatorString(1, "bytecode: " + (after - before));
-			rc.setIndicatorString(2, "bytecode: " + (after - before));
+//			rc.setIndicatorString(0, "bytecode: " + (after - before));
+//			rc.setIndicatorString(1, "bytecode: " + (after - before));
+//			rc.setIndicatorString(2, "bytecode: " + (after - before));
 			
 			if (combat.enemyInfosSet.size() > 0) {
 				attackRoundCounter = 2;
@@ -115,9 +118,10 @@ public class SoldierAI extends AI {
 	}
 
 	public void yield() {
+		navigator.updateMap();
 		super.yield();
 		combat.reset();
-		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + "");
+//		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + "");
 
 		if (controllers.myRC.getHitpoints() < prevHp) {
 			prevHp = controllers.myRC.getHitpoints();
@@ -146,7 +150,7 @@ public class SoldierAI extends AI {
 				}
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				controllers.myRC.setIndicatorString(1, "Border Message got" + handler.getRoundNum());
+//				controllers.myRC.setIndicatorString(1, "Border Message got" + handler.getRoundNum());
 				break;
 				
 //			case FOLLOW_ME_MESSAGE:
