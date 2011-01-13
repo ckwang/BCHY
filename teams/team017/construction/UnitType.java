@@ -12,7 +12,7 @@ public enum UnitType {
 	CONSTRUCTOR(Chassis.LIGHT, ComponentType.CONSTRUCTOR, ComponentType.SIGHT, ComponentType.ANTENNA),
 	COMMANDER (Chassis.LIGHT, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SMG, ComponentType.PLATING),
 	GRIZZLY (Chassis.LIGHT, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.PLATING, ComponentType.SIGHT),
-	RADARGUN (Chassis.LIGHT, ComponentType.BLASTER, ComponentType.ANTENNA, ComponentType.RADAR),
+	RADARGUN (Chassis.LIGHT, ComponentType.SMG, ComponentType.PROCESSOR, ComponentType.ANTENNA, ComponentType.RADAR),
 	HAMMER_TANK (Chassis.LIGHT, ComponentType.HAMMER,ComponentType.HAMMER, ComponentType.PLATING, ComponentType.SIGHT),//weak!!!
 
 // Armory + Recycler

@@ -90,7 +90,7 @@ public class SoldierAI extends AI {
 //				}
 				}
 			}	
-			if (combat.enemyInfosSet.size() == 0 && attackRoundCounter >0) 
+			if (enemyNum == 0 && attackRoundCounter >0) 
 				attackRoundCounter -=1;
 				
 			if (attackRoundCounter == 0) {
@@ -99,8 +99,6 @@ public class SoldierAI extends AI {
 				catch (GameActionException e) {}
 				
 			}
-				
-			
 			
 			sense_border();
 			yield();
@@ -160,19 +158,20 @@ public class SoldierAI extends AI {
 //				break;
 //				
 			case ENEMY_INFORMATION_MESSAGE:
-				EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
-				if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
-					for (EnemyInfo e: ehandler.getInfos()) {
-						combat.enemyInfosSet.remove(e);
-						combat.enemyInfosSet.add(e);
-					}	
-//					String s = "";
-//					for (int i = 0; i < combat.enemyInfosInbox.size(); ++i)
-//						s += combat.enemyInfosInbox.get(i).location + " ";
-//					controllers.myRC.setIndicatorString(1, "Mess:" + s + ehandler.getRoundNum());
+				if (enemyNum == 0) {
+					EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
+					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
+						for (EnemyInfo e: ehandler.getInfos()) {
+							combat.enemyInfosSet.remove(e);
+							combat.enemyInfosSet.add(e);
+						}	
+//						String s = "";
+//						for (int i = 0; i < combat.enemyInfosInbox.size(); ++i)
+//							s += combat.enemyInfosInbox.get(i).location + " ";
+//						controllers.myRC.setIndicatorString(1, "Mess:" + s + ehandler.getRoundNum());
+					}
 				}
-				
-				break;
+				break;				
 			}
 		}
 	}

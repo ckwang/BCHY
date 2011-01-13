@@ -30,42 +30,13 @@ public class CombatSystem {
 
 	public class compareEnemyInfoByDistance implements Comparator<EnemyInfo> {
 		public int compare(EnemyInfo o1, EnemyInfo o2) {
-			MapLocation currentLoc = controllers.myRC.getLocation();
-			Direction dir = controllers.myRC.getDirection();
-			Direction dir1 = currentLoc.directionTo(o1.location);
-			Direction dir2 = currentLoc.directionTo(o2.location);
-			
-			int dist1 = currentLoc.distanceSquaredTo(o1.location);
-			int dist2 = currentLoc.distanceSquaredTo(o2.location);
-			
-//			// Panelty distance by 2 if not within angle
-//			if (dir1 != dir && dir1 != dir.rotateLeft() && dir1 != dir.rotateRight())
-//				dist1 += 2;
-//			
-//			if (dir2 != dir && dir2 != dir.rotateLeft() && dir2 != dir.rotateRight())
-//				dist2 += 2;
-//			
-			
-			// Compare distance
-			if (dist1 > dist2) {
+			if (o1.cost > o2.cost) {
 				return 1;
-			} else if (o1.mobile != o2.mobile) {
-				if (o1.mobile) {
-					return -1;
-				}
-				return 1;
-			// Attack air units first
-			} else if (o1.level != o2.level) {
-				if (o1.level == RobotLevel.IN_AIR) {
-					return -1;
-				}
-				return 1;
-			// Attack the enemy with less hitpoints	
-			} else if (dist2 == dist1 && o1.hp > o2.hp) {
-				return 1;
-			} else {
+			} else if (o1.cost < o2.cost) {
 				return -1;
-			}	
+			} else {
+				return 0;
+			}
 		}		
 	}
 	
@@ -79,8 +50,6 @@ public class CombatSystem {
 	
 	public Set<EnemyInfo> enemyInfosSet = new HashSet<EnemyInfo>();
 	
-//	public List <EnemyInfo> enemyInfos = new ArrayList <EnemyInfo>();
-//	public List <EnemyInfo> enemyInfosInbox = new ArrayList <EnemyInfo>();
 	
 	public Robot target1 = null;
 	public Robot target2 = null;
@@ -504,15 +473,33 @@ public class CombatSystem {
 	public MapLocation attack() {
 		try {
 			RobotController rc = controllers.myRC;
+			MapLocation currentLoc = rc.getLocation();
 			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
 			
 			boolean attacked = false;
 			
 			if (enemyInfosSet.size() == 0)
 				return null;
-			
+
+
 			EnemyInfo[] enemyInfos = new EnemyInfo[enemyInfosSet.size()];
-			enemyInfosSet.toArray(enemyInfos);
+
+			int before = Clock.getBytecodeNum();
+			
+//			enemyInfosSet.toArray(enemyInfos);
+			
+			int i = 0;
+			for (EnemyInfo info : enemyInfosSet) {
+				info.calculateCost(currentLoc);
+				enemyInfos[i] = info;
+				++i;
+			}
+			int after = Clock.getBytecodeNum();
+			rc.setIndicatorString(0, "bytecode: " + (after - before));
+			rc.setIndicatorString(1, "bytecode: " + (after - before));
+			rc.setIndicatorString(2, "bytecode: " + (after - before));
+
+			
 			Arrays.sort(enemyInfos, comparator);
 			
 			int listPointer = 0;
