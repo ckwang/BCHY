@@ -38,7 +38,7 @@ public class SoldierAI extends AI {
 	private boolean hasLeader = false;
 	
 	private Direction followDir;
-
+	private Direction previousDir = null;
 	public SoldierAI(RobotController rc) {
 		super(rc);
 		combat = new CombatSystem(controllers);
@@ -85,10 +85,15 @@ public class SoldierAI extends AI {
 					msgHandler.clearOutQueue();
 					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));
 					msgHandler.process();
-					} else if (!hasLeader && Clock.getRoundNum() % 3 == 0) {
+					} else if (!hasLeader) {
+						
+						if (previousDir != controllers.myRC.getDirection() || Clock.getRoundNum() % 3 == 0) {
+						
 						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 						controllers.myRC.setIndicatorString(1, "Follow Me Message Sent");
+						}
 					}
+					previousDir = controllers.myRC.getDirection();
 				}
 				
 			
@@ -129,7 +134,7 @@ public class SoldierAI extends AI {
 
 
 			
-			if (attackRoundCounter > 2) {
+			if (attackRoundCounter > 2 && leaderMessageRoundCounter > 3) {
 				try {navigate();}
 //				controllers.myRC.setIndicatorString(2, "navigate");}
 				catch (GameActionException e) {}
