@@ -7,9 +7,11 @@ import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
+import battlecode.common.RobotLevel;
 
 public class FactoryAI extends BuildingAI {
 
@@ -31,13 +33,13 @@ public class FactoryAI extends BuildingAI {
 //				}
 //			}
 				
-			if( controllers.myRC.getTeamResources() > UnitType.MEDIUM_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.MEDIUM_COMMANDER.chassis.upkeep * 1.5){
-				if(builderDirs.recyclerDirection != null){
-					ComponentType [] builderList = {ComponentType.RECYCLER, ComponentType.FACTORY};
-					MapLocation buildLoc = builderDirs.constructableLocation(ComponentType.FACTORY, builderList);
-					buildingSystem.constructUnit(buildLoc, UnitType.MEDIUM_COMMANDER, builderDirs);
-				}
-			}
+//			if( controllers.myRC.getTeamResources() > UnitType.MEDIUM_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.MEDIUM_COMMANDER.chassis.upkeep * 1.5){
+//				if(builderDirs.recyclerDirection != null){
+//					ComponentType [] builderList = {ComponentType.RECYCLER, ComponentType.FACTORY};
+//					MapLocation buildLoc = builderDirs.constructableLocation(ComponentType.FACTORY, builderList);
+//					buildingSystem.constructUnit(buildLoc, UnitType.MEDIUM_COMMANDER, builderDirs);
+//				}
+//			}
 
 //				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 120)
 //					buildingSystem.constructUnit(UnitType.TANK_KILLER);
@@ -54,6 +56,7 @@ public class FactoryAI extends BuildingAI {
 	protected void processMessages() throws GameActionException {
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
+			outer:
 			switch (msgHandler.getMessageType(msg)) {
 			case BUILDING_REQUEST:{
 				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
@@ -75,11 +78,24 @@ public class FactoryAI extends BuildingAI {
 			}
 			case CONSTRUCTION_COMPLETE: {
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
-				
 				MapLocation currentLoc = controllers.myRC.getLocation();
+				MapLocation buildingLocation = handler.getBuildingLocation();
+				Direction builderDir = currentLoc.directionTo(buildingLocation);
 				
 				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
 					builderDirs.setDirections(handler.getBuildingType(), currentLoc.directionTo(handler.getBuildingLocation()));
+					if (handler.getBuildingType() == UnitType.RAILGUN_TOWER) {
+						builderDirs.setDirections(handler.getBuildingType(), builderDir);
+						while(!buildingSystem.constructComponent(buildingLocation, UnitType.RAILGUN_TOWER)) {
+							GameObject obj = controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND);
+							if (obj == null || obj.getTeam() != controllers.myRC.getTeam()) {
+								builderDirs.setDirections(handler.getBuildingType(), null);
+								break outer;
+							}
+							yield();
+						}
+						break;
+					}
 				}
 				break;
 			}

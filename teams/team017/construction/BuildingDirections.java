@@ -9,6 +9,7 @@ import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
+import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
@@ -22,6 +23,7 @@ public class BuildingDirections {
 	public Direction armoryDirection;
 	public Direction factoryDirection;
 	public Direction towerDirection;
+	public Direction railgunTowerDirection;
 	/*
 	 * 7 0 1
 	 * 6 * 2
@@ -89,6 +91,8 @@ public class BuildingDirections {
 			return factoryDirection;
 		case TOWER:
 			return towerDirection;
+		case RAILGUN_TOWER:
+			return railgunTowerDirection;
 		default:
 			return null;
 		}
@@ -150,6 +154,11 @@ public class BuildingDirections {
 	public void updateBuildingDirs() {
 		clusterSize = 0;
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+		Mine[] mines = controllers.sensor.senseNearbyGameObjects(Mine.class);
+		
+		for (Mine m: mines) {
+			clusterSize++;
+		}
 		
 		for (Robot r : robots) {
 			if (r.getTeam() == controllers.myRC.getTeam()) {
@@ -162,8 +171,8 @@ public class BuildingDirections {
 
 							if (com.componentClass == ComponentClass.BUILDER) {
 								setDirections(com, currentLoc.directionTo(info.location));
-								if (com == ComponentType.RECYCLER)
-									clusterSize++;
+//								if (com == ComponentType.RECYCLER)
+//									clusterSize++;
 							} else if (com == ComponentType.BLASTER) {
 								setDirections(UnitType.TOWER, currentLoc.directionTo(info.location));
 							}

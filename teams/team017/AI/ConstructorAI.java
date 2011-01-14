@@ -552,6 +552,9 @@ public class ConstructorAI extends AI {
 			
 			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
 				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
+				controllers.myRC.setIndicatorString(0, handler.getUnitType() + "");
+				controllers.myRC.setIndicatorString(1, handler.getUnitType() + "");
+				controllers.myRC.setIndicatorString(2, handler.getUnitType() + "");
 				
 				// see if the message is intended for it
 				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())

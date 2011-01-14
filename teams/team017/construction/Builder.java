@@ -79,8 +79,8 @@ public class Builder {
 
 	public boolean constructUnit(MapLocation buildLoc, UnitType type){
 		try{
-			if(type.selfBuild == false)
-				return false;
+//			if(type.selfBuild == false)
+//				return false;
 			Chassis chassis = type.chassis;
 			if (rc.getTeamResources() > chassis.cost + 20) {
 				if (canConstruct(chassis.level)) {
