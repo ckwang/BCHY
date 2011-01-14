@@ -345,6 +345,9 @@ public class CombatSystem {
 
 	public void senseNearby() {
 //		reset();
+		RobotController rc = controllers.myRC;
+		int roundNum = Clock.getRoundNum();
+		int before = Clock.getBytecodeNum();
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		for (Robot r : robots) {
 			try {
@@ -357,8 +360,8 @@ public class CombatSystem {
 //						alocs.add(loc);
 //					}
 //				} else 
-				if ((r.getTeam() != controllers.myRC.getTeam() && r.getTeam() != Team.NEUTRAL)) {
-					EnemyInfo thisEnemy = new EnemyInfo(info);
+				if (r.getTeam() == controllers.myRC.getTeam().opponent()) {
+					EnemyInfo thisEnemy = new EnemyInfo(roundNum, info);
 					enemyInfosSet.remove(thisEnemy);
 					enemyInfosSet.add(thisEnemy);
 				}
@@ -372,7 +375,11 @@ public class CombatSystem {
 				continue;
 			}
 		}
+		int after = Clock.getBytecodeNum();
 
+//		rc.setIndicatorString(0, "bytecode: " + (after - before));
+//		rc.setIndicatorString(1, "bytecode: " + (after - before));
+//		rc.setIndicatorString(2, "bytecode: " + (after - before));
 		
 //		Util.sortHp(hps, enemies);
 	
@@ -495,15 +502,16 @@ public class CombatSystem {
 				++i;
 			}
 			int after = Clock.getBytecodeNum();
-			rc.setIndicatorString(0, "bytecode: " + (after - before));
-			rc.setIndicatorString(1, "bytecode: " + (after - before));
-			rc.setIndicatorString(2, "bytecode: " + (after - before));
+//			rc.setIndicatorString(0, "bytecode: " + (after - before));
+//			rc.setIndicatorString(1, "bytecode: " + (after - before));
+//			rc.setIndicatorString(2, "bytecode: " + (after - before));
 
 			
 			Arrays.sort(enemyInfos, comparator);
 			
 			int listPointer = 0;
 			EnemyInfo enemy = enemyInfos[listPointer];
+			
 			
 			for (WeaponController w : controllers.weapons) {
 				if (!w.isActive() && w.withinRange(enemy.location)) {

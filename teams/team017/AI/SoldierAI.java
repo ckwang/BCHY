@@ -27,14 +27,16 @@ public class SoldierAI extends AI {
 	private MovementController motor = controllers.motor;
 	private SensorController sensor = controllers.sensor;
 	private List<WeaponController> weapons = controllers.weapons;
-	private MapLocation leaderLoc;
+	private MapLocation leaderLoc = null;
 	private double prevHp = 50;
 	private boolean attacked = false;
 	private int attackRoundCounter = 0;
+	private int leaderMessageRoundCounter = 0;
 	int enemyNum = 0;
 	
 	private boolean reachedFirstBase = false;
-
+	private boolean hasLeader = false;
+	
 	private Direction followDir;
 
 	public SoldierAI(RobotController rc) {
@@ -47,10 +49,12 @@ public class SoldierAI extends AI {
 		while (true) {
 
 			combat.senseNearby();
-			enemyNum = combat.enemyInfosSet.size();
 			try {processMessages();}
 			catch (GameActionException e1) {}
+
+			enemyNum = combat.enemyInfosSet.size();
 			MapLocation nextLoc = combat.attack();
+			
 			if (nextLoc != null && !controllers.motor.isActive()) {
 				navigator.setDestination(nextLoc);
 				try {
@@ -69,31 +73,62 @@ public class SoldierAI extends AI {
 				}
 			}
 			
-			if (enemyNum > 0) {
 				// Set a int so that it doesn't call navigate() after seeing an enemy
-				attackRoundCounter = 2;
 				
 				if (controllers.comm != null){
 //					String s = "";
 //					for (int i = 0; i < combat.enemyInfos.size(); ++i)
 //						s += combat.enemyInfos.get(i).location + " ";
 //					controllers.myRC.setIndicatorString(1,"Broadcast:" + s);
+					if (enemyNum > 0) {
+
 					msgHandler.clearOutQueue();
 					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));
 					msgHandler.process();
-				 
-//				else {
-//					if (Clock.getRoundNum() % 3 == 0) {
-//						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-//						controllers.myRC.setIndicatorString(1, "Follow Me Message Sent");
-//					}
-//				}
+					} else if (!hasLeader && Clock.getRoundNum() % 3 == 0) {
+						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+						controllers.myRC.setIndicatorString(1, "Follow Me Message Sent");
+					}
 				}
-			}	
-			if (enemyNum == 0 && attackRoundCounter >0) 
-				attackRoundCounter -=1;
 				
-			if (attackRoundCounter == 0) {
+			
+			
+			if (enemyNum > 0) 
+				attackRoundCounter = 0;
+			else 
+				attackRoundCounter++;
+			try {
+				if (leaderMessageRoundCounter < 4) {
+					if (!motor.isActive()) {
+						MapLocation estimatedLeaderLoc = leaderLoc.add(followDir, leaderMessageRoundCounter);
+
+						// Move in the same direction as the leader if being near enough to the leader
+						if (rc.getLocation().distanceSquaredTo(estimatedLeaderLoc) <= 9) {
+							if (motor.canMove(followDir)) {
+								if (rc.getDirection() == followDir) {
+									motor.moveForward();
+								} else {
+									motor.setDirection(followDir);
+								}
+							// Move to the front of the leader if cant move in the same direction	
+							} else {
+								navigator.setDestination(leaderLoc.add(followDir, 3));
+								Direction nextDir = navigator.getNextDir(2);
+								if (rc.getDirection() == nextDir)
+									motor.moveForward();
+								else
+									motor.setDirection(nextDir);
+							}
+						}
+					}
+					leaderMessageRoundCounter++;
+				} else {
+					hasLeader = false;
+				}
+			} catch (Exception e) { }
+
+			
+			if (controllers.comm != null && attackRoundCounter > 2) {
 				try {navigate();}
 //				controllers.myRC.setIndicatorString(2, "navigate");}
 				catch (GameActionException e) {}
@@ -141,22 +176,31 @@ public class SoldierAI extends AI {
 				controllers.myRC.setIndicatorString(1, "Border Message got" + handler.getRoundNum());
 				break;
 				
-//			case FOLLOW_ME_MESSAGE:
-//				// System.out.println("follow me message");
-//				FollowMeMessage fhandler = new FollowMeMessage(msg);
-//				MapLocation loc = fhandler.getSourceLocation();
-//				followDir = fhandler.getFollowDirection();
-//				if (leaderLoc != null) {
-//					int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
-//					int newdist = rc.getLocation().distanceSquaredTo(loc);
-//					if (newdist < curdist)
-//						leaderLoc = loc.add(followDir, 5);
-//				} else
-//					leaderLoc = loc.add(followDir, 5);
-//				navigator.setDestination(leaderLoc);
-//				controllers.myRC.setIndicatorString(1, "Follow me message got" + fhandler.getRoundNum());
-//				break;
-//				
+			case FOLLOW_ME_MESSAGE:
+					// System.out.println("follow me message");
+					FollowMeMessage fhandler = new FollowMeMessage(msg);
+					
+					// If 2 commanders meet, follow the one with a smaller ID
+					if (controllers.comm != null && fhandler.getSourceID() < rc.getRobot().getID())
+						break;
+
+					leaderMessageRoundCounter = 0;
+					hasLeader = true;
+					MapLocation loc = fhandler.getSourceLocation();
+					followDir = fhandler.getFollowDirection();
+					if (leaderLoc != null) {
+						int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
+						int newdist = rc.getLocation().distanceSquaredTo(loc);
+						if (newdist < curdist)
+							leaderLoc = loc;
+					} else
+						leaderLoc = loc;
+//					navigator.setDestination(leaderLoc);
+					controllers.myRC.setIndicatorString(1, "Follow me message got" + fhandler.getRoundNum());					
+				
+
+				break;
+				
 			case ENEMY_INFORMATION_MESSAGE:
 				if (enemyNum == 0) {
 					EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);

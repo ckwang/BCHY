@@ -77,7 +77,7 @@ public class ConstructorAI extends AI {
 				
 
 				if (Clock.getRoundNum() % 4 == 0) {
-					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+//					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
 				
@@ -245,9 +245,10 @@ public class ConstructorAI extends AI {
 
 	private void checkEmptyRecyclers() throws GameActionException {
 		for (MapLocation recyclerLoc : recyclerLocations) {
-			if (controllers.myRC.getLocation().isAdjacentTo(recyclerLoc)
+			if (controllers.myRC.getLocation().distanceSquaredTo(recyclerLoc) <= 9
 				&& !builtLocations.contains(recyclerLoc)) {
 				msgHandler.queueMessage(new BuildingLocationInquiryMessage(recyclerLoc));
+				break;
 			}
 		}
 	}

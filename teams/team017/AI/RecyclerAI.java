@@ -130,7 +130,7 @@ public class RecyclerAI extends BuildingAI {
 				 * Test
 				 */
 				double [] thresholds = {0.3};
-				int [][] unitRatio = {{1,1,1}};
+				int [][] unitRatio = {{1,2,1}};
 				UnitType [][] types = {{UnitType.RADARGUN, UnitType.GRIZZLY, UnitType.CONSTRUCTOR}};
 
 				/*
