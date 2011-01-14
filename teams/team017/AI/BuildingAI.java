@@ -10,7 +10,7 @@ import battlecode.common.RobotInfo;
 
 public abstract class BuildingAI extends AI {
 
-	protected BuildingDirections builderDirs;
+	protected BuildingDirections buildingDirs;
 	
 	private double[] fluxRecord = new double[10];
 	private int[] roundRecord = new int[10];
@@ -19,8 +19,8 @@ public abstract class BuildingAI extends AI {
 	public BuildingAI(RobotController rc) {
 		super(rc);
 
-		builderDirs = new BuildingDirections(controllers);
-		builderDirs.updateBuildingDirs();
+		buildingDirs = new BuildingDirections(controllers);
+		buildingDirs.updateBuildingDirs();
 	}
 
 	abstract public void proceed();
@@ -53,14 +53,14 @@ public abstract class BuildingAI extends AI {
 			}
 		}
 		
-		return fluxRate[0] + (sum / n);
+		return fluxRate[0] + (sum / n) + 0.25*(controllers.myRC.getTeamResources()/250);
 	}
 	
 	protected double getFluxAcceleration() {
 		return (fluxRate[0] = fluxRate[1]) / (roundRecord[0] - roundRecord[1]);
 	}
 
-	/***
+	/**
 	 * Sense nearby robots and return the location of one robot with specific
 	 * chassis. Return none if there is no such robot.
 	 * 

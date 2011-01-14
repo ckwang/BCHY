@@ -36,14 +36,14 @@ public class ArmoryAI extends BuildingAI{
 				
 				double fluxRate = getEffectiveFluxRate();
 				if (buildIdleRound == 0 && controllers.myRC.getTeamResources() > 150 && fluxRate > 0.4) {
-					if (builderDirs.recyclerDirection != null) {
-						Direction recyclerDir = builderDirs.recyclerDirection; 
+					if (buildingDirs.recyclerDirection != null) {
+						Direction recyclerDir = buildingDirs.recyclerDirection; 
 						SensorController sensor = controllers.sensor;
 						MapLocation[] buildLocs = {currentLoc.add(recyclerDir.rotateLeft()), currentLoc.add(recyclerDir.rotateRight()), currentLoc.add(recyclerDir.rotateLeft().rotateLeft()), currentLoc.add(recyclerDir.rotateRight().rotateRight())};
 						if (recyclerDir.isDiagonal()) {
 							for (int i = 0; i < 2; ++i) {
 								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, builderDirs)) {
+									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingDirs)) {
 										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
 											break;
 										yield();
@@ -55,7 +55,7 @@ public class ArmoryAI extends BuildingAI{
 						} else {
 							for (int i = 0; i < 4; ++i) {
 								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, builderDirs)) {
+									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingDirs)) {
 										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
 											break;
 										yield();
@@ -66,18 +66,18 @@ public class ArmoryAI extends BuildingAI{
 							}
 						}
 					}
-//					while (!buildingSystem.constructUnit(buildLoc, type, builderDirs) {
+//					while (!buildingSystem.constructUnit(buildLoc, type, buildingDirs) {
 //						yield();
 //					}
 				}
 //				 if (fluxRate > 0.6 && Clock.getRoundNum() < 1000 && controllers.myRC.getTeamResources() > 120) {
-//						Direction recyclerDir = builderDirs.recyclerDirection; 
+//						Direction recyclerDir = buildingDirs.recyclerDirection; 
 //						SensorController sensor = controllers.sensor;
 //						MapLocation[] buildLocs = {currentLoc.add(recyclerDir.rotateLeft()), currentLoc.add(recyclerDir.rotateRight()), currentLoc.add(recyclerDir.rotateLeft().rotateLeft()), currentLoc.add(recyclerDir.rotateRight().rotateRight())};
 //						if (recyclerDir.isDiagonal()) {
 //							for (int i = 0; i < 2; ++i) {
 //								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) == null) {
-//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.NETWORK_COMMANDER, builderDirs)) {
+//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.NETWORK_COMMANDER, buildingDirs)) {
 //										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) != null)
 //											break;
 //										yield();
@@ -88,7 +88,7 @@ public class ArmoryAI extends BuildingAI{
 //						} else {
 //							for (int i = 0; i < 4; ++i) {
 //								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) == null) {
-//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.NETWORK_COMMANDER, builderDirs)) {
+//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.NETWORK_COMMANDER, buildingDirs)) {
 //										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) != null)
 //											break;
 //										yield();
@@ -127,7 +127,7 @@ public class ArmoryAI extends BuildingAI{
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation currentLoc = controllers.myRC.getLocation();
 				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
-					builderDirs.setDirections(handler.getBuildingType(), currentLoc.directionTo(handler.getBuildingLocation()));
+					buildingDirs.setDirections(handler.getBuildingType(), currentLoc.directionTo(handler.getBuildingLocation()));
 				}
 				break;
 			}

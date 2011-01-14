@@ -25,7 +25,8 @@ public class Navigator {
 	private int moveDiagonally = 4;
 	
 	private boolean istracing;
-	private boolean iscw;
+	private boolean iscw; 
+	private boolean hasWaited; 
 	
 	private class EnhancedMapLocation{
 		public MapLocation loc;
@@ -63,6 +64,7 @@ public class Navigator {
 		controllers = cs;
 		iscw = true;
 		istracing = false;
+		hasWaited = false;
 		myMap = new Map( cs.myRC.getLocation() );
 		comparator = new costComparator();
 		queue = new PriorityQueue<EnhancedMapLocation>(50, comparator);
@@ -74,6 +76,7 @@ public class Navigator {
 		previousRobLoc = null;
 		previousDir = Direction.OMNI;
 		istracing = false;
+		hasWaited = false;
 	}
 
 	public void setDestination(MapLocation loc) {
@@ -103,6 +106,7 @@ public class Navigator {
 				previousDir = detour(faceDir, iscw);
 				istracing = false;
 			}
+			hasWaited = false;
 			controllers.myRC.setIndicatorString(1, "PRECOMPUTE");
 			return previousDir;
 		}
@@ -367,6 +371,9 @@ public class Navigator {
 	}
 	
 	private boolean needDetour( Direction faceDir ){
+		if (hasWaited)
+			return true;
+		hasWaited = false;
 		try {
 			if (!controllers.motor.isActive() && !controllers.motor.canMove(faceDir) ){
 				Robot r = (Robot) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(faceDir), RobotLevel.ON_GROUND);

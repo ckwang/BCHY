@@ -34,6 +34,7 @@ public class ConstructorAI extends AI {
 	
 	private MapLocation scoutLocation;
 	private int roachRounds = 0;
+	Mine[] minelist;
 	
 	public ConstructorAI(RobotController rc) {
 		super(rc);
@@ -50,15 +51,9 @@ public class ConstructorAI extends AI {
 
 		// Initial movement
 		if (Clock.getRoundNum() == 0) {
-//			try {
 				init();
-//				init_revolve();
 				computeEnemyBaseLocation();
-//				init_return();
 				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-//			} catch (GameActionException e) {
-//				e.printStackTrace();
-//			}
 		}
 
 		scoutLocation = getNextScoutLoc();
@@ -81,19 +76,17 @@ public class ConstructorAI extends AI {
 //				}
 
 
-				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() % 2 == 1)
-					checkEmptyRecyclers();
+//				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() % 2 == 1)
+//					checkEmptyRecyclers();
 
 				
 
-				if (Clock.getRoundNum() % 6 == 0) {
-					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-				}
+//				if (Clock.getRoundNum() % 6 == 0) {
+//					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+//					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+//				}
 				
-//				if (enemyBaseLoc[0] != null)
-//					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());
-//				controllers.myRC.setIndicatorString(1, scoutDir.toString());
+				
 				yield();
 
 				// Conditions of building factories/armories
@@ -227,7 +220,7 @@ public class ConstructorAI extends AI {
 	}
 
 	private void updateLocationSets() {
-		Mine[] minelist = controllers.sensor.senseNearbyGameObjects(Mine.class);
+		minelist = controllers.sensor.senseNearbyGameObjects(Mine.class);
 		for (Mine mine : minelist) {
 			try {
 				GameObject object = controllers.sensor.senseObjectAtLocation(mine.getLocation(), RobotLevel.ON_GROUND);
