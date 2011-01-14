@@ -278,17 +278,41 @@ public class RecyclerAI extends BuildingAI {
 					int constructorID = handler.getSourceID();
 					Direction dir;
 					
+					if (inquiryIdleRound > 0)
+						break;
 					
-					// if there is already a tower around
-					if (builderDirs.towerDirection != null || inquiryIdleRound > 0) {
+					// if there are no towers around
+					if (builderDirs.towerDirection == null) {
+						for (int i = 4; i >= 2; i--) {
+							dir = builderDirs.consecutiveEmpties(i);
+							if (dir != null)
+								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.TOWER));
+						}
+					} else if (builderDirs.armoryDirection == null) {
+						for (int i = 3; i >= 2; i--) {
+							dir = builderDirs.consecutiveEmpties(i);
+							if (dir != null)
+								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.ARMORY));
+						}
+					} else if (builderDirs.factoryDirection == null) {
+						dir = builderDirs.consecutiveEmpties(2);
+						if (dir != null)
+							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir.rotateRight(), UnitType.FACTORY));
+					} else {
 						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, Direction.NONE, null));
-						controllers.myRC.setIndicatorString(0, "Consecutive -1");
-					} else if ( (dir = builderDirs.consecutiveEmpties(2)) != Direction.NONE ) {
-//						controllers.myRC.setIndicatorString(1, "available dir:" + dir);
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.TOWER));
-						inquiryIdleRound = 5;
-						controllers.myRC.setIndicatorString(0, "Consecutive 2");
 					}
+					
+					
+//					// if there is already a tower around
+//					if (builderDirs.towerDirection != null || inquiryIdleRound > 0) {
+//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, Direction.NONE, null));
+//						controllers.myRC.setIndicatorString(0, "Consecutive -1");
+//					} else if ( (dir = builderDirs.consecutiveEmpties(2)) != Direction.NONE ) {
+////						controllers.myRC.setIndicatorString(1, "available dir:" + dir);
+//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.TOWER));
+//						inquiryIdleRound = 5;
+//						controllers.myRC.setIndicatorString(0, "Consecutive 2");
+//					}
 						
 //					else if ( (dir = builderDirs.consecutiveEmpties(4)) != Direction.NONE ) {
 //						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 4));
@@ -353,10 +377,10 @@ public class RecyclerAI extends BuildingAI {
 							yield();
 						}
 //						
-//						// build an antenna if it doesn't have one
-//						if (!Util.containsComponent(controllers, buildingLocation, RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
-//							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
-//						}
+						// build an antenna if it doesn't have one
+						if (!Util.containsComponent(controllers, buildingLocation, RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
+							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
+						}
 					}
 				}
 				break;
