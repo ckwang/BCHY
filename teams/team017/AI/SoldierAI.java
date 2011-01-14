@@ -118,9 +118,9 @@ public class SoldierAI extends AI {
 	}
 
 	public void yield() {
-		navigator.updateMap();
 		super.yield();
 		combat.reset();
+		navigator.updateMap();
 //		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + "");
 
 		if (controllers.myRC.getHitpoints() < prevHp) {

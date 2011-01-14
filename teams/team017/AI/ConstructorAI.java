@@ -40,10 +40,10 @@ public class ConstructorAI extends AI {
 	}
 
 	public void yield() {
-		navigator.updateMap();
 		super.yield();
 		updateLocationSets();
 		sense_border();
+		navigator.updateMap();
 	}
 
 	public void proceed() {

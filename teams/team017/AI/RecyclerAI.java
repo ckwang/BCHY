@@ -294,11 +294,13 @@ public class RecyclerAI extends BuildingAI {
 							if (dir != null)
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.ARMORY));
 						}
-					} else if (builderDirs.factoryDirection == null) {
-						dir = builderDirs.consecutiveEmpties(2);
-						if (dir != null)
-							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir.rotateRight(), UnitType.FACTORY));
-					} else {
+					} 
+//					else if (builderDirs.factoryDirection == null) {
+//						dir = builderDirs.consecutiveEmpties(2);
+//						if (dir != null)
+//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir.rotateRight(), UnitType.FACTORY));
+//					}
+					else {
 						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, Direction.NONE, null));
 					}
 					
