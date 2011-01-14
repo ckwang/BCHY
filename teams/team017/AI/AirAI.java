@@ -76,11 +76,13 @@ public class AirAI extends AI {
 					checkEmptyRecyclers();
 
 				
-
-				if (Clock.getRoundNum() % 6 == 0) {
-					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+				if (controllers.comm != null) {
+					if (Clock.getRoundNum() % 6 == 0) {
+						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection(), controllers.comm.type().range));
+						msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+					}					
 				}
+
 				
 				if (enemyBaseLoc[0] != null)
 					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());

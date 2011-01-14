@@ -35,41 +35,41 @@ public class ArmoryAI extends BuildingAI{
 				processMessages();
 				
 				double fluxRate = getEffectiveFluxRate();
-				if (buildIdleRound == 0 && controllers.myRC.getTeamResources() > 150 && fluxRate > 0.4) {
-					if (builderDirs.recyclerDirection != null) {
-						Direction recyclerDir = builderDirs.recyclerDirection; 
-						SensorController sensor = controllers.sensor;
-						MapLocation[] buildLocs = {currentLoc.add(recyclerDir.rotateLeft()), currentLoc.add(recyclerDir.rotateRight()), currentLoc.add(recyclerDir.rotateLeft().rotateLeft()), currentLoc.add(recyclerDir.rotateRight().rotateRight())};
-						if (recyclerDir.isDiagonal()) {
-							for (int i = 0; i < 2; ++i) {
-								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, builderDirs)) {
-										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
-											break;
-										yield();
-									}
-									buildIdleRound = 300;
-									break;
-								}
-							}
-						} else {
-							for (int i = 0; i < 4; ++i) {
-								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, builderDirs)) {
-										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
-											break;
-										yield();
-									}
-									buildIdleRound = 300;
-									break;
-								}
-							}
-						}
-					}
+//				if (buildIdleRound == 0 && controllers.myRC.getTeamResources() > 150 && fluxRate > 0.4) {
+//					if (builderDirs.recyclerDirection != null) {
+//						Direction recyclerDir = builderDirs.recyclerDirection; 
+//						SensorController sensor = controllers.sensor;
+//						MapLocation[] buildLocs = {currentLoc.add(recyclerDir.rotateLeft()), currentLoc.add(recyclerDir.rotateRight()), currentLoc.add(recyclerDir.rotateLeft().rotateLeft()), currentLoc.add(recyclerDir.rotateRight().rotateRight())};
+//						if (recyclerDir.isDiagonal()) {
+//							for (int i = 0; i < 2; ++i) {
+//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
+//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, builderDirs)) {
+//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
+//											break;
+//										yield();
+//									}
+//									buildIdleRound = 300;
+//									break;
+//								}
+//							}
+//						} else {
+//							for (int i = 0; i < 4; ++i) {
+//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
+//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, builderDirs)) {
+//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
+//											break;
+//										yield();
+//									}
+//									buildIdleRound = 300;
+//									break;
+//								}
+//							}
+//						}
+//					}
 //					while (!buildingSystem.constructUnit(buildLoc, type, builderDirs) {
 //						yield();
 //					}
-				}
+//				}
 //				 if (fluxRate > 0.6 && Clock.getRoundNum() < 1000 && controllers.myRC.getTeamResources() > 120) {
 //						Direction recyclerDir = builderDirs.recyclerDirection; 
 //						SensorController sensor = controllers.sensor;

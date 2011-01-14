@@ -89,11 +89,10 @@ public class SoldierAI extends AI {
 						
 						if (previousDir != controllers.myRC.getDirection() || Clock.getRoundNum() % 3 == 0) {
 						
-						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection(), controllers.comm.type().range));
 						controllers.myRC.setIndicatorString(1, "Follow Me Message Sent");
 						}
 					}
-					previousDir = controllers.myRC.getDirection();
 				}
 				
 			
@@ -148,6 +147,7 @@ public class SoldierAI extends AI {
 	}
 
 	public void yield() {
+		previousDir = controllers.myRC.getDirection();
 		super.yield();
 		combat.reset();
 		navigator.updateMap();
@@ -187,10 +187,18 @@ public class SoldierAI extends AI {
 					// System.out.println("follow me message");
 					FollowMeMessage fhandler = new FollowMeMessage(msg);
 					
-					// If 2 commanders meet, follow the one with a smaller ID
-					if (controllers.comm != null && fhandler.getSourceID() < rc.getRobot().getID())
-						break;
-
+					/*
+					 * If 2 commanders meet, follow the one with a longer range of broadcast
+					 * 
+					 * If the range is the same, follow the one with a smaller ID
+ 
+					 */
+					if (controllers.comm != null) {
+						if (controllers.comm.type().range < fhandler.getCommRange()) 
+							break;
+						else if (controllers.comm.type().range == fhandler.getCommRange() && fhandler.getSourceID() < rc.getRobot().getID()) 
+							break;
+					}
 					leaderMessageRoundCounter = 0;
 					hasLeader = true;
 					MapLocation loc = fhandler.getSourceLocation();

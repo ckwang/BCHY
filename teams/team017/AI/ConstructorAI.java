@@ -86,7 +86,7 @@ public class ConstructorAI extends AI {
 				
 
 				if (Clock.getRoundNum() % 6 == 0) {
-					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection(), controllers.comm.type().range));
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
 				
