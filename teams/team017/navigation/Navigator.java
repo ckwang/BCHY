@@ -371,7 +371,7 @@ public class Navigator {
 			if (!controllers.motor.isActive() && !controllers.motor.canMove(faceDir) ){
 				Robot r = (Robot) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(faceDir), RobotLevel.ON_GROUND);
 				RobotInfo info = controllers.sensor.senseRobotInfo(r);
-				if (Util.isFacing(info.direction.opposite(), controllers.myRC.getDirection()))
+				if (!Util.isFacing(info.direction, controllers.myRC.getDirection()))
 					return true;
 			}
 			return false;
