@@ -129,7 +129,7 @@ public class SoldierAI extends AI {
 
 
 			
-			if (controllers.comm != null && attackRoundCounter > 2) {
+			if (attackRoundCounter > 2) {
 				try {navigate();}
 //				controllers.myRC.setIndicatorString(2, "navigate");}
 				catch (GameActionException e) {}
