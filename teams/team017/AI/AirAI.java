@@ -24,6 +24,7 @@ import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
+import battlecode.common.TerrainTile;
 
 public class AirAI extends AI {
 	
@@ -31,7 +32,7 @@ public class AirAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
-	private Direction scoutDir = Direction.NONE;
+	private MapLocation scoutLocation;
 	private int roachRounds = 0;
 	
 	public AirAI(RobotController rc) {
@@ -59,6 +60,7 @@ public class AirAI extends AI {
 //			}
 		}
 
+		scoutLocation = getNextScoutLoc();
 		while (true) {
 
 			try {
@@ -82,9 +84,9 @@ public class AirAI extends AI {
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
 				
-				if (enemyBaseLoc[0] != null)
-					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());
-				controllers.myRC.setIndicatorString(1, scoutDir.toString());
+//				if (enemyBaseLoc[0] != null)
+//					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());
+//				controllers.myRC.setIndicatorString(1, scoutDir.toString());
 				yield();
 
 				// Conditions of building factories/armories
@@ -408,7 +410,7 @@ public class AirAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
-
+		Direction nextDir = Direction.OMNI;
 		if (!mineLocations.isEmpty()) {
 //			controllers.myRC.setIndicatorString(1,"Mine");
 			MapLocation currentLoc = controllers.myRC.getLocation();
@@ -419,9 +421,30 @@ public class AirAI extends AI {
 				}
 				
 			navigator.setDestination(nearest);
+			nextDir = navigator.getNextDir(2);
+		}
+		else {
+			
+			TerrainTile checkTile = 
+				controllers.myRC.senseTerrainTile(
+						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
+			
+			if (checkTile == TerrainTile.OFF_MAP)
+				scoutLocation = getNextScoutLoc();
+			
+			navigator.setDestination(scoutLocation);
+			nextDir = navigator.getNextDir(9);
+			
+			if (nextDir == Direction.OMNI){
+				scoutLocation = getNextScoutLoc();
+				navigator.setDestination(scoutLocation);
+				nextDir = navigator.getNextDir(9);
+			}
 		}
 		
-		Direction nextDir = navigator.getNextDir(2);
+		controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + "," + scoutLocation);
+		
+		
 		if (nextDir != Direction.OMNI) {
 			if (!controllers.motor.isActive() ) {
 				if (controllers.myRC.getDirection() == nextDir) {
@@ -433,18 +456,24 @@ public class AirAI extends AI {
 				}
 			}
 		}
-		else if (scoutDir != Direction.NONE){
-//			controllers.myRC.setIndicatorString(1,"scouting");
-			if ( roachRounds > 0 ){
-				roachNavigate();
-				roachRounds--;
-			} else {
-				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
-				roachRounds = 100;
-			}
-				
-			
-		}
+//		else if (scoutDir != Direction.NONE && scoutDir != Direction.OMNI){
+////			controllers.myRC.setIndicatorString(0,"Scouting");
+//			if ( roachRounds > 0 ){
+//				controllers.myRC.setIndicatorString(0,"roachNavigate");
+//				roachNavigate();
+//				roachRounds--;
+//			} else if (sense_border() == scoutDir) {
+//				controllers.myRC.setIndicatorString(0,"enemyBaseLoc");
+//				navigator.setDestination(enemyBaseLoc[0]);
+//				scoutDir = Direction.OMNI;
+//			}
+//			else {
+//				controllers.myRC.setIndicatorString(0,"Scouting");
+//				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
+//				roachRounds = 100;
+//			}
+//
+//		}
 		else {
 //			controllers.myRC.setIndicatorString(1,"roachNavigate");
 			// do nothing;
@@ -481,6 +510,44 @@ public class AirAI extends AI {
 			
 		
 	}
+	
+	private MapLocation getNextScoutLoc() {
+		TerrainTile tile, checkTile;
+		Direction faceDir = controllers.myRC.getDirection();
+		final int EXPLORATION_SIZE = 10;
+		
+		// add some randomness to the initial direction
+		int n = Clock.getRoundNum() % 8;
+		for (int i = 0; i < n; i++) {
+			faceDir = faceDir.rotateRight();
+		}
+		
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		int multiple = 1;
+		while( multiple < 5 ){
+		
+			for (int i = 0; i < 8; i++){
+				MapLocation projectedLoc = currentLoc.add(faceDir, EXPLORATION_SIZE*multiple);
+				if ( (borders[1] == -1 || projectedLoc.x < borders[1]) &&
+					 (borders[3] == -1 || projectedLoc.x > borders[3]) &&
+					 (borders[2] == -1 || projectedLoc.y < borders[2]) &&
+					 (borders[0] == -1 || projectedLoc.y > borders[0])) {
+					
+				
+					tile = controllers.myRC.senseTerrainTile(projectedLoc);
+					checkTile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 3));
+					if (tile == null && checkTile != TerrainTile.OFF_MAP)
+						return projectedLoc;
+				}
+				faceDir = faceDir.rotateRight();
+			}
+			
+			multiple++;
+		}
+		
+		return currentLoc.add(faceDir.opposite(), EXPLORATION_SIZE*multiple);
+	}
+
 	@Override
 	protected void processMessages() throws GameActionException {
 		// Check messages
@@ -558,13 +625,13 @@ public class AirAI extends AI {
 				computeEnemyBaseLocation();
 				break;
 			}
-			case SCOUTING_MESSAGE: {						
-				ScoutingMessage handler = new ScoutingMessage(msg);
-				// update the borders
-				if (scoutDir == Direction.NONE)
-					scoutDir = handler.getScoutDirection();
-				break;
-			}
+//			case SCOUTING_MESSAGE: {						
+//				ScoutingMessage handler = new ScoutingMessage(msg);
+//				// update the borders
+//				if (scoutDir == Direction.NONE)
+//					scoutDir = handler.getScoutDirection();
+//				break;
+//			}
 			}
 		}
 	}
