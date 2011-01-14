@@ -76,8 +76,8 @@ public class ConstructorAI extends AI {
 //				}
 
 
-//				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() % 2 == 1)
-//					checkEmptyRecyclers();
+				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 400 && Clock.getRoundNum() % 2 == 1)
+					checkEmptyRecyclers();
 
 				
 

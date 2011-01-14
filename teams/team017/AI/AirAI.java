@@ -33,7 +33,6 @@ public class AirAI extends AI {
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
 	private MapLocation scoutLocation;
-	private int roachRounds = 0;
 	
 	public AirAI(RobotController rc) {
 		super(rc);
@@ -46,19 +45,6 @@ public class AirAI extends AI {
 	}
 
 	public void proceed() {
-
-		// Initial movement
-		if (Clock.getRoundNum() == 0) {
-//			try {
-				init();
-//				init_revolve();
-				computeEnemyBaseLocation();
-//				init_return();
-				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-//			} catch (GameActionException e) {
-//				e.printStackTrace();
-//			}
-		}
 
 		scoutLocation = getNextScoutLoc();
 		while (true) {
@@ -91,127 +77,6 @@ public class AirAI extends AI {
 
 				// Conditions of building factories/armories
 
-			} catch (Exception e) {
-				System.out.println("caught exception:");
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private void init() {
-		try {
-//			int [] recyclerIDs = new int[2];
-//
-//			Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-//			if (robots.length == 2) {
-//				int j = 0;
-//				for (Robot r : robots) {
-//					if (r.getTeam() == controllers.myRC.getTeam()) {
-//						recyclerIDs[j++] = r.getID();
-//					}
-//				}
-//			}
-			
-			// look at the other three angles
-			for (int i = 0; i < 4; ++i) {
-				// Rotate twice Right for a 90 degrees turn
-				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
-				yield();
-				controllers.updateComponents();
-				
-//				// sense the initial 2 recyclers
-//				robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-//				if (robots.length >= 2) {
-//					int j = 0;
-//					for (Robot r : robots) {
-//						if (r.getTeam() == controllers.myRC.getTeam()) {
-//							recyclerIDs[j++] = r.getID();
-//						}
-//					}
-//				}
-			}
-			
-//			controllers.myRC.setIndicatorString(0, recyclerIDs[0] + "," + recyclerIDs[1]);
-			
-			// go build recyclers on the other two initial mines
-			if (!mineLocations.isEmpty()) {
-				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
-			}
-			yield();
-			if (!mineLocations.isEmpty())
-				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
-			
-			controllers.myRC.setIndicatorString(2, "here");
-			
-//			// wake up one recycler
-//			while(controllers.comm.isActive())
-//				controllers.myRC.yield();
-//			controllers.comm.broadcastTurnOn(recyclerIDs);
-			
-		} catch (GameActionException e) {
-			System.out.println("caught exception:");
-			e.printStackTrace();
-		}
-	}
-
-	private void init_revolve() {
-
-		MapLocation[] locationList = {
-				homeLocation.add(Direction.NORTH_EAST, 2),
-				homeLocation.add(Direction.SOUTH_EAST, 2),
-				homeLocation.add(Direction.SOUTH_WEST, 2),
-				homeLocation.add(Direction.NORTH_WEST, 2) };
-		int index = 0;
-
-		while (true) {
-			try {
-
-				navigator.setDestination(locationList[index]);
-				// controllers.myRC.setIndicatorString(2,
-				// controllers.myRC.getLocation().toString()+locationList[index].toString());
-
-				Direction nextDir = navigator.getNextDir(0);
-				if (nextDir == Direction.OMNI) {
-					index++;
-					if (index == 4)
-						return;
-					continue;
-				}
-
-				if (!controllers.motor.isActive()
-						&& controllers.motor.canMove(nextDir)) {
-					if (controllers.myRC.getDirection() == nextDir) {
-						controllers.motor.moveForward();
-					} else {
-						controllers.motor.setDirection(nextDir);
-					}
-				}
-
-				yield();
-			} catch (Exception e) {
-				System.out.println("caught exception:");
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private void init_return() throws GameActionException {
-		navigator.setDestination(homeLocation);
-
-		while (true) {
-			try {
-				Direction nextDir = navigator.getNextDir(0);
-
-				if (nextDir == Direction.OMNI)
-					break;
-
-				if (!controllers.motor.isActive() && controllers.motor.canMove(nextDir)) {
-					if (controllers.myRC.getDirection() == nextDir)
-						controllers.motor.moveForward();
-					else
-						controllers.motor.setDirection(nextDir);
-				}
-				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
@@ -287,6 +152,20 @@ public class AirAI extends AI {
 		// if there is a eligible site
 		if (target != null) {
 			
+			// move forward or backward if already on the site
+			if (controllers.myRC.getLocation().equals(target)) {
+				while (controllers.motor.isActive())
+					yield();
+				if (controllers.motor.canMove(controllers.myRC.getDirection().opposite())) {
+					controllers.motor.moveBackward();
+				} else if (controllers.motor.canMove(controllers.myRC.getDirection())) {
+					controllers.motor.moveForward();
+				} else {
+					return false;
+				}
+				yield();
+			}
+			
 			// face the building site
 			Direction buildDir = controllers.myRC.getLocation().directionTo(target);
 			if (controllers.myRC.getDirection() != buildDir) {
@@ -335,10 +214,9 @@ public class AirAI extends AI {
 		}
 		
 		// move to the adjacent of the building site
-		navigator.setDestination(buildLoc);
 		while (!controllers.myRC.getLocation().isAdjacentTo(buildLoc)) {
 			if (!controllers.motor.isActive()) {
-				Direction nextDir = navigator.getNextDir(2);
+				Direction nextDir = controllers.myRC.getLocation().directionTo(buildLoc);
 				if (nextDir == Direction.OMNI)
 					break;
 				if (controllers.myRC.getDirection() == nextDir) {
@@ -410,18 +288,18 @@ public class AirAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
+		MapLocation currentLoc = controllers.myRC.getLocation();
 		Direction nextDir = Direction.OMNI;
+		
 		if (!mineLocations.isEmpty()) {
 //			controllers.myRC.setIndicatorString(1,"Mine");
-			MapLocation currentLoc = controllers.myRC.getLocation();
 			MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
 			for (MapLocation loc : mineLocations) {
 				if (currentLoc.distanceSquaredTo(loc) < currentLoc.distanceSquaredTo(nearest))
 					nearest = loc;
 				}
 				
-			navigator.setDestination(nearest);
-			nextDir = navigator.getNextDir(2);
+			nextDir = currentLoc.directionTo(nearest);
 		}
 		else {
 			
@@ -432,13 +310,11 @@ public class AirAI extends AI {
 			if (checkTile == TerrainTile.OFF_MAP)
 				scoutLocation = getNextScoutLoc();
 			
-			navigator.setDestination(scoutLocation);
-			nextDir = navigator.getNextDir(9);
+			nextDir = currentLoc.directionTo(scoutLocation);
 			
 			if (nextDir == Direction.OMNI){
 				scoutLocation = getNextScoutLoc();
-				navigator.setDestination(scoutLocation);
-				nextDir = navigator.getNextDir(9);
+				nextDir = currentLoc.directionTo(scoutLocation);
 			}
 		}
 		
