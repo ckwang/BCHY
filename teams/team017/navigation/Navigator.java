@@ -20,7 +20,6 @@ public class Navigator {
 	
 	private MapLocation previousRobLoc;
 	private Direction previousDir;
-	private int previousRoundNum;
 	
 	private int moveOrthogonally = 3;
 	private int moveDiagonally = 4;
@@ -168,7 +167,7 @@ public class Navigator {
 			nextLoc = traceNext(s, startTracingDir, iscw);
 			nextDir = s.directionTo(nextLoc);
 			
-			controllers.myRC.setIndicatorString(1, "TRACING to "+modifiedDes.toString()+nextLoc.toString() );
+			controllers.myRC.setIndicatorString(1, "TRACING to des:"+modifiedDes.toString()+" next: "+nextLoc.toString() );
 			
 			// The way is open
 			if ( isOpen(s, faceDir, nextDir, desDir, iscw) && isTraversable(s.add(desDir) ) ){
@@ -179,11 +178,14 @@ public class Navigator {
 			return nextDir;
 		
 		} else {
-			controllers.myRC.setIndicatorString(1, "RECKONING to "+modifiedDes.toString());
+			controllers.myRC.setIndicatorString(1, "NT "+modifiedDes.toString());
 			if ( isTraversable(s.add(desDir)) ) {
+				controllers.myRC.setIndicatorString(1, "RECKONING to "+modifiedDes.toString());
 				return desDir;
 			}
 			else {
+				controllers.myRC.setIndicatorString(1, "TRACE to "+modifiedDes.toString());
+				
 				istracing = true;
 				
 				queue.clear();
@@ -237,7 +239,7 @@ public class Navigator {
 		while ( !isTraversable(t) ) {
 			nextDir = s.directionTo(t);
 			t = t.subtract(nextDir);
-
+			
 			// beside the source
 			if (s.distanceSquaredTo(t) <= tolerance) {
 				reset();
@@ -247,7 +249,6 @@ public class Navigator {
 		
 		modifiedDes = t;
 		MapLocation nextLoc;
-		
 		
 		queue.clear();
         
@@ -389,6 +390,10 @@ public class Navigator {
 	}
 	
 	private boolean isOpen(MapLocation currentLoc, Direction currentDir, Direction nextDir, Direction desDir, boolean cw){
+		if (desDir == Direction.OMNI){
+			return true;
+		}
+		
 		if ( !isTraversable(currentLoc.add(currentDir)) )
 			return false;
 		
@@ -406,7 +411,7 @@ public class Navigator {
 				currentDir = currentDir.rotateLeft();
 			}
 		}
-		return (currentDir == desDir);
+		return (nextDir == desDir)/* && (currentDir != nextDir)*/;
 	}
 	
 	private int computeCost(EnhancedMapLocation from, Direction nextDir){
