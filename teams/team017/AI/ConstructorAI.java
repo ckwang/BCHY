@@ -32,7 +32,7 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
-	private Direction scoutDir = Direction.NONE;
+	private MapLocation scoutLocation;
 	private int roachRounds = 0;
 	
 	public ConstructorAI(RobotController rc) {
@@ -61,8 +61,9 @@ public class ConstructorAI extends AI {
 //			}
 		}
 
+		scoutLocation = getNextScoutLoc();
 		while (true) {
-
+			
 			try {
 				
 				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
@@ -80,7 +81,7 @@ public class ConstructorAI extends AI {
 //				}
 
 
-				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() % 2 == 1)
+				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 400 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
 
 				
@@ -398,15 +399,19 @@ public class ConstructorAI extends AI {
 						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
 			
 			if (checkTile == TerrainTile.OFF_MAP)
-				navigator.setDestination(getNextScoutLoc());
+				scoutLocation = getNextScoutLoc();
 			
+			navigator.setDestination(scoutLocation);
 			nextDir = navigator.getNextDir(9);
 			
 			if (nextDir == Direction.OMNI){
-				navigator.setDestination(getNextScoutLoc());
+				scoutLocation = getNextScoutLoc();
+				navigator.setDestination(scoutLocation);
 				nextDir = navigator.getNextDir(9);
 			}
 		}
+		
+		controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + "," + scoutLocation);
 		
 		
 		if (nextDir != Direction.OMNI) {
@@ -478,22 +483,38 @@ public class ConstructorAI extends AI {
 	private MapLocation getNextScoutLoc() {
 		TerrainTile tile, checkTile;
 		Direction faceDir = controllers.myRC.getDirection();
+		final int EXPLORATION_SIZE = 10;
+		
+		// add some randomness to the initial direction
+		int n = Clock.getRoundNum() % 8;
+		for (int i = 0; i < n; i++) {
+			faceDir = faceDir.rotateRight();
+		}
+		
 		MapLocation currentLoc = controllers.myRC.getLocation();
 		int multiple = 1;
 		while( multiple < 5 ){
 		
 			for (int i = 0; i < 8; i++){
-				tile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 5*multiple));
-				checkTile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 3));
-				if (tile == null && checkTile != TerrainTile.OFF_MAP)
-					return currentLoc.add(faceDir, 5*multiple);
+				MapLocation projectedLoc = currentLoc.add(faceDir, EXPLORATION_SIZE*multiple);
+				if ( (borders[1] == -1 || projectedLoc.x < borders[1]) &&
+					 (borders[3] == -1 || projectedLoc.x > borders[3]) &&
+					 (borders[2] == -1 || projectedLoc.y < borders[2]) &&
+					 (borders[0] == -1 || projectedLoc.y > borders[0])) {
+					
+				
+					tile = controllers.myRC.senseTerrainTile(projectedLoc);
+					checkTile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 3));
+					if (tile == null && checkTile != TerrainTile.OFF_MAP)
+						return projectedLoc;
+				}
 				faceDir = faceDir.rotateRight();
 			}
 			
 			multiple++;
 		}
 		
-		return currentLoc.add(faceDir.opposite(), 5*multiple);
+		return currentLoc.add(faceDir.opposite(), EXPLORATION_SIZE*multiple);
 	}
 
 	@Override
