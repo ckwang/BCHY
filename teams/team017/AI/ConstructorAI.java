@@ -24,6 +24,7 @@ import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
+import battlecode.common.TerrainTile;
 
 public class ConstructorAI extends AI {
 
@@ -78,8 +79,8 @@ public class ConstructorAI extends AI {
 //					recyclerLocations.add(controllers.myRC.getLocation().add(controllers.myRC.getDirection()));
 //				}
 
-				if (controllers.myRC.getTeamResources() > 100)
-					checkEmptyRecyclers();
+//				if (controllers.myRC.getTeamResources() > 100)
+//					checkEmptyRecyclers();
 
 				
 
@@ -144,7 +145,7 @@ public class ConstructorAI extends AI {
 			yield();
 			if (!mineLocations.isEmpty())
 				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
-			
+			yield();
 //			controllers.myRC.setIndicatorString(2, "here");
 			
 //			// wake up one recycler
@@ -414,7 +415,7 @@ public class ConstructorAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
-
+		Direction nextDir = Direction.OMNI;
 		if (!mineLocations.isEmpty()) {
 //			controllers.myRC.setIndicatorString(1,"Mine");
 			MapLocation currentLoc = controllers.myRC.getLocation();
@@ -425,11 +426,26 @@ public class ConstructorAI extends AI {
 				}
 				
 			navigator.setDestination(nearest);
-		} else if (enemyBaseLoc[0] != null){
-			navigator.setDestination(enemyBaseLoc[0]);
+			nextDir = navigator.getNextDir(2);
+		}
+		else {
+			
+			TerrainTile checkTile = 
+				controllers.myRC.senseTerrainTile(
+						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
+			
+			if (checkTile == TerrainTile.OFF_MAP)
+				navigator.setDestination(getNextScoutLoc());
+			
+			nextDir = navigator.getNextDir(9);
+			
+			if (nextDir == Direction.OMNI){
+				navigator.setDestination(getNextScoutLoc());
+				nextDir = navigator.getNextDir(9);
+			}
 		}
 		
-		Direction nextDir = navigator.getNextDir(2);
+		
 		if (nextDir != Direction.OMNI) {
 			if (!controllers.motor.isActive() ) {
 				if (controllers.myRC.getDirection() == nextDir) {
@@ -494,6 +510,27 @@ public class ConstructorAI extends AI {
 			// }
 			
 		
+	}
+	
+	private MapLocation getNextScoutLoc() {
+		TerrainTile tile, checkTile;
+		Direction faceDir = controllers.myRC.getDirection();
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		int multiple = 1;
+		while( multiple < 5 ){
+		
+			for (int i = 0; i < 8; i++){
+				tile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 5*multiple));
+				checkTile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 3));
+				if (tile == null && checkTile != TerrainTile.OFF_MAP)
+					return currentLoc.add(faceDir, 5*multiple);
+				faceDir = faceDir.rotateRight();
+			}
+			
+			multiple++;
+		}
+		
+		return currentLoc.add(faceDir.opposite(), 5*multiple);
 	}
 
 	@Override
@@ -570,13 +607,13 @@ public class ConstructorAI extends AI {
 				computeEnemyBaseLocation();
 				break;
 			}
-			case SCOUTING_MESSAGE: {						
-				ScoutingMessage handler = new ScoutingMessage(msg);
-				// update the borders
-				if (scoutDir == Direction.NONE)
-					scoutDir = handler.getScoutDirection();
-				break;
-			}
+//			case SCOUTING_MESSAGE: {						
+//				ScoutingMessage handler = new ScoutingMessage(msg);
+//				// update the borders
+//				if (scoutDir == Direction.NONE)
+//					scoutDir = handler.getScoutDirection();
+//				break;
+//			}
 			}
 		}
 	}
