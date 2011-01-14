@@ -288,17 +288,20 @@ public class RecyclerAI extends BuildingAI {
 							if (dir != null)
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.TOWER));
 						}
+						inquiryIdleRound = 5;
 					} else if (builderDirs.armoryDirection == null) {
 						for (int i = 3; i >= 2; i--) {
 							dir = builderDirs.consecutiveEmpties(i);
 							if (dir != null)
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.ARMORY));
 						}
+						inquiryIdleRound = 5;
 					} 
 //					else if (builderDirs.factoryDirection == null) {
 //						dir = builderDirs.consecutiveEmpties(2);
 //						if (dir != null)
 //							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir.rotateRight(), UnitType.FACTORY));
+//					inquiryIdleRound = 5;
 //					}
 					else {
 						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, Direction.NONE, null));
