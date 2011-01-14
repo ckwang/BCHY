@@ -28,6 +28,7 @@ public class RecyclerAI extends BuildingAI {
 	private int unitConstructed = 0;
 	private int numOfConstructors = 0;
 	private int birthRoundNum;
+	private int inquiryIdleRound = 0;
 	
 	private Direction[] scoutingDir;
 	private int numOfDir = 0;
@@ -43,9 +44,17 @@ public class RecyclerAI extends BuildingAI {
 		}
 	}
 	
+	@Override
+	public void yield() {
+		super.yield();
+		if (inquiryIdleRound != 0)
+			inquiryIdleRound--;
+	}
+	
 
 	@Override
 	public void proceed() {
+		
 		
 		if (Clock.getRoundNum() == 0)
 			init();
@@ -77,7 +86,6 @@ public class RecyclerAI extends BuildingAI {
 //					e.printStackTrace();
 //				}
 			} else {
-				builderDirs.updateBuildingDirs();
 				
 				while(controllers.myRC.getTeamResources() < 10)
 					controllers.myRC.yield();
@@ -222,6 +230,7 @@ public class RecyclerAI extends BuildingAI {
 		// receive messages and handle them
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
+			outer:
 			switch (msgHandler.getMessageType(msg)) {
 			case BORDER: {						
 				BorderMessage handler = new BorderMessage(msg);
@@ -269,20 +278,30 @@ public class RecyclerAI extends BuildingAI {
 					int constructorID = handler.getSourceID();
 					Direction dir;
 					
+					
 					// if there is already a tower around
-					if (builderDirs.towerDirection != null){
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, Direction.NONE, -1));
+					if (builderDirs.towerDirection != null || inquiryIdleRound > 0) {
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, Direction.NONE, null));
 						controllers.myRC.setIndicatorString(0, "Consecutive -1");
-					} else if ( (dir = builderDirs.consecutiveEmpties(4)) != Direction.NONE ) {
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 4));
-						controllers.myRC.setIndicatorString(0, "Consecutive 4");
-					} else if ( (dir = builderDirs.consecutiveEmpties(3)) != Direction.NONE ) {
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 3));
-						controllers.myRC.setIndicatorString(0, "Consecutive 3");
 					} else if ( (dir = builderDirs.consecutiveEmpties(2)) != Direction.NONE ) {
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 2));
+//						controllers.myRC.setIndicatorString(1, "available dir:" + dir);
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.TOWER));
+						inquiryIdleRound = 5;
 						controllers.myRC.setIndicatorString(0, "Consecutive 2");
 					}
+						
+//					else if ( (dir = builderDirs.consecutiveEmpties(4)) != Direction.NONE ) {
+//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 4));
+//						controllers.myRC.setIndicatorString(0, "Consecutive 4");
+//					} else if ( (dir = builderDirs.consecutiveEmpties(3)) != Direction.NONE ) {
+//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 3));
+//						controllers.myRC.setIndicatorString(0, "Consecutive 3");
+//					} else if ( (dir = builderDirs.consecutiveEmpties(2)) != Direction.NONE ) {
+//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 2));
+//						controllers.myRC.setIndicatorString(0, "Consecutive 2");
+//					}
+					
+					
 //					} else if (builderDirs.consecutiveEmpties(3) != Direction.NONE) {
 //						msgHandler.queueMessage(new BuildingLocationResponseMessage(builderDirs.consecutiveEmpties(3), 3));
 //						controllers.myRC.setIndicatorString(0, "Consecutive 3");
@@ -311,14 +330,14 @@ public class RecyclerAI extends BuildingAI {
 					
 					// UnitType.TOWER
 					if (handler.getBuildingType() == UnitType.TOWER) {
-						if (handler.getBuildingLocation().isAdjacentTo(controllers.myRC.getLocation())){
-							while(!buildingSystem.constructComponent(buildingLocation, UnitType.TOWER)) {
-								GameObject obj = controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND);
-								if (obj == null || obj.getTeam() != controllers.myRC.getTeam())
-									break;
-								yield();
+						builderDirs.setDirections(handler.getBuildingType(), builderDir);
+						while(!buildingSystem.constructComponent(buildingLocation, UnitType.TOWER)) {
+							GameObject obj = controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND);
+							if (obj == null || obj.getTeam() != controllers.myRC.getTeam()) {
+								builderDirs.setDirections(handler.getBuildingType(), null);
+								break outer;
 							}
-							builderDirs.setDirections(handler.getBuildingType(), builderDir);
+							yield();
 						}
 						break;
 					}

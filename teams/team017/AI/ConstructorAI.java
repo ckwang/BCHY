@@ -73,12 +73,12 @@ public class ConstructorAI extends AI {
 //					recyclerLocations.add(controllers.myRC.getLocation().add(controllers.myRC.getDirection()));
 //				}
 
-				if (controllers.myRC.getTeamResources() > 100)
+				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
 
 				
 
-				if (Clock.getRoundNum() % 4 == 0) {
+				if (Clock.getRoundNum() % 6 == 0) {
 					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
@@ -523,20 +523,23 @@ public class ConstructorAI extends AI {
 				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
 					break;
 				
-				if (!builtLocations.contains(handler.getSourceLocation())){
-					if(handler.getAvailableSpace() == -1){
-						builtLocations.add(handler.getSourceLocation());
-					} else if (handler.getBuildableDirection() != Direction.NONE) {
-						MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-						if (handler.getAvailableSpace() >= 2) {
-							if(buildBuildingAtLoc(buildLoc, UnitType.TOWER)){
-								msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.TOWER));
-								builtLocations.add(handler.getSourceLocation());
-								yield();
-							}
-						}
-					}							
-				}
+				// if it is not built
+				if (builtLocations.contains(handler.getSourceLocation()))
+					break;
+				
+				UnitType type = handler.getUnitType();
+				if (type == null){	// there is nothing to build
+					builtLocations.add(handler.getSourceLocation());
+				} else if (handler.getBuildableDirection() != Direction.NONE) {
+					MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+					if (buildBuildingAtLoc(buildLoc, type)){
+						msgHandler.clearOutQueue();
+						msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
+//							builtLocations.add(handler.getSourceLocation());
+						yield();
+					}
+				}							
+				
 				break;
 			}
 

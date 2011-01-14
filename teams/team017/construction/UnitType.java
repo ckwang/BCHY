@@ -8,25 +8,25 @@ import battlecode.common.Chassis;
 import battlecode.common.ComponentType;
 
 public enum UnitType {
-// Recycler
+	// Recycler
 	CONSTRUCTOR(Chassis.LIGHT, ComponentType.CONSTRUCTOR, ComponentType.SIGHT, ComponentType.ANTENNA),
 	COMMANDER (Chassis.LIGHT, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SMG, ComponentType.PLATING),
 	GRIZZLY (Chassis.LIGHT, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.PLATING, ComponentType.SIGHT),
 	RADARGUN (Chassis.LIGHT, ComponentType.BLASTER, ComponentType.ANTENNA, ComponentType.RADAR),
 	HAMMER_TANK (Chassis.LIGHT, ComponentType.HAMMER,ComponentType.HAMMER, ComponentType.PLATING, ComponentType.SIGHT),//weak!!!
 
-//	Factory + Recycler + Armory
+	//	Factory + Recycler + Armory
 	HEAVY_CONSTRUCTOR(Chassis.HEAVY, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.DISH, ComponentType.REGEN),
 
-// Factory
+	// Factory
 	TANK_KILLER (Chassis.MEDIUM, ComponentType.RAILGUN,ComponentType.TELESCOPE),
 
-// Factory + Recycler	
+	// Factory + Recycler	
 	MEDIUM_CONSTRUCTOR(Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING),
 	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SIGHT, ComponentType.PLATING),
 	APOCALYPSE(Chassis.HEAVY, ComponentType.RAILGUN,ComponentType.RAILGUN, ComponentType.RADAR),
 
-// Buildings
+	// Buildings
 	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER),
 	ARMORY(Chassis.BUILDING, ComponentType.ARMORY),
 	FACTORY (Chassis.BUILDING, ComponentType.FACTORY),
