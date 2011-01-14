@@ -10,11 +10,8 @@ import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.message.FollowMeMessage;
-import team017.message.ScoutingMessage;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
-import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameObject;
@@ -33,7 +30,6 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
 	private MapLocation scoutLocation;
-	private int roachRounds = 0;
 	Mine[] minelist;
 	
 	public ConstructorAI(RobotController rc) {
@@ -242,6 +238,8 @@ public class ConstructorAI extends AI {
 				continue;
 			}
 		}
+		if ( minelist.length != 0 )
+			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 //		mineLocations.toString();
 //		controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + ";" + mineLocations.toString());
 	}
@@ -368,6 +366,7 @@ public class ConstructorAI extends AI {
 				return false;
 			yield();
 		}
+		msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 		return true;
 	}
 
@@ -418,59 +417,12 @@ public class ConstructorAI extends AI {
 				}
 			}
 		}
-//		else if (scoutDir != Direction.NONE && scoutDir != Direction.OMNI){
-////			controllers.myRC.setIndicatorString(0,"Scouting");
-//			if ( roachRounds > 0 ){
-//				controllers.myRC.setIndicatorString(0,"roachNavigate");
-//				roachNavigate();
-//				roachRounds--;
-//			} else if (sense_border() == scoutDir) {
-//				controllers.myRC.setIndicatorString(0,"enemyBaseLoc");
-//				navigator.setDestination(enemyBaseLoc[0]);
-//				scoutDir = Direction.OMNI;
-//			}
-//			else {
-//				controllers.myRC.setIndicatorString(0,"Scouting");
-//				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
-//				roachRounds = 100;
-//			}
-//
-//		}
 		else {
 //			controllers.myRC.setIndicatorString(1,"roachNavigate");
 			// do nothing;
 			if (!controllers.motor.isActive() )
 				roachNavigate();
 		}
-
-			// else if (!recyclerLocations.isEmpty()) {
-			// MapLocation currentLoc = controllers.myRC.getLocation();
-			// MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
-			// for (MapLocation loc : recyclerLocations) {
-			// if (currentLoc.distanceSquaredTo(loc) < currentLoc
-			// .distanceSquaredTo(nearest))
-			// nearest = loc;
-			// }
-			//
-			// controllers.myRC.setIndicatorString(0, currentLoc + ","
-			// + nearest);
-			//
-			// navigator.setDestination(nearest);
-			// Direction nextDir = navigator.getNextDir(0);
-			//
-			// if (nextDir != Direction.OMNI) {
-			// if (controllers.myRC.getDirection() == nextDir) {
-			// if (controllers.motor.canMove(nextDir)) {
-			// controllers.motor.moveForward();
-			// }
-			// } else {
-			// controllers.motor.setDirection(nextDir);
-			// }
-			// }
-			//
-			// }
-			
-		
 	}
 	
 	private MapLocation getNextScoutLoc() {

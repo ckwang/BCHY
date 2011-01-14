@@ -18,6 +18,7 @@ import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
 import battlecode.common.SensorController;
+import battlecode.common.TerrainTile;
 import battlecode.common.WeaponController;
 
 public class SoldierAI extends AI {
@@ -75,26 +76,26 @@ public class SoldierAI extends AI {
 			
 				// Set a int so that it doesn't call navigate() after seeing an enemy
 				
-				if (controllers.comm != null){
-//					String s = "";
-//					for (int i = 0; i < combat.enemyInfos.size(); ++i)
-//						s += combat.enemyInfos.get(i).location + " ";
-//					controllers.myRC.setIndicatorString(1,"Broadcast:" + s);
-					if (enemyNum > 0) {
-
-					msgHandler.clearOutQueue();
-					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));
-					msgHandler.process();
-					} else if (!hasLeader) {
-						
-						if (previousDir != controllers.myRC.getDirection() || Clock.getRoundNum() % 3 == 0) {
-						
-						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-						controllers.myRC.setIndicatorString(1, "Follow Me Message Sent");
-						}
-					}
-					previousDir = controllers.myRC.getDirection();
-				}
+//				if (controllers.comm != null){
+////					String s = "";
+////					for (int i = 0; i < combat.enemyInfos.size(); ++i)
+////						s += combat.enemyInfos.get(i).location + " ";
+////					controllers.myRC.setIndicatorString(1,"Broadcast:" + s);
+//					if (enemyNum > 0) {
+//
+//					msgHandler.clearOutQueue();
+//					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));
+//					msgHandler.process();
+//					} else if (!hasLeader) {
+//						
+//						if (previousDir != controllers.myRC.getDirection() || Clock.getRoundNum() % 3 == 0) {
+//						
+//						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+//						controllers.myRC.setIndicatorString(1, "Follow Me Message Sent");
+//						}
+//					}
+//					previousDir = controllers.myRC.getDirection();
+//				}
 				
 			
 			
@@ -183,30 +184,30 @@ public class SoldierAI extends AI {
 //				controllers.myRC.setIndicatorString(1, "Border Message got" + handler.getRoundNum());
 				break;
 				
-			case FOLLOW_ME_MESSAGE:
-					// System.out.println("follow me message");
-					FollowMeMessage fhandler = new FollowMeMessage(msg);
-					
-					// If 2 commanders meet, follow the one with a smaller ID
-					if (controllers.comm != null && fhandler.getSourceID() < rc.getRobot().getID())
-						break;
-
-					leaderMessageRoundCounter = 0;
-					hasLeader = true;
-					MapLocation loc = fhandler.getSourceLocation();
-					followDir = fhandler.getFollowDirection();
-					if (leaderLoc != null) {
-						int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
-						int newdist = rc.getLocation().distanceSquaredTo(loc);
-						if (newdist < curdist)
-							leaderLoc = loc;
-					} else
-						leaderLoc = loc;
-//					navigator.setDestination(leaderLoc);
-					controllers.myRC.setIndicatorString(1, "Follow me message got" + fhandler.getRoundNum());					
-				
-
-				break;
+//			case FOLLOW_ME_MESSAGE:
+//					// System.out.println("follow me message");
+//					FollowMeMessage fhandler = new FollowMeMessage(msg);
+//					
+//					// If 2 commanders meet, follow the one with a smaller ID
+//					if (controllers.comm != null && fhandler.getSourceID() < rc.getRobot().getID())
+//						break;
+//
+//					leaderMessageRoundCounter = 0;
+//					hasLeader = true;
+//					MapLocation loc = fhandler.getSourceLocation();
+//					followDir = fhandler.getFollowDirection();
+//					if (leaderLoc != null) {
+//						int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
+//						int newdist = rc.getLocation().distanceSquaredTo(loc);
+//						if (newdist < curdist)
+//							leaderLoc = loc;
+//					} else
+//						leaderLoc = loc;
+////					navigator.setDestination(leaderLoc);
+//					controllers.myRC.setIndicatorString(1, "Follow me message got" + fhandler.getRoundNum());					
+//				
+//
+//				break;
 				
 			case ENEMY_INFORMATION_MESSAGE:
 				if (enemyNum == 0) {
@@ -244,6 +245,43 @@ public class SoldierAI extends AI {
 			break;
 		}
 		return;
+	}
+	
+	private MapLocation getNextScoutLoc() {
+		TerrainTile tile, checkTile;
+		Direction faceDir = controllers.myRC.getDirection();
+		final int EXPLORATION_SIZE = 10;
+		
+		// add some randomness to the initial direction
+		int n = Clock.getRoundNum() % 8;
+		for (int i = 0; i < n; i++) {
+			faceDir = faceDir.rotateRight();
+		}
+		
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		int multiple = 1;
+		while( multiple < 5 ){
+		
+			for (int i = 0; i < 8; i++){
+				MapLocation projectedLoc = currentLoc.add(faceDir, EXPLORATION_SIZE*multiple);
+				if ( (borders[1] == -1 || projectedLoc.x < borders[1]) &&
+					 (borders[3] == -1 || projectedLoc.x > borders[3]) &&
+					 (borders[2] == -1 || projectedLoc.y < borders[2]) &&
+					 (borders[0] == -1 || projectedLoc.y > borders[0])) {
+					
+				
+					tile = controllers.myRC.senseTerrainTile(projectedLoc);
+					checkTile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 3));
+					if (tile == null && checkTile != TerrainTile.OFF_MAP)
+						return projectedLoc;
+				}
+				faceDir = faceDir.rotateRight();
+			}
+			
+			multiple++;
+		}
+		
+		return currentLoc.add(faceDir.opposite(), EXPLORATION_SIZE*multiple);
 	}
 
 	private void navigate() throws GameActionException {
