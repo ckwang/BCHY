@@ -45,7 +45,9 @@ public abstract class AI {
 		controllers.myRC.yield();
 	}
 	
-	protected void sense_border() {
+	protected Direction sense_border() {
+		Direction borderDirection = Direction.NONE;
+		
 		try {
 			boolean hasChanged = false;
 			
@@ -71,6 +73,7 @@ public abstract class AI {
 
 				// i == 3 means no OFF_MAP sensed
 				if (i != 3) {
+					borderDirection = addDirs[j];
 					switch (addDirs[j]) {
 					case NORTH:
 						int newBorder = currentLoc.y - (i + 1);
@@ -106,11 +109,13 @@ public abstract class AI {
 			
 			if (hasChanged)
 				computeEnemyBaseLocation();
+			
 		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
 
+		return borderDirection;
 	}
 	
 	protected void computeEnemyBaseLocation() {

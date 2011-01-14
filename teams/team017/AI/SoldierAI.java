@@ -127,6 +127,7 @@ public class SoldierAI extends AI {
 				}
 			} catch (Exception e) { }
 
+
 			
 			if (controllers.comm != null && attackRoundCounter > 2) {
 				try {navigate();}
@@ -142,9 +143,10 @@ public class SoldierAI extends AI {
 	}
 
 	public void yield() {
+		navigator.updateMap();
 		super.yield();
 		combat.reset();
-		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + "");
+//		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + "");
 
 		if (controllers.myRC.getHitpoints() < prevHp) {
 			prevHp = controllers.myRC.getHitpoints();
@@ -173,7 +175,7 @@ public class SoldierAI extends AI {
 				}
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				controllers.myRC.setIndicatorString(1, "Border Message got" + handler.getRoundNum());
+//				controllers.myRC.setIndicatorString(1, "Border Message got" + handler.getRoundNum());
 				break;
 				
 			case FOLLOW_ME_MESSAGE:

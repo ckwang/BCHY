@@ -1,6 +1,8 @@
 package team017.AI;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
@@ -32,29 +34,50 @@ public class AirAI extends AI {
 	private Direction scoutDir = Direction.NONE;
 	private int roachRounds = 0;
 	
+	public AirAI(RobotController rc) {
+		super(rc);
+	}
+
 	public void yield() {
 		super.yield();
 		updateLocationSets();
 		sense_border();
 	}
 
-	
-	public AirAI(RobotController rc) {
-		super(rc);
-	}
-
 	public void proceed() {
-		
-		
+
+		// Initial movement
+		if (Clock.getRoundNum() == 0) {
+//			try {
+				init();
+//				init_revolve();
+				computeEnemyBaseLocation();
+//				init_return();
+				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+//			} catch (GameActionException e) {
+//				e.printStackTrace();
+//			}
+		}
+
 		while (true) {
 
 			try {
 				processMessages();
+				
 				buildRecyclers();
+				
 				navigate();
-				if (controllers.myRC.getTeamResources() > 100)
+				
+//				if (buildRecyclers()) {
+//					recyclerLocations.add(controllers.myRC.getLocation().add(controllers.myRC.getDirection()));
+//				}
+
+				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
-				if (Clock.getRoundNum() % 4 == 0) {
+
+				
+
+				if (Clock.getRoundNum() % 6 == 0) {
 					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
@@ -72,7 +95,128 @@ public class AirAI extends AI {
 			}
 		}
 	}
-	
+
+	private void init() {
+		try {
+//			int [] recyclerIDs = new int[2];
+//
+//			Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+//			if (robots.length == 2) {
+//				int j = 0;
+//				for (Robot r : robots) {
+//					if (r.getTeam() == controllers.myRC.getTeam()) {
+//						recyclerIDs[j++] = r.getID();
+//					}
+//				}
+//			}
+			
+			// look at the other three angles
+			for (int i = 0; i < 4; ++i) {
+				// Rotate twice Right for a 90 degrees turn
+				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
+				yield();
+				controllers.updateComponents();
+				
+//				// sense the initial 2 recyclers
+//				robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+//				if (robots.length >= 2) {
+//					int j = 0;
+//					for (Robot r : robots) {
+//						if (r.getTeam() == controllers.myRC.getTeam()) {
+//							recyclerIDs[j++] = r.getID();
+//						}
+//					}
+//				}
+			}
+			
+//			controllers.myRC.setIndicatorString(0, recyclerIDs[0] + "," + recyclerIDs[1]);
+			
+			// go build recyclers on the other two initial mines
+			if (!mineLocations.isEmpty()) {
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
+			}
+			yield();
+			if (!mineLocations.isEmpty())
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
+			
+			controllers.myRC.setIndicatorString(2, "here");
+			
+//			// wake up one recycler
+//			while(controllers.comm.isActive())
+//				controllers.myRC.yield();
+//			controllers.comm.broadcastTurnOn(recyclerIDs);
+			
+		} catch (GameActionException e) {
+			System.out.println("caught exception:");
+			e.printStackTrace();
+		}
+	}
+
+	private void init_revolve() {
+
+		MapLocation[] locationList = {
+				homeLocation.add(Direction.NORTH_EAST, 2),
+				homeLocation.add(Direction.SOUTH_EAST, 2),
+				homeLocation.add(Direction.SOUTH_WEST, 2),
+				homeLocation.add(Direction.NORTH_WEST, 2) };
+		int index = 0;
+
+		while (true) {
+			try {
+
+				navigator.setDestination(locationList[index]);
+				// controllers.myRC.setIndicatorString(2,
+				// controllers.myRC.getLocation().toString()+locationList[index].toString());
+
+				Direction nextDir = navigator.getNextDir(0);
+				if (nextDir == Direction.OMNI) {
+					index++;
+					if (index == 4)
+						return;
+					continue;
+				}
+
+				if (!controllers.motor.isActive()
+						&& controllers.motor.canMove(nextDir)) {
+					if (controllers.myRC.getDirection() == nextDir) {
+						controllers.motor.moveForward();
+					} else {
+						controllers.motor.setDirection(nextDir);
+					}
+				}
+
+				yield();
+			} catch (Exception e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void init_return() throws GameActionException {
+		navigator.setDestination(homeLocation);
+
+		while (true) {
+			try {
+				Direction nextDir = navigator.getNextDir(0);
+
+				if (nextDir == Direction.OMNI)
+					break;
+
+				if (!controllers.motor.isActive() && controllers.motor.canMove(nextDir)) {
+					if (controllers.myRC.getDirection() == nextDir)
+						controllers.motor.moveForward();
+					else
+						controllers.motor.setDirection(nextDir);
+				}
+				yield();
+			} catch (Exception e) {
+				System.out.println("caught exception:");
+				e.printStackTrace();
+			}
+		}
+	}
+
 	private void updateLocationSets() {
 		Mine[] minelist = controllers.sensor.senseNearbyGameObjects(Mine.class);
 		for (Mine mine : minelist) {
@@ -96,37 +240,47 @@ public class AirAI extends AI {
 				continue;
 			}
 		}
+//		mineLocations.toString();
+//		controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + ";" + mineLocations.toString());
 	}
-	
 
 	private void checkEmptyRecyclers() throws GameActionException {
 		for (MapLocation recyclerLoc : recyclerLocations) {
-			if (controllers.myRC.getLocation().isAdjacentTo(recyclerLoc)
+			if (controllers.myRC.getLocation().distanceSquaredTo(recyclerLoc) <= 9
 				&& !builtLocations.contains(recyclerLoc)) {
 				msgHandler.queueMessage(new BuildingLocationInquiryMessage(recyclerLoc));
+				break;
 			}
 		}
 	}
+
 	private boolean buildRecyclers() throws GameActionException{
 //		controllers.myRC.setIndicatorString(2, mineLocations.toString());
 		
 		// find a eligible mine
 		MapLocation target = null;
+		List<MapLocation> toBeRemoved = new ArrayList<MapLocation>();
 		for (MapLocation mineLoc : mineLocations) {
+			// it needs to be empty
+			if (controllers.sensor.canSenseSquare(mineLoc)){
+				GameObject object = controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND); 
+				if (object != null) {
+					toBeRemoved.add(mineLoc);
+					continue;
+				}
+			}
+			
 			// it needs to be adjacent
 			if (controllers.myRC.getLocation().distanceSquaredTo(mineLoc) > 2) 
 				continue;
-			
-			// it needs to be empty
-			if (controllers.sensor.canSenseSquare(mineLoc)){
-				 if (controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
-					 continue;
-			}
 			
 			// find one!
 			target = mineLoc;
 			break;
 		}
+		
+		// remove mines with buildings on them
+		mineLocations.removeAll(toBeRemoved);
 		
 		// if there is a eligible site
 		if (target != null) {
@@ -140,7 +294,10 @@ public class AirAI extends AI {
 				controllers.motor.setDirection(buildDir);
 				yield();
 			}
-						
+			
+//			if (!controllers.myRC.getLocation().isAdjacentTo(target))
+//				System.out.println("no!!!");
+			
 			// the building location should be clear
 			if (controllers.sensor.senseObjectAtLocation(target, RobotLevel.ON_GROUND) == null) {
 				while (!buildingSystem.constructUnit(target, UnitType.RECYCLER)) {
@@ -154,8 +311,10 @@ public class AirAI extends AI {
 				return true;
 			}
 		}
+		
 		return false;
 	}
+
 	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type) throws GameActionException {
 		// if already standing on the building site
 		if (controllers.myRC.getLocation().equals(buildLoc)) {
@@ -208,7 +367,46 @@ public class AirAI extends AI {
 			yield();
 		}
 		return true;
+		
+//		while (!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)) {
+//			MapLocation currentLoc = controllers.myRC.getLocation();
+//			if(currentLoc.equals(buildLoc) && !controllers.motor.isActive()){
+////				while(controllers.motor.isActive()){
+////					yield();
+////				}
+//				if (controllers.motor.canMove(controllers.myRC.getDirection().opposite()));
+//					controllers.motor.moveBackward();
+//				yield();
+//				continue;
+//			}
+//			if (controllers.sensor.canSenseSquare(buildLoc) && controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
+//				return false;
+//			if (!controllers.motor.isActive()) {
+//				if (!controllers.myRC.getLocation().isAdjacentTo(buildLoc)) {
+//					navigator.setDestination(buildLoc);
+//					Direction nextDir = navigator.getNextDir(0);
+//					if(nextDir == Direction.OMNI && !controllers.motor.isActive()){
+////						while(controllers.motor.isActive()){
+////							yield();
+////						}
+//						if (controllers.motor.canMove(controllers.myRC.getDirection().opposite()))
+//							controllers.motor.moveBackward();
+//						break;				
+//					}
+//					if (controllers.myRC.getDirection() != nextDir) {
+//						controllers.motor.setDirection(nextDir);
+//					} else {
+//						if (controllers.motor.canMove(controllers.myRC.getDirection()))
+//							controllers.motor.moveForward();
+//					}
+//				} else if (!controllers.myRC.getLocation().add(controllers.myRC.getDirection()).equals(buildLoc)) {
+//					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(buildLoc));
+//				}
+//			}
+//			yield();
+//		}
 	}
+
 	private void navigate() throws GameActionException {
 
 		if (!mineLocations.isEmpty()) {
@@ -219,6 +417,7 @@ public class AirAI extends AI {
 				if (currentLoc.distanceSquaredTo(loc) < currentLoc.distanceSquaredTo(nearest))
 					nearest = loc;
 				}
+				
 			navigator.setDestination(nearest);
 		}
 		
@@ -233,7 +432,8 @@ public class AirAI extends AI {
 					controllers.motor.setDirection(nextDir);
 				}
 			}
-		} else if (scoutDir != Direction.NONE) {
+		}
+		else if (scoutDir != Direction.NONE){
 //			controllers.myRC.setIndicatorString(1,"scouting");
 			if ( roachRounds > 0 ){
 				roachNavigate();
@@ -242,7 +442,10 @@ public class AirAI extends AI {
 				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
 				roachRounds = 100;
 			}
-		} else {
+				
+			
+		}
+		else {
 //			controllers.myRC.setIndicatorString(1,"roachNavigate");
 			// do nothing;
 			if (!controllers.motor.isActive() )
@@ -318,20 +521,23 @@ public class AirAI extends AI {
 				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
 					break;
 				
-				if (!builtLocations.contains(handler.getSourceLocation())){
-					if(handler.getAvailableSpace() == -1){
-						builtLocations.add(handler.getSourceLocation());
-					} else if (handler.getBuildableDirection() != Direction.NONE) {
-						MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-						if (handler.getAvailableSpace() >= 2) {
-							if(buildBuildingAtLoc(buildLoc, UnitType.TOWER)){
-								msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.TOWER));
-								builtLocations.add(handler.getSourceLocation());
-								yield();
-							}
-						}
-					}							
-				}
+				// if it is not built
+				if (builtLocations.contains(handler.getSourceLocation()))
+					break;
+				
+				UnitType type = handler.getUnitType();
+				if (type == null){	// there is nothing to build
+					builtLocations.add(handler.getSourceLocation());
+				} else if (handler.getBuildableDirection() != Direction.NONE) {
+					MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+					if (buildBuildingAtLoc(buildLoc, type)){
+						msgHandler.clearOutQueue();
+						msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
+//							builtLocations.add(handler.getSourceLocation());
+						yield();
+					}
+				}							
+				
 				break;
 			}
 
@@ -360,5 +566,6 @@ public class AirAI extends AI {
 				break;
 			}
 			}
-		}	}
+		}
+	}
 }

@@ -2,6 +2,7 @@ package team017.construction;
 
 import team017.util.Controllers;
 import battlecode.common.Chassis;
+import battlecode.common.Clock;
 import battlecode.common.ComponentClass;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -97,10 +98,13 @@ public class BuildingDirections {
 		switch(type){
 		case RECYCLER:
 			recyclerDirection = dir;
+			break;
 		case ARMORY:
 			armoryDirection = dir;
+			break;
 		case FACTORY:
 			factoryDirection = dir;
+			break;
 		}
 	}
 	
@@ -108,12 +112,16 @@ public class BuildingDirections {
 		switch(type){
 		case RECYCLER:
 			recyclerDirection = dir;
+			break;
 		case ARMORY:
 			armoryDirection = dir;
+			break;
 		case FACTORY:
 			factoryDirection = dir;
+			break;
 		case TOWER:
 			towerDirection = dir;
+			break;
 		}
 	}
 	
@@ -149,13 +157,15 @@ public class BuildingDirections {
 					RobotInfo info = controllers.sensor.senseRobotInfo(r);
 					MapLocation currentLoc = controllers.myRC.getLocation();
 					
-					if (info.location.isAdjacentTo(currentLoc) && info.on) {
+					if (info.location.isAdjacentTo(currentLoc) && info.on && info.chassis == Chassis.BUILDING) {
 						for (ComponentType com : info.components) {
 
 							if (com.componentClass == ComponentClass.BUILDER) {
 								setDirections(com, currentLoc.directionTo(info.location));
 								if (com == ComponentType.RECYCLER)
 									clusterSize++;
+							} else if (com == ComponentType.BLASTER) {
+								setDirections(UnitType.TOWER, currentLoc.directionTo(info.location));
 							}
 						}
 					}
@@ -177,10 +187,14 @@ public class BuildingDirections {
 				emptyDirections[i] = false;
 			} else {
 				try {
-					GameObject object = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND);
-					if (object != null) {
-						if (controllers.sensor.senseRobotInfo((Robot) object).chassis == Chassis.BUILDING)
+					Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
+					if (objectOnGround != null) {
+						if (controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis == Chassis.BUILDING)
 							emptyDirections[i] = false;
+					} else if (controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null) {
+						emptyDirections[i] = false;
+					} else {
+						emptyDirections[i] = true;
 					}
 					
 				} catch (GameActionException e) {

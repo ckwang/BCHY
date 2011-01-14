@@ -1,6 +1,8 @@
 package team017.AI;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
@@ -22,6 +24,7 @@ import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
+import battlecode.common.TerrainTile;
 
 public class ConstructorAI extends AI {
 
@@ -40,6 +43,7 @@ public class ConstructorAI extends AI {
 		super.yield();
 		updateLocationSets();
 		sense_border();
+		navigator.updateMap();
 	}
 
 	public void proceed() {
@@ -61,6 +65,10 @@ public class ConstructorAI extends AI {
 
 			try {
 				
+				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
+				controllers.myRC.setIndicatorString(1, "");
+				controllers.myRC.setIndicatorString(2, "");
+				
 				processMessages();
 				
 				buildRecyclers();
@@ -71,19 +79,20 @@ public class ConstructorAI extends AI {
 //					recyclerLocations.add(controllers.myRC.getLocation().add(controllers.myRC.getDirection()));
 //				}
 
-				if (controllers.myRC.getTeamResources() > 100)
+
+				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
 
 				
 
-				if (Clock.getRoundNum() % 4 == 0) {
-//					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
+				if (Clock.getRoundNum() % 6 == 0) {
+					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
 				
-				if (enemyBaseLoc[0] != null)
-					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());
-				controllers.myRC.setIndicatorString(1, scoutDir.toString());
+//				if (enemyBaseLoc[0] != null)
+//					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());
+//				controllers.myRC.setIndicatorString(1, scoutDir.toString());
 				yield();
 
 				// Conditions of building factories/armories
@@ -137,8 +146,8 @@ public class ConstructorAI extends AI {
 			yield();
 			if (!mineLocations.isEmpty())
 				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
-			
-			controllers.myRC.setIndicatorString(2, "here");
+			yield();
+//			controllers.myRC.setIndicatorString(2, "here");
 			
 //			// wake up one recycler
 //			while(controllers.comm.isActive())
@@ -258,21 +267,28 @@ public class ConstructorAI extends AI {
 		
 		// find a eligible mine
 		MapLocation target = null;
+		List<MapLocation> toBeRemoved = new ArrayList<MapLocation>();
 		for (MapLocation mineLoc : mineLocations) {
+			// it needs to be empty
+			if (controllers.sensor.canSenseSquare(mineLoc)){
+				GameObject object = controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND); 
+				if (object != null) {
+					toBeRemoved.add(mineLoc);
+					continue;
+				}
+			}
+			
 			// it needs to be adjacent
 			if (controllers.myRC.getLocation().distanceSquaredTo(mineLoc) > 2) 
 				continue;
-			
-			// it needs to be empty
-			if (controllers.sensor.canSenseSquare(mineLoc)){
-				 if (controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND) != null)
-					 continue;
-			}
 			
 			// find one!
 			target = mineLoc;
 			break;
 		}
+		
+		// remove mines with buildings on them
+		mineLocations.removeAll(toBeRemoved);
 		
 		// if there is a eligible site
 		if (target != null) {
@@ -362,7 +378,7 @@ public class ConstructorAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
-
+		Direction nextDir = Direction.OMNI;
 		if (!mineLocations.isEmpty()) {
 //			controllers.myRC.setIndicatorString(1,"Mine");
 			MapLocation currentLoc = controllers.myRC.getLocation();
@@ -373,9 +389,26 @@ public class ConstructorAI extends AI {
 				}
 				
 			navigator.setDestination(nearest);
+			nextDir = navigator.getNextDir(2);
+		}
+		else {
+			
+			TerrainTile checkTile = 
+				controllers.myRC.senseTerrainTile(
+						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
+			
+			if (checkTile == TerrainTile.OFF_MAP)
+				navigator.setDestination(getNextScoutLoc());
+			
+			nextDir = navigator.getNextDir(9);
+			
+			if (nextDir == Direction.OMNI){
+				navigator.setDestination(getNextScoutLoc());
+				nextDir = navigator.getNextDir(9);
+			}
 		}
 		
-		Direction nextDir = navigator.getNextDir(2);
+		
 		if (nextDir != Direction.OMNI) {
 			if (!controllers.motor.isActive() ) {
 				if (controllers.myRC.getDirection() == nextDir) {
@@ -387,18 +420,24 @@ public class ConstructorAI extends AI {
 				}
 			}
 		}
-		else if (scoutDir != Direction.NONE){
-//			controllers.myRC.setIndicatorString(1,"scouting");
-			if ( roachRounds > 0 ){
-				roachNavigate();
-				roachRounds--;
-			} else {
-				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
-				roachRounds = 100;
-			}
-				
-			
-		}
+//		else if (scoutDir != Direction.NONE && scoutDir != Direction.OMNI){
+////			controllers.myRC.setIndicatorString(0,"Scouting");
+//			if ( roachRounds > 0 ){
+//				controllers.myRC.setIndicatorString(0,"roachNavigate");
+//				roachNavigate();
+//				roachRounds--;
+//			} else if (sense_border() == scoutDir) {
+//				controllers.myRC.setIndicatorString(0,"enemyBaseLoc");
+//				navigator.setDestination(enemyBaseLoc[0]);
+//				scoutDir = Direction.OMNI;
+//			}
+//			else {
+//				controllers.myRC.setIndicatorString(0,"Scouting");
+//				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
+//				roachRounds = 100;
+//			}
+//
+//		}
 		else {
 //			controllers.myRC.setIndicatorString(1,"roachNavigate");
 			// do nothing;
@@ -434,6 +473,27 @@ public class ConstructorAI extends AI {
 			// }
 			
 		
+	}
+	
+	private MapLocation getNextScoutLoc() {
+		TerrainTile tile, checkTile;
+		Direction faceDir = controllers.myRC.getDirection();
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		int multiple = 1;
+		while( multiple < 5 ){
+		
+			for (int i = 0; i < 8; i++){
+				tile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 5*multiple));
+				checkTile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 3));
+				if (tile == null && checkTile != TerrainTile.OFF_MAP)
+					return currentLoc.add(faceDir, 5*multiple);
+				faceDir = faceDir.rotateRight();
+			}
+			
+			multiple++;
+		}
+		
+		return currentLoc.add(faceDir.opposite(), 5*multiple);
 	}
 
 	@Override
@@ -476,20 +536,23 @@ public class ConstructorAI extends AI {
 				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
 					break;
 				
-				if (!builtLocations.contains(handler.getSourceLocation())){
-					if(handler.getAvailableSpace() == -1){
-						builtLocations.add(handler.getSourceLocation());
-					} else if (handler.getBuildableDirection() != Direction.NONE) {
-						MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-						if (handler.getAvailableSpace() >= 2) {
-							if(buildBuildingAtLoc(buildLoc, UnitType.TOWER)){
-								msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.TOWER));
-								builtLocations.add(handler.getSourceLocation());
-								yield();
-							}
-						}
-					}							
-				}
+				// if it is not built
+				if (builtLocations.contains(handler.getSourceLocation()))
+					break;
+				
+				UnitType type = handler.getUnitType();
+				if (type == null){	// there is nothing to build
+					builtLocations.add(handler.getSourceLocation());
+				} else if (handler.getBuildableDirection() != Direction.NONE) {
+					MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+					if (buildBuildingAtLoc(buildLoc, type)){
+						msgHandler.clearOutQueue();
+						msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
+//							builtLocations.add(handler.getSourceLocation());
+						yield();
+					}
+				}							
+				
 				break;
 			}
 
@@ -510,13 +573,13 @@ public class ConstructorAI extends AI {
 				computeEnemyBaseLocation();
 				break;
 			}
-			case SCOUTING_MESSAGE: {						
-				ScoutingMessage handler = new ScoutingMessage(msg);
-				// update the borders
-				if (scoutDir == Direction.NONE)
-					scoutDir = handler.getScoutDirection();
-				break;
-			}
+//			case SCOUTING_MESSAGE: {						
+//				ScoutingMessage handler = new ScoutingMessage(msg);
+//				// update the borders
+//				if (scoutDir == Direction.NONE)
+//					scoutDir = handler.getScoutDirection();
+//				break;
+//			}
 			}
 		}
 	}

@@ -3,6 +3,7 @@ package team017.AI;
 import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
+import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -13,9 +14,17 @@ import battlecode.common.SensorController;
 
 public class ArmoryAI extends BuildingAI{
 	MapLocation currentLoc = controllers.myRC.getLocation();
+	int buildIdleRound = 0;
 	
 	public ArmoryAI(RobotController rc) {
 		super(rc);
+	}
+	
+	@Override
+	public void yield() {
+		super.yield();
+		if (buildIdleRound != 0)
+			buildIdleRound--;
 	}
 
 	@Override
@@ -26,7 +35,7 @@ public class ArmoryAI extends BuildingAI{
 				processMessages();
 				
 				double fluxRate = getEffectiveFluxRate();
-				if (controllers.myRC.getTeamResources() > 200 && fluxRate > 0.4) {
+				if (buildIdleRound == 0 && controllers.myRC.getTeamResources() > 150 && fluxRate > 0.4) {
 					if (builderDirs.recyclerDirection != null) {
 						Direction recyclerDir = builderDirs.recyclerDirection; 
 						SensorController sensor = controllers.sensor;
@@ -38,7 +47,8 @@ public class ArmoryAI extends BuildingAI{
 										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
 											break;
 										yield();
-									}								
+									}
+									buildIdleRound = 300;
 									break;
 								}
 							}
@@ -49,7 +59,8 @@ public class ArmoryAI extends BuildingAI{
 										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
 											break;
 										yield();
-									}								
+									}
+									buildIdleRound = 300;
 									break;
 								}
 							}
@@ -59,6 +70,34 @@ public class ArmoryAI extends BuildingAI{
 //						yield();
 //					}
 				}
+//				 if (fluxRate > 0.6 && Clock.getRoundNum() < 1000 && controllers.myRC.getTeamResources() > 120) {
+//						Direction recyclerDir = builderDirs.recyclerDirection; 
+//						SensorController sensor = controllers.sensor;
+//						MapLocation[] buildLocs = {currentLoc.add(recyclerDir.rotateLeft()), currentLoc.add(recyclerDir.rotateRight()), currentLoc.add(recyclerDir.rotateLeft().rotateLeft()), currentLoc.add(recyclerDir.rotateRight().rotateRight())};
+//						if (recyclerDir.isDiagonal()) {
+//							for (int i = 0; i < 2; ++i) {
+//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) == null) {
+//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.NETWORK_COMMANDER, builderDirs)) {
+//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) != null)
+//											break;
+//										yield();
+//									}
+//									break;
+//								}
+//							}
+//						} else {
+//							for (int i = 0; i < 4; ++i) {
+//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) == null) {
+//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.NETWORK_COMMANDER, builderDirs)) {
+//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) != null)
+//											break;
+//										yield();
+//									}
+//									break;
+//								}
+//							}
+//						}
+//					}
 				
 				yield();
 			} catch (Exception e) {

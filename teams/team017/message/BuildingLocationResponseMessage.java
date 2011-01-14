@@ -1,5 +1,6 @@
 package team017.message;
 
+import team017.construction.UnitType;
 import battlecode.common.Direction;
 import battlecode.common.Message;
 
@@ -12,15 +13,15 @@ public class BuildingLocationResponseMessage extends GenericMessage {
 
 	private int constructorID;
 	private Direction buildableDirection;
-	private int availableSpace;
+	private UnitType type;
 	
 	//	buildableDirection and it's turnRight(s) are available
-	public BuildingLocationResponseMessage(int constructorID, Direction buildableDirection, int availableSpace) {
+	public BuildingLocationResponseMessage(int constructorID, Direction buildableDirection, UnitType type) {
 		super(MessageType.BUILDING_LOCATION_RESPONSE_MESSAGE);
 		
 		msg.ints[intCounter++] = constructorID;
 		msg.ints[intCounter++] = buildableDirection.ordinal();
-		msg.ints[intCounter++] = availableSpace;
+		msg.ints[intCounter++] = (type == null ? -1 : type.ordinal());
 	}
 	
 	public BuildingLocationResponseMessage(Message msg) {
@@ -28,15 +29,16 @@ public class BuildingLocationResponseMessage extends GenericMessage {
 		
 		constructorID = msg.ints[intCounter++];
 		buildableDirection = Direction.values()[msg.ints[intCounter++]];
-		availableSpace = msg.ints[intCounter++];
+		int t = msg.ints[intCounter++];
+		type = (t == -1 ? null : UnitType.values()[t]);
 	}
 	
 	public Direction getBuildableDirection() {
 		return buildableDirection;
 	}
 	
-	public int getAvailableSpace() {
-		return availableSpace;
+	public UnitType getUnitType() {
+		return type;
 	}
 	
 	public int getConstructorID() {
