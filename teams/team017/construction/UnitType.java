@@ -17,7 +17,7 @@ public enum UnitType {
 
 // Armory + Recycler
 	FLYING_CONSTRUCTOR (Chassis.FLYING, ComponentType.CONSTRUCTOR, ComponentType.SIGHT),
-	
+	NETWORK_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.NETWORK, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
 //	Factory + Recycler + Armory
 	HEAVY_CONSTRUCTOR(Chassis.HEAVY, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.DISH, ComponentType.REGEN),
 

@@ -62,7 +62,6 @@ public class AirAI extends AI {
 		while (true) {
 
 			try {
-				
 				processMessages();
 				
 				buildRecyclers();
@@ -482,7 +481,6 @@ public class AirAI extends AI {
 			
 		
 	}
-
 	@Override
 	protected void processMessages() throws GameActionException {
 		// Check messages
