@@ -18,9 +18,9 @@ public abstract class BuildingAI extends AI {
 
 	public BuildingAI(RobotController rc) {
 		super(rc);
-
+		
 		buildingDirs = new BuildingDirections(controllers);
-		buildingDirs.updateBuildingDirs();
+		
 	}
 
 	abstract public void proceed();

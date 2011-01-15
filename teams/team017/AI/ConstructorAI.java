@@ -34,6 +34,7 @@ public class ConstructorAI extends AI {
 	
 	public ConstructorAI(RobotController rc) {
 		super(rc);
+		navigator.updateMap();
 	}
 
 	public void yield() {
@@ -238,8 +239,6 @@ public class ConstructorAI extends AI {
 				continue;
 			}
 		}
-		if ( minelist.length != 0 )
-			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 //		mineLocations.toString();
 //		controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + ";" + mineLocations.toString());
 	}
@@ -383,6 +382,7 @@ public class ConstructorAI extends AI {
 				
 			navigator.setDestination(nearest);
 			nextDir = navigator.getNextDir(2);
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", mine:" + nearest);
 		}
 		else {
 			
@@ -401,9 +401,10 @@ public class ConstructorAI extends AI {
 				navigator.setDestination(scoutLocation);
 				nextDir = navigator.getNextDir(9);
 			}
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", scout:" + scoutLocation);
 		}
 		
-		controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + "," + scoutLocation);
+		
 		
 		
 		if (nextDir != Direction.OMNI) {

@@ -96,15 +96,15 @@ public class Navigator {
 	public Direction getNextDir(int tolerance) throws GameActionException {
 //		updateMap();
 		// return same direction at same location (given same destination)
-		if (controllers.myRC.getLocation().equals(previousRobLoc)){
-			if ( !controllers.motor.isActive() && 
-				 controllers.myRC.getDirection() == previousDir && 
-				 needDetour(previousDir) ){
+		if ( controllers.myRC.getLocation().equals(previousRobLoc) ){
+			if ( !controllers.motor.isActive() && needDetour(previousDir) ){
+				
 				controllers.myRC.setIndicatorString(1, "DETOUR");
 				Direction faceDir = controllers.myRC.getDirection();
 				faceDir = iscw? faceDir.rotateRight().rotateRight(): faceDir.rotateLeft().rotateLeft();
 				previousDir = detour(faceDir, iscw);
 				istracing = false;
+				
 			}
 			hasWaited = false;
 			controllers.myRC.setIndicatorString(1, "PRECOMPUTE");
@@ -371,23 +371,21 @@ public class Navigator {
 	}
 	
 	private boolean needDetour( Direction faceDir ){
-		if (hasWaited)
-			return true;
-		hasWaited = false;
-		try {
 			if (!controllers.motor.isActive() && !controllers.motor.canMove(faceDir) ){
-				Robot r = (Robot) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(faceDir), RobotLevel.ON_GROUND);
-				if (r == null)	return false;
-				RobotInfo info = controllers.sensor.senseRobotInfo(r);
-				if (!Util.isFacing(info.direction, controllers.myRC.getDirection()))
-					return true;
+//				if (hasWaited){
+//					hasWaited = false;
+//					return true;
+//				}
+//				hasWaited = true;
+//				Robot r = (Robot) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation().add(faceDir), RobotLevel.ON_GROUND);
+//				if (r == null)	return false;
+//				RobotInfo info = controllers.sensor.senseRobotInfo(r);
+//				if (!Util.isFacing(info.direction, controllers.myRC.getDirection()))
+//					return true;
+				
+				return true;
 			}
 			return false;
-		} catch (GameActionException e) {
-			
-			e.printStackTrace();
-			return false;
-		}
 	}
 
 	private boolean isTraversable(MapLocation loc){

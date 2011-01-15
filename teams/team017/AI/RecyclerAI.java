@@ -16,10 +16,10 @@ public class RecyclerAI extends BuildingAI {
 	private int birthRoundNum;
 	private int inquiryIdleRound = 0;
 	
-	int [] unitRatios = {5, 1, 1};
-	int [] cumulatedRatios = {5, 6, 7};
-	int total = 7;
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN} ;
+	int [] unitRatios = {2, 1};
+	int [] cumulatedRatios = {2, 3};
+	int total = 3;
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.RADARGUN} ;
 	double thresholds = 0.3;
 	
 	private enum spawningState { EARLY, MIDDLE, LATE };
@@ -29,7 +29,6 @@ public class RecyclerAI extends BuildingAI {
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
 		birthRoundNum = Clock.getRoundNum();
-		
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
 		} catch (GameActionException e) {
@@ -48,8 +47,8 @@ public class RecyclerAI extends BuildingAI {
 	@Override
 	public void proceed() {
 		
-		
-		if (Clock.getRoundNum() == 0)
+//		controllers.myRC.setIndicatorString(0, "START");
+		if (Clock.getRoundNum() <= 5)
 			init();
 		else{
 			
@@ -243,14 +242,15 @@ public class RecyclerAI extends BuildingAI {
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.TOWER));
 						}
 						inquiryIdleRound = 5;
-					} else if (buildingDirs.armoryDirection == null) {
-						for (int i = 3; i >= 2; i--) {
-							dir = buildingDirs.consecutiveEmpties(i);
-							if (dir != null)
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.ARMORY));
-						}
-						inquiryIdleRound = 5;
 					} 
+//					else if (buildingDirs.armoryDirection == null) {
+//						for (int i = 3; i >= 2; i--) {
+//							dir = buildingDirs.consecutiveEmpties(i);
+//							if (dir != null)
+//								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.ARMORY));
+//						}
+//						inquiryIdleRound = 5;
+//					} 
 //					else if (buildingDirs.factoryDirection == null) {
 //						dir = buildingDirs.consecutiveEmpties(2);
 //						if (dir != null)
@@ -390,17 +390,15 @@ public class RecyclerAI extends BuildingAI {
 			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 		}
 		
-		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 500 && Clock.getRoundNum() < 1500 ){
+		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){
 			mySpawningState = spawningState.MIDDLE;
 			unitRatios[0] = 1;
-			unitRatios[1] = 1;
-			unitRatios[1] = 1;
+			unitRatios[1] = 2;
 			updateRatios();
 		} else if (mySpawningState == spawningState.MIDDLE && Clock.getRoundNum() > 1500) {
 			mySpawningState = spawningState.LATE;
 			unitRatios[0] = 1;
-			unitRatios[1] = 2;
-			unitRatios[1] = 2;
+			unitRatios[1] = 3;
 			updateRatios();
 		}
 	}
