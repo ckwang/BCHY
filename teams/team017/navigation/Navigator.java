@@ -96,7 +96,7 @@ public class Navigator {
 	public Direction getNextDir(int tolerance) throws GameActionException {
 //		updateMap();
 		// return same direction at same location (given same destination)
-		if (controllers.myRC.getLocation().equals(previousRobLoc)){
+		if (controllers.myRC.getLocation().equals(previousRobLoc) /*&& controllers.myRC.getDirection() == previousDir*/){
 			if ( !controllers.motor.isActive() && 
 				 controllers.myRC.getDirection() == previousDir && 
 				 needDetour(previousDir) ){

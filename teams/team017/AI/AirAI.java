@@ -12,6 +12,7 @@ import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.FollowMeMessage;
 import team017.message.ScoutingMessage;
+import team017.navigation.GridMap;
 
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
@@ -31,9 +32,7 @@ public class AirAI extends AI {
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
-	
-	private MapLocation scoutLocation;
-	
+		
 	public AirAI(RobotController rc) {
 		super(rc);
 	}
@@ -46,7 +45,6 @@ public class AirAI extends AI {
 
 	public void proceed() {
 
-		scoutLocation = getNextScoutLoc();
 		while (true) {
 
 			try {
@@ -305,22 +303,15 @@ public class AirAI extends AI {
 		}
 		else {
 			
-			TerrainTile checkTile = 
-				controllers.myRC.senseTerrainTile(
-						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
-			
-			if (checkTile == TerrainTile.OFF_MAP)
-				scoutLocation = getNextScoutLoc();
-			
-			nextDir = currentLoc.directionTo(scoutLocation);
+			nextDir = currentLoc.directionTo(gridMap.getScoutLocation());
 			
 			if (nextDir == Direction.OMNI){
-				scoutLocation = getNextScoutLoc();
-				nextDir = currentLoc.directionTo(scoutLocation);
+				gridMap.setCurrentAsScouted();
+				gridMap.updateScoutLocation(Clock.getRoundNum());
+				nextDir = currentLoc.directionTo(gridMap.getScoutLocation());
 			}
 		}
 		
-		controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + "," + scoutLocation);
 		
 		
 		if (nextDir != Direction.OMNI) {

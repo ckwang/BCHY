@@ -12,6 +12,7 @@ import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.FollowMeMessage;
 import team017.message.ScoutingMessage;
+import team017.navigation.GridMap;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
@@ -32,7 +33,6 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
-	private MapLocation scoutLocation;
 	private int roachRounds = 0;
 	Mine[] minelist;
 	
@@ -56,7 +56,6 @@ public class ConstructorAI extends AI {
 				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 		}
 
-		scoutLocation = getNextScoutLoc();
 		while (true) {
 			
 			try {
@@ -388,24 +387,26 @@ public class ConstructorAI extends AI {
 		}
 		else {
 			
-			TerrainTile checkTile = 
-				controllers.myRC.senseTerrainTile(
-						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
+//			TerrainTile checkTile = 
+//				controllers.myRC.senseTerrainTile(
+//						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
 			
-			if (checkTile == TerrainTile.OFF_MAP)
-				scoutLocation = getNextScoutLoc();
+//			if (checkTile == TerrainTile.OFF_MAP)
+//				gridMap.updateScoutLocation(Clock.getRoundNum());
 			
-			navigator.setDestination(scoutLocation);
-			nextDir = navigator.getNextDir(9);
+			navigator.setDestination(gridMap.getScoutLocation());
+			nextDir = navigator.getNextDir(4);
 			
 			if (nextDir == Direction.OMNI){
-				scoutLocation = getNextScoutLoc();
-				navigator.setDestination(scoutLocation);
-				nextDir = navigator.getNextDir(9);
+				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + ": update!");
+				gridMap.setCurrentAsScouted();
+				gridMap.updateScoutLocation(Clock.getRoundNum());
+				navigator.setDestination(gridMap.getScoutLocation());
+				nextDir = navigator.getNextDir(4);
 			}
 		}
 		
-		controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + "," + scoutLocation);
+		controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "," + gridMap.getScoutLocation());
 		
 		
 		if (nextDir != Direction.OMNI) {
