@@ -395,13 +395,19 @@ public class ConstructorAI extends AI {
 //			if (checkTile == TerrainTile.OFF_MAP)
 //				gridMap.updateScoutLocation(Clock.getRoundNum());
 			
+			// if the scout location is too old
+			if (Clock.getRoundNum() - gridMap.getAssignedRoundNum() < 200) {
+				gridMap.setCurrentAsScouted();
+				gridMap.updateScoutLocation(Clock.getRoundNum(), Clock.getRoundNum());
+			}
+			
 			navigator.setDestination(gridMap.getScoutLocation());
 			nextDir = navigator.getNextDir(4);
 			
 			if (nextDir == Direction.OMNI){
 				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + ": update!");
 				gridMap.setCurrentAsScouted();
-				gridMap.updateScoutLocation(Clock.getRoundNum());
+				gridMap.updateScoutLocation(Clock.getRoundNum(), Clock.getRoundNum());
 				navigator.setDestination(gridMap.getScoutLocation());
 				nextDir = navigator.getNextDir(4);
 			}

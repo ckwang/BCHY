@@ -19,6 +19,7 @@ public class GridMap {
 	int[] internal_records;
 	
 	private Grid currentScoutGrid;
+	private int assignedRound;
 	
 	private class Grid {
 		public int gridX;
@@ -94,16 +95,20 @@ public class GridMap {
 		}
 	}
 	
+	public int getAssignedRoundNum() {
+		return assignedRound;
+	}
+	
 	public MapLocation getScoutLocation() {
 		return currentScoutGrid.toMapLocation();
 	}
 	
-	public void updateScoutLocation(MapLocation loc, int seed) {
+	public void updateScoutLocation(MapLocation loc, int roundNum, int seed) {
 		currentScoutGrid = new Grid(loc);
-		updateScoutLocation(seed);
+		updateScoutLocation(roundNum, seed);
 	}
 	
-	public void updateScoutLocation(int seed) {
+	public void updateScoutLocation(int roundNum, int seed) {
 		
 		for (int i = 1; i <= 5; i++) {
 			Grid[] neighbors = currentScoutGrid.getNeighbors(i);
@@ -116,6 +121,8 @@ public class GridMap {
 				}
 			}
 		}
+		
+		assignedRound = roundNum;
 	}
 	
 }
