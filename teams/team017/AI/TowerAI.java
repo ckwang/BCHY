@@ -82,9 +82,6 @@ public class TowerAI extends AI {
 				}
 				break;		
 			}
-		}
-	
-		
+		}	
 	}
-
 }

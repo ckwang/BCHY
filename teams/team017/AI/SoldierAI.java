@@ -52,8 +52,15 @@ public class SoldierAI extends AI {
 			try {processMessages();}
 			catch (GameActionException e1) {}
 
+			
 			enemyNum = combat.enemyInfosSet.size();
 			MapLocation nextLoc = combat.attack();
+			
+			if (combat.enemyInfosSet.size() == 0 && combat.debrisLoc.size() != 0)
+				try {combat.attackDebris();}
+			catch (GameActionException e1) {
+					e1.printStackTrace();
+				}
 			
 			if (nextLoc != null && !controllers.motor.isActive()) {
 				navigator.setDestination(nextLoc);

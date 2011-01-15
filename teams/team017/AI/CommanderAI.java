@@ -23,6 +23,8 @@ public class CommanderAI extends AI {
 	
 	public CommanderAI(RobotController rc) {
 		super(rc);
+		combat = new CombatSystem(controllers);
+
 	}
 
 	@Override
@@ -34,7 +36,7 @@ public class CommanderAI extends AI {
 					combat.senseNearby();
 				processMessages();
 				
-				controllers.myRC.setIndicatorString(0, combat.enemyInfosSet.size() + "");
+//				rc.setIndicatorString(0, combat.enemyInfosSet.size() + "");
 				if (combat.enemyInfosSet.size() > 0) {
 					msgHandler.clearOutQueue();
 					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));

@@ -32,15 +32,19 @@ public class FactoryAI extends BuildingAI {
 //					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingDirs);
 //				}
 //			}
+			if(buildingDirs.recyclerDirection != null){
 				
-//			if( controllers.myRC.getTeamResources() > UnitType.MEDIUM_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.MEDIUM_COMMANDER.chassis.upkeep * 1.5){
-//				if(buildingDirs.recyclerDirection != null){
-//					ComponentType [] builderList = {ComponentType.RECYCLER, ComponentType.FACTORY};
-//					MapLocation buildLoc = buildingDirs.constructableLocation(ComponentType.FACTORY, builderList);
+//				if(Clock.getRoundNum() < 1000 && controllers.myRC.getTeamResources() > UnitType.MEDIUM_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.MEDIUM_COMMANDER.chassis.upkeep * 1.5){
+//					MapLocation buildLoc = buildingDirs.constructableLocation(ComponentType.FACTORY, UnitType.MEDIUM_COMMANDER.requiredBuilders);
 //					buildingSystem.constructUnit(buildLoc, UnitType.MEDIUM_COMMANDER, buildingDirs);
-//				}
-//			}
-
+//				} else 
+//					
+					if (controllers.myRC.getTeamResources() > 150 && getEffectiveFluxRate() > 1) {
+					MapLocation buildLoc = buildingDirs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
+					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingDirs);
+				
+				}
+			}
 //				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 120)
 //					buildingSystem.constructUnit(UnitType.TANK_KILLER);
 				yield();
