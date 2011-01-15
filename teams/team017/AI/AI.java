@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import team017.construction.Builder;
 import team017.message.MessageHandler;
+import team017.navigation.GridMap;
 import team017.navigation.Navigator;
 import team017.util.Controllers;
 import battlecode.common.Clock;
@@ -22,6 +23,7 @@ public abstract class AI {
 	
 	// {NORTH, EAST, SOUTH, WEST}
 	protected int[] borders = { -1, -1, -1, -1 };
+	protected GridMap gridMap;
 	protected MapLocation[] enemyBaseLoc = new MapLocation[3];
 	protected MapLocation homeLocation;
 
@@ -35,6 +37,8 @@ public abstract class AI {
 		navigator = new Navigator(controllers);
 		msgHandler = new MessageHandler(controllers);
 		buildingSystem = new Builder(controllers, msgHandler);
+		
+		gridMap = new GridMap(homeLocation);
 	}
 
 	abstract public void proceed();
@@ -107,8 +111,11 @@ public abstract class AI {
 				}
 			}
 			
-			if (hasChanged)
+			if (hasChanged) {
 				computeEnemyBaseLocation();
+				gridMap.setBorders(borders);
+				gridMap.updateScoutLocation(Clock.getRoundNum());
+			}
 			
 		} catch (Exception e) {
 			System.out.println("caught exception:");

@@ -146,19 +146,19 @@ public class RecyclerAI extends BuildingAI {
 				/*
 				 * 
 				 */
-				if (controllers.myRC.getTeamResources() > 170
-						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 100) {
-
-					constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
-//					if (Clock.getRoundNum() > 1000) {
-//						constructUnitAtRatio (fluxRate, laterThresholds, laterUnitRatio, laterTypes);
-//					} else if (Clock.getRoundNum() > 200 
-//							&& controllers.myRC.getTeamResources() > 150
+//				if (controllers.myRC.getTeamResources() > 170
+//						&& controllers.myRC.getTeamResources() > ((Clock.getRoundNum() - birthRoundNum) / 500) * 100) {
 //
-//							){
-//						constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
-//					}
-				}
+//					constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
+////					if (Clock.getRoundNum() > 1000) {
+////						constructUnitAtRatio (fluxRate, laterThresholds, laterUnitRatio, laterTypes);
+////					} else if (Clock.getRoundNum() > 200 
+////							&& controllers.myRC.getTeamResources() > 150
+////
+////							){
+////						constructUnitAtRatio (fluxRate, thresholds, unitRatio, types);
+////					}
+//				}
 				
 				// turn off when the mine is depleted
 				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0)
