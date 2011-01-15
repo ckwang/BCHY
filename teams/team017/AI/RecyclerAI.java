@@ -111,7 +111,7 @@ public class RecyclerAI extends BuildingAI {
 				
 				if (controllers.myRC.getTeamResources() > 170) {
 					if (fluxRate > 0)
-						constructUnitAtRatio ();
+						constructUnitAtRatio();
 				}
 				
 				// turn off when the mine is depleted

@@ -98,7 +98,6 @@ public class Navigator {
 		// return same direction at same location (given same destination)
 		if ( controllers.myRC.getLocation().equals(previousRobLoc) ){
 			if ( !controllers.motor.isActive() && needDetour(previousDir) ){
-				
 				controllers.myRC.setIndicatorString(1, "DETOUR");
 				Direction faceDir = controllers.myRC.getDirection();
 				faceDir = iscw? faceDir.rotateRight().rotateRight(): faceDir.rotateLeft().rotateLeft();
