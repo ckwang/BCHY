@@ -21,7 +21,7 @@ public class GridMap {
 	private final int GRID_NUM = TOTAL_LENGTH / GRID_SIZE * 2;
 	
 	private int[] gridBorders = {0, GRID_NUM, GRID_NUM, 0};
-	int[] internal_records;
+	public int[] internalRecords;
 	
 	private Grid currentScoutGrid;
 	private int assignedRound;
@@ -63,7 +63,16 @@ public class GridMap {
 		this.origin = origin;
 		currentScoutGrid = new Grid(origin);
 		
-		internal_records = new int[(GRID_NUM * GRID_NUM) / 32 + 1];
+		internalRecords = new int[(GRID_NUM * GRID_NUM) / 32 + 1];
+	}
+	
+	public GridMap(Controllers controllers, MapLocation origin, int[] borders, int[] internalRecords) {
+		this.controllers = controllers;
+		this.origin = origin;
+		this.internalRecords = internalRecords;
+		
+		setBorders(borders);
+		updateScoutLocation(controllers.myRC.getLocation());
 	}
 	
 	private boolean isScouted(Grid grid) {
@@ -71,7 +80,7 @@ public class GridMap {
 		int int_num = total_offset / 32;
 		int int_offset = total_offset % 32;
 		
-		boolean scouted = (internal_records[int_num] & (1 << int_offset)) != 0; 
+		boolean scouted = (internalRecords[int_num] & (1 << int_offset)) != 0; 
 		if (scouted) {
 			if (controllers.myRC.senseTerrainTile(grid.toMapLocation()) != null) {
 				setScouted(grid);
@@ -87,7 +96,11 @@ public class GridMap {
 		int int_num = total_offset / 32;
 		int int_offset = total_offset % 32;
 		
-		internal_records[int_num] |= (1 << int_offset);
+		internalRecords[int_num] |= (1 << int_offset);
+	}
+	
+	public void setScouted(MapLocation loc) {
+		setScouted(new Grid(loc));
 	}
 	
 	private boolean isInbound(Grid grid) {
@@ -117,6 +130,19 @@ public class GridMap {
 		return currentScoutGrid.toMapLocation();
 	}
 	
+	public void merge(GridMap gridMap) {
+		for (int i = 0; i < internalRecords.length; i++) {
+			internalRecords[i] |= gridMap.internalRecords[i];
+		}
+		
+		for (int i = 0; i < 4; i++) {
+			if ( (i == 1 || i == 2) ?
+					(gridMap.gridBorders[i] < gridBorders[i]) :
+					(gridMap.gridBorders[i] > gridBorders[i]) )
+				gridBorders[i] = gridMap.gridBorders[i];
+		}
+	}
+	
 	public void updateScoutLocation(MapLocation loc) {
 		currentScoutGrid = new Grid(loc);
 		updateScoutLocation();
@@ -132,12 +158,23 @@ public class GridMap {
 				Grid neighbor = neighbors[(roundNum + j) % 8];
 				if (isInbound(neighbor) && !isScouted(neighbor)) {
 					currentScoutGrid = neighbor;
+					assignedRound = roundNum;
+					
 					return;
 				}
 			}
 		}
-		
-		assignedRound = roundNum;
+	}
+	
+	public void printGridMap() {
+		String s = "";
+		for (int i = 0; i < GRID_NUM; i++) {
+			for (int j = 0; j < GRID_NUM; j++) {
+				s += isScouted(new Grid(i, j)) ? 1 : 0;
+			}
+			s += "\n";
+		}
+		System.out.println(s);
 	}
 	
 }

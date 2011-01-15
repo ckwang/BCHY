@@ -11,6 +11,7 @@ import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.FollowMeMessage;
+import team017.message.GridMapMessage;
 import team017.message.ScoutingMessage;
 import team017.navigation.GridMap;
 import battlecode.common.Chassis;
@@ -60,9 +61,9 @@ public class ConstructorAI extends AI {
 			
 			try {
 				
-				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
-				controllers.myRC.setIndicatorString(1, "");
-				controllers.myRC.setIndicatorString(2, "");
+//				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
+//				controllers.myRC.setIndicatorString(1, "");
+//				controllers.myRC.setIndicatorString(2, "");
 				
 				processMessages();
 				
@@ -80,10 +81,10 @@ public class ConstructorAI extends AI {
 
 				
 
-//				if (Clock.getRoundNum() % 6 == 0) {
+				if (Clock.getRoundNum() % 15 == 0) {
 //					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-//					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-//				}
+					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+				}
 				
 				
 				yield();
@@ -140,6 +141,9 @@ public class ConstructorAI extends AI {
 			if (!mineLocations.isEmpty())
 				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
 			yield();
+			
+			controllers.updateComponents();
+			
 //			controllers.myRC.setIndicatorString(2, "here");
 			
 //			// wake up one recycler
@@ -307,7 +311,7 @@ public class ConstructorAI extends AI {
 					yield();
 				}
 				msgHandler.queueMessage(new ConstructionCompleteMessage(target, UnitType.RECYCLER));
-				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
 				return true;
 			}
@@ -384,7 +388,7 @@ public class ConstructorAI extends AI {
 				
 			navigator.setDestination(nearest);
 			nextDir = navigator.getNextDir(2);
-			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", mine:" + nearest);
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", mine:" + nearest);
 		}
 		else {
 			
@@ -396,7 +400,7 @@ public class ConstructorAI extends AI {
 //				gridMap.updateScoutLocation(Clock.getRoundNum());
 			
 			// if the scout location is too old
-			if (Clock.getRoundNum() - gridMap.getAssignedRoundNum() < 200) {
+			if (Clock.getRoundNum() - gridMap.getAssignedRoundNum() > 300) {
 				gridMap.setCurrentAsScouted();
 				gridMap.updateScoutLocation();
 			}
@@ -405,7 +409,6 @@ public class ConstructorAI extends AI {
 			nextDir = navigator.getNextDir(4);
 			
 			if (nextDir == Direction.OMNI){
-				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + ": update!");
 				gridMap.setCurrentAsScouted();
 				gridMap.updateScoutLocation();
 				navigator.setDestination(gridMap.getScoutLocation());
@@ -413,12 +416,12 @@ public class ConstructorAI extends AI {
 			}
 		}
 		
-		
 		if (nextDir != Direction.OMNI) {
 			if (!controllers.motor.isActive() ) {
 				if (controllers.myRC.getDirection() == nextDir) {
 					if (controllers.motor.canMove(nextDir)) {
 						controllers.motor.moveForward();
+						gridMap.setScouted(controllers.myRC.getLocation());
 					}
 				} else {
 					controllers.motor.setDirection(nextDir);
@@ -545,6 +548,28 @@ public class ConstructorAI extends AI {
 				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
+				gridMap.setBorders(borders);
+				break;
+			}
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				gridMap.merge(handler.getGridMap(controllers));
+				
+				controllers.myRC.setIndicatorString(0, "lalala");
+				
 				break;
 			}
 //			case SCOUTING_MESSAGE: {						

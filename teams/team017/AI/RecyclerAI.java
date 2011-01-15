@@ -6,6 +6,7 @@ import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.GridMapMessage;
 import team017.util.Util;
 import battlecode.common.*;
 
@@ -19,7 +20,7 @@ public class RecyclerAI extends BuildingAI {
 	int [] unitRatios = {2, 1};
 	int [] cumulatedRatios = {2, 3};
 	int total = 3;
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.RADARGUN} ;
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.RADARGUN } ;
 	double thresholds = 0.3;
 	
 	private enum spawningState { EARLY, MIDDLE, LATE };
@@ -109,7 +110,7 @@ public class RecyclerAI extends BuildingAI {
 				
 				double fluxRate = getEffectiveFluxRate();
 				
-				if (controllers.myRC.getTeamResources() > 170) {
+				if (controllers.myRC.getTeamResources() > 170 ) {
 					if (fluxRate > 0)
 						constructUnitAtRatio();
 				}
@@ -201,6 +202,27 @@ public class RecyclerAI extends BuildingAI {
 				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
+				gridMap.setBorders(borders);
+				break;
+			}
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				gridMap.merge(handler.getGridMap(controllers));
+//				gridMap.printGridMap();
+				
 				break;
 			}
 			case BUILDING_REQUEST:{
@@ -387,7 +409,10 @@ public class RecyclerAI extends BuildingAI {
 
 		if (buildingSystem.constructUnit(types[index])) {
 			++unitConstructed;
-			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+			if (types[index] == UnitType.CONSTRUCTOR)
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+			else
+				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 		}
 		
 		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){

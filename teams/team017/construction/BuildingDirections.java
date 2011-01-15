@@ -189,7 +189,8 @@ public class BuildingDirections {
 				try {
 					Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
 					if (objectOnGround != null) {
-						if (controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis == Chassis.BUILDING)
+						RobotInfo info = controllers.sensor.senseRobotInfo((Robot) objectOnGround);
+						if (info.chassis == Chassis.BUILDING || info.chassis == Chassis.DEBRIS)
 							emptyDirections[i] = false;
 					} else if (controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null) {
 						emptyDirections[i] = false;
