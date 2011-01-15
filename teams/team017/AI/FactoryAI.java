@@ -25,17 +25,17 @@ public class FactoryAI extends BuildingAI {
 				processMessages();
 //			controllers.myRC.setIndicatorString(2, getEffectiveFluxRate() + "");
 //			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
-//				if(builderDirs.recyclerDirection != null){
-//					MapLocation buildLoc = builderDirs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
-//					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, builderDirs);
+//				if(buildingDirs.recyclerDirection != null){
+//					MapLocation buildLoc = buildingDirs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
+//					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingDirs);
 //				}
 //			}
 				
 //			if(Clock.getRoundNum() < 1000 && Clock.getRoundNum() > 980 && controllers.myRC.getTeamResources() > UnitType.MEDIUM_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.MEDIUM_CONSTRUCTOR.chassis.upkeep * 1.5){
-//				if(builderDirs.recyclerDirection != null){
+//				if(buildingDirs.recyclerDirection != null){
 //					ComponentType [] builderList = {ComponentType.RECYCLER, ComponentType.FACTORY};
-//					MapLocation buildLoc = builderDirs.constructableLocation(ComponentType.FACTORY, builderList);
-//					buildingSystem.constructUnit(buildLoc, UnitType.MEDIUM_CONSTRUCTOR, builderDirs);
+//					MapLocation buildLoc = buildingDirs.constructableLocation(ComponentType.FACTORY, builderList);
+//					buildingSystem.constructUnit(buildLoc, UnitType.MEDIUM_CONSTRUCTOR, buildingDirs);
 //				}
 //			}
 
@@ -79,7 +79,7 @@ public class FactoryAI extends BuildingAI {
 				MapLocation currentLoc = controllers.myRC.getLocation();
 				
 				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
-					builderDirs.setDirections(handler.getBuildingType(), currentLoc.directionTo(handler.getBuildingLocation()));
+					buildingDirs.setDirections(handler.getBuildingType(), currentLoc.directionTo(handler.getBuildingLocation()));
 				}
 				break;
 			}

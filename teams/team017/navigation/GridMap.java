@@ -98,6 +98,11 @@ public class GridMap {
 		return currentScoutGrid.toMapLocation();
 	}
 	
+	public void updateScoutLocation(MapLocation loc, int seed) {
+		currentScoutGrid = new Grid(loc);
+		updateScoutLocation(seed);
+	}
+	
 	public void updateScoutLocation(int seed) {
 		
 		for (int i = 1; i <= 5; i++) {
