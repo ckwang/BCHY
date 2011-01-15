@@ -91,6 +91,10 @@ public class GridMap {
 		return scouted;
 	}
 	
+	public boolean isScouted(MapLocation loc) {
+		return isScouted(new Grid(loc));
+	}
+	
 	private void setScouted(Grid grid) {
 		int total_offset = grid.gridY * GRID_NUM + grid.gridX;
 		int int_num = total_offset / 32;

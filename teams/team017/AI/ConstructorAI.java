@@ -421,7 +421,12 @@ public class ConstructorAI extends AI {
 				if (controllers.myRC.getDirection() == nextDir) {
 					if (controllers.motor.canMove(nextDir)) {
 						controllers.motor.moveForward();
-						gridMap.setScouted(controllers.myRC.getLocation());
+						
+						MapLocation currentLoc = controllers.myRC.getLocation();
+						if (!gridMap.isScouted(currentLoc)) {
+							gridMap.setScouted(currentLoc);
+							gridMap.updateScoutLocation(currentLoc);
+						}
 					}
 				} else {
 					controllers.motor.setDirection(nextDir);
