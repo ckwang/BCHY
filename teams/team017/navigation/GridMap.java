@@ -1,5 +1,7 @@
 package team017.navigation;
 
+import team017.util.Controllers;
+import battlecode.common.Clock;
 import battlecode.common.MapLocation;
 
 
@@ -10,6 +12,9 @@ import battlecode.common.MapLocation;
  *
  */
 public class GridMap {
+	
+	private Controllers controllers;
+	
 	private MapLocation origin;
 	private final int GRID_SIZE = 5;
 	private final int TOTAL_LENGTH = 70;
@@ -53,7 +58,8 @@ public class GridMap {
 	}
 	
 	
-	public GridMap(MapLocation origin) {
+	public GridMap(Controllers controllers, MapLocation origin) {
+		this.controllers = controllers;
 		this.origin = origin;
 		currentScoutGrid = new Grid(origin);
 		
@@ -65,7 +71,15 @@ public class GridMap {
 		int int_num = total_offset / 32;
 		int int_offset = total_offset % 32;
 		
-		return (internal_records[int_num] & (1 << int_offset)) != 0;
+		boolean scouted = (internal_records[int_num] & (1 << int_offset)) != 0; 
+		if (scouted) {
+			if (controllers.myRC.senseTerrainTile(grid.toMapLocation()) != null) {
+				setScouted(grid);
+				return true;
+			}
+		}
+		
+		return scouted;
 	}
 	
 	private void setScouted(Grid grid) {
@@ -103,18 +117,19 @@ public class GridMap {
 		return currentScoutGrid.toMapLocation();
 	}
 	
-	public void updateScoutLocation(MapLocation loc, int roundNum, int seed) {
+	public void updateScoutLocation(MapLocation loc) {
 		currentScoutGrid = new Grid(loc);
-		updateScoutLocation(roundNum, seed);
+		updateScoutLocation();
 	}
 	
-	public void updateScoutLocation(int roundNum, int seed) {
+	public void updateScoutLocation() {
+		int roundNum = Clock.getRoundNum();
 		
 		for (int i = 1; i <= 5; i++) {
 			Grid[] neighbors = currentScoutGrid.getNeighbors(i);
 			
 			for (int j = 0; j < 8; j++) {
-				Grid neighbor = neighbors[(seed + j) % 8];
+				Grid neighbor = neighbors[(roundNum + j) % 8];
 				if (isInbound(neighbor) && !isScouted(neighbor)) {
 					currentScoutGrid = neighbor;
 					return;

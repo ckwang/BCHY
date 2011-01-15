@@ -398,7 +398,7 @@ public class ConstructorAI extends AI {
 			// if the scout location is too old
 			if (Clock.getRoundNum() - gridMap.getAssignedRoundNum() < 200) {
 				gridMap.setCurrentAsScouted();
-				gridMap.updateScoutLocation(Clock.getRoundNum(), Clock.getRoundNum());
+				gridMap.updateScoutLocation();
 			}
 			
 			navigator.setDestination(gridMap.getScoutLocation());
@@ -407,7 +407,7 @@ public class ConstructorAI extends AI {
 			if (nextDir == Direction.OMNI){
 				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + ": update!");
 				gridMap.setCurrentAsScouted();
-				gridMap.updateScoutLocation(Clock.getRoundNum(), Clock.getRoundNum());
+				gridMap.updateScoutLocation();
 				navigator.setDestination(gridMap.getScoutLocation());
 				nextDir = navigator.getNextDir(4);
 			}

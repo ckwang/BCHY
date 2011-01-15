@@ -305,7 +305,7 @@ public class AirAI extends AI {
 			
 			if (nextDir == Direction.OMNI){
 				gridMap.setCurrentAsScouted();
-				gridMap.updateScoutLocation(Clock.getRoundNum(), Clock.getRoundNum());
+				gridMap.updateScoutLocation();
 				nextDir = currentLoc.directionTo(gridMap.getScoutLocation());
 			}
 		}
