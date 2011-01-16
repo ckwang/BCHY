@@ -55,9 +55,9 @@ public abstract class AI {
 		
 		gridMap = new GridMap(controllers, homeLocation);
 		
-		enemyMines = new HashSet<EnhancedMineInfo>();
-		alliedMines = new HashSet<EnhancedMineInfo>();
-		allMines = new HashSet<MapLocation>();
+//		enemyMines = new HashSet<EnhancedMineInfo>();
+//		alliedMines = new HashSet<EnhancedMineInfo>();
+//		allMines = new HashSet<MapLocation>();
 	}
 
 	abstract public void proceed();
@@ -68,26 +68,26 @@ public abstract class AI {
 		controllers.myRC.yield();
 	}
 	
-	protected void senseMines() {
-		Mine[] mines = controllers.sensor.senseNearbyGameObjects(Mine.class);
-		
-		for (Mine m : mines) {
-			try {
-				Team team;
-				GameObject object = controllers.sensor.senseObjectAtLocation(m.getLocation(), RobotLevel.ON_GROUND);
-				if (object != null && controllers.sensor.senseRobotInfo ((Robot) object).chassis == Chassis.BUILDING) {
-					team = object.getTeam();
-				} else {
-					team = Team.NEUTRAL;
-				}
-				
-//				EnhancedMineInfo state = new EnhancedMineInfo(team);
-//				mineStates.put(m.getLocation(), state);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
+//	protected void senseMines() {
+//		Mine[] mines = controllers.sensor.senseNearbyGameObjects(Mine.class);
+//		
+//		for (Mine m : mines) {
+//			try {
+//				Team team;
+//				GameObject object = controllers.sensor.senseObjectAtLocation(m.getLocation(), RobotLevel.ON_GROUND);
+//				if (object != null && controllers.sensor.senseRobotInfo ((Robot) object).chassis == Chassis.BUILDING) {
+//					team = object.getTeam();
+//				} else {
+//					team = Team.NEUTRAL;
+//				}
+//				
+////				EnhancedMineInfo state = new EnhancedMineInfo(team);
+////				mineStates.put(m.getLocation(), state);
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+//	}
 	
 	protected Direction senseBorder() {
 		Direction borderDirection = Direction.NONE;
