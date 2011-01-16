@@ -2,6 +2,7 @@ package team017.navigation;
 
 import team017.util.Controllers;
 import battlecode.common.Clock;
+import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 
 
@@ -126,11 +127,19 @@ public class GridMap {
 		}
 	}
 	
-	public int getAssignedRoundNum() {
-		return assignedRound;
-	}
-	
 	public MapLocation getScoutLocation() {
+		// if the scout location is too old
+		if (Clock.getRoundNum() - assignedRound > 300) {
+			setCurrentAsScouted();
+			updateScoutLocation();
+		}
+		
+		// if we're standing at the spot
+		if (controllers.myRC.getLocation().distanceSquaredTo(currentScoutGrid.toMapLocation()) <= 4) {
+			setCurrentAsScouted();
+			updateScoutLocation();
+		}
+		
 		return currentScoutGrid.toMapLocation();
 	}
 	
@@ -155,7 +164,7 @@ public class GridMap {
 	public void updateScoutLocation() {
 		int roundNum = Clock.getRoundNum();
 		
-		for (int i = 1; i <= 5; i++) {
+		for (int i = 1; i <= 7; i++) {
 			Grid[] neighbors = currentScoutGrid.getNeighbors(i);
 			
 			for (int j = 0; j < 8; j++) {
@@ -168,6 +177,7 @@ public class GridMap {
 				}
 			}
 		}
+		
 	}
 	
 	public void printGridMap() {

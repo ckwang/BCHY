@@ -44,11 +44,9 @@ public class SoldierAI extends AI {
 	
 	private Direction followDir;
 	private Direction previousDir = null;
-	private MapLocation scoutLocation;
 	public SoldierAI(RobotController rc) {
 		super(rc);
 		combat = new CombatSystem(controllers);
-		scoutLocation = getNextScoutLoc();
 		navigator.updateMap();
 	}
 
@@ -160,7 +158,7 @@ public class SoldierAI extends AI {
 				
 			}
 			
-			sense_border();
+			senseBorder();
 			yield();
 
 		}
@@ -274,43 +272,6 @@ public class SoldierAI extends AI {
 		return;
 	}
 	
-	private MapLocation getNextScoutLoc() {
-		TerrainTile tile, checkTile;
-		Direction faceDir = controllers.myRC.getDirection();
-		final int EXPLORATION_SIZE = 10;
-		
-		// add some randomness to the initial direction
-		int n = Clock.getRoundNum() % 8;
-		for (int i = 0; i < n; i++) {
-			faceDir = faceDir.rotateRight();
-		}
-		
-		MapLocation currentLoc = controllers.myRC.getLocation();
-		int multiple = 1;
-		while( multiple < 5 ){
-		
-			for (int i = 0; i < 8; i++){
-				MapLocation projectedLoc = currentLoc.add(faceDir, EXPLORATION_SIZE*multiple);
-				if ( (borders[1] == -1 || projectedLoc.x < borders[1]) &&
-					 (borders[3] == -1 || projectedLoc.x > borders[3]) &&
-					 (borders[2] == -1 || projectedLoc.y < borders[2]) &&
-					 (borders[0] == -1 || projectedLoc.y > borders[0])) {
-					
-				
-					tile = controllers.myRC.senseTerrainTile(projectedLoc);
-					checkTile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 3));
-					if (tile == null && checkTile != TerrainTile.OFF_MAP)
-						return projectedLoc;
-				}
-				faceDir = faceDir.rotateRight();
-			}
-			
-			multiple++;
-		}
-		
-		return currentLoc.add(faceDir.opposite(), EXPLORATION_SIZE*multiple);
-	}
-
 	private void navigate() throws GameActionException {
 		
 		Direction nextDir = Direction.OMNI;
@@ -344,22 +305,8 @@ public class SoldierAI extends AI {
 		}
 		else {
 			
-			TerrainTile checkTile = 
-				controllers.myRC.senseTerrainTile(
-						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
-			
-			if (checkTile == TerrainTile.OFF_MAP)
-				scoutLocation = getNextScoutLoc();
-			
-			navigator.setDestination(scoutLocation);
-			nextDir = navigator.getNextDir(9);
-			
-			if (nextDir == Direction.OMNI){
-				scoutLocation = getNextScoutLoc();
-				navigator.setDestination(scoutLocation);
-				nextDir = navigator.getNextDir(9);
-			}
-			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", scout: " + scoutLocation);
+			navigator.setDestination(gridMap.getScoutLocation());
+			nextDir = navigator.getNextDir(4);
 		}
 		
 		
@@ -370,6 +317,12 @@ public class SoldierAI extends AI {
 				if (controllers.myRC.getDirection() == nextDir) {
 					if (controllers.motor.canMove(nextDir)) {
 						controllers.motor.moveForward();
+						
+						MapLocation currentLoc = controllers.myRC.getLocation();
+						if (!gridMap.isScouted(currentLoc)) {
+							gridMap.setScouted(currentLoc);
+							gridMap.updateScoutLocation(currentLoc);
+						}
 					}
 				} else {
 					controllers.motor.setDirection(nextDir);

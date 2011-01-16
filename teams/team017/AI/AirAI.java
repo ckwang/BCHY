@@ -40,7 +40,7 @@ public class AirAI extends AI {
 	public void yield() {
 		super.yield();
 		updateLocationSets();
-		sense_border();
+		senseBorder();
 	}
 
 	public void proceed() {

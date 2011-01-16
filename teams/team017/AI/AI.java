@@ -1,17 +1,28 @@
 package team017.AI;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import team017.construction.Builder;
 import team017.message.MessageHandler;
 import team017.navigation.GridMap;
 import team017.navigation.Navigator;
 import team017.util.Controllers;
+import team017.util.EnhancedMineInfo;
+import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
+import battlecode.common.Mine;
+import battlecode.common.Robot;
 import battlecode.common.RobotController;
+import battlecode.common.RobotLevel;
+import battlecode.common.Team;
 import battlecode.common.TerrainTile;
 
 public abstract class AI {
@@ -26,6 +37,10 @@ public abstract class AI {
 	protected GridMap gridMap;
 	protected MapLocation[] enemyBaseLoc = new MapLocation[3];
 	protected MapLocation homeLocation;
+	
+	protected Set<EnhancedMineInfo> enemyMines;
+	protected Set<EnhancedMineInfo> alliedMines;
+	protected Set<MapLocation> allMines;
 
 	public AI(RobotController rc) {
 		controllers = new Controllers();
@@ -39,6 +54,10 @@ public abstract class AI {
 		buildingSystem = new Builder(controllers, msgHandler);
 		
 		gridMap = new GridMap(controllers, homeLocation);
+		
+		enemyMines = new HashSet<EnhancedMineInfo>();
+		alliedMines = new HashSet<EnhancedMineInfo>();
+		allMines = new HashSet<MapLocation>();
 	}
 
 	abstract public void proceed();
@@ -49,7 +68,28 @@ public abstract class AI {
 		controllers.myRC.yield();
 	}
 	
-	protected Direction sense_border() {
+	protected void senseMines() {
+		Mine[] mines = controllers.sensor.senseNearbyGameObjects(Mine.class);
+		
+		for (Mine m : mines) {
+			try {
+				Team team;
+				GameObject object = controllers.sensor.senseObjectAtLocation(m.getLocation(), RobotLevel.ON_GROUND);
+				if (object != null && controllers.sensor.senseRobotInfo ((Robot) object).chassis == Chassis.BUILDING) {
+					team = object.getTeam();
+				} else {
+					team = Team.NEUTRAL;
+				}
+				
+//				EnhancedMineInfo state = new EnhancedMineInfo(team);
+//				mineStates.put(m.getLocation(), state);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	protected Direction senseBorder() {
 		Direction borderDirection = Direction.NONE;
 		
 		try {
