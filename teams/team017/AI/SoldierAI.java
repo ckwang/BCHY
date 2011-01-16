@@ -277,27 +277,27 @@ public class SoldierAI extends AI {
 		Direction nextDir = Direction.OMNI;
 		if (enemyBaseLoc[0] != null) {
 			navigator.setDestination(enemyBaseLoc[0]);
-			nextDir = navigator.getNextDir(2);
+			nextDir = navigator.getNextDir(9);
 			if (nextDir == Direction.OMNI){
 				enemyBaseLoc[0] = null;
 				navigator.setDestination(enemyBaseLoc[1]);
-				nextDir = navigator.getNextDir(2);
+				nextDir = navigator.getNextDir(9);
 			}
 			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e0: " + enemyBaseLoc[0]);
 		}
 		else if (enemyBaseLoc[1] != null){
 			navigator.setDestination(enemyBaseLoc[1]);
-			nextDir = navigator.getNextDir(2);
+			nextDir = navigator.getNextDir(9);
 			if (nextDir == Direction.OMNI){
 				enemyBaseLoc[1] = null;
 				navigator.setDestination(enemyBaseLoc[2]);
-				nextDir = navigator.getNextDir(2);
+				nextDir = navigator.getNextDir(9);
 			}
 			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e1: " + enemyBaseLoc[1]);
 		}
 		else if (enemyBaseLoc[2] != null){
 			navigator.setDestination(enemyBaseLoc[2]);
-			nextDir = navigator.getNextDir(2);
+			nextDir = navigator.getNextDir(9);
 			if (nextDir == Direction.OMNI){
 				enemyBaseLoc[2] = null;
 			}
