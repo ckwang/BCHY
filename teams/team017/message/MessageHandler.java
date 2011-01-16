@@ -40,7 +40,7 @@ public class MessageHandler {
 		if (outQueue.size() != 0 && controllers.comm != null && !controllers.comm.isActive()) {
 			try {
 				controllers.comm.broadcast(outQueue.poll().getMessage());
-			} catch (GameActionException e) {
+			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
 			}

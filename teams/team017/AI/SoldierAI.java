@@ -54,21 +54,15 @@ public class SoldierAI extends AI {
 			combat.senseNearby();
 			enemyNum = combat.enemyInfosSet.size();
 
-			try {
-				processMessages();
-			} catch (GameActionException e1) {
-			}
+			try {processMessages();}
+			catch (Exception e1) {}
 
 			enemyNum = combat.enemyInfosSet.size();
 			MapLocation nextLoc = combat.attack();
-
-			if (combat.enemyInfosSet.size() == 0
-					&& combat.debrisLoc.size() != 0)
-				try {
-					combat.attackDebris();
-				} catch (GameActionException e1) {
-					e1.printStackTrace();
-				}
+			
+			if (combat.enemyInfosSet.size() == 0 && combat.debrisLoc.size() != 0)
+				try {combat.attackDebris();}
+				catch (Exception e1) {e1.printStackTrace();}
 
 			if (nextLoc != null && !controllers.motor.isActive()) {
 				navigator.setDestination(nextLoc);
@@ -85,7 +79,7 @@ public class SoldierAI extends AI {
 					} else {
 						controllers.motor.setDirection(nextDir);
 					}
-				} catch (GameActionException e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -132,11 +126,8 @@ public class SoldierAI extends AI {
 			}
 
 			if (attackRoundCounter > 2 && leaderMessageRoundCounter > 3) {
-				try {
-					navigate();
-				}
-				catch (GameActionException e) {
-				}
+				try {navigate();}
+				catch (Exception e) {}
 			}
 			senseBorder();
 			yield();
