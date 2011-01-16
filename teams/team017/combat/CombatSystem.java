@@ -30,9 +30,9 @@ public class CombatSystem {
 
 	public class compareEnemyInfoByDistance implements Comparator<EnemyInfo> {
 		public int compare(EnemyInfo o1, EnemyInfo o2) {
-			if (o1.cost > o2.cost) {
+			if (o1.priority < o2.priority) {
 				return 1;
-			} else if (o1.cost < o2.cost) {
+			} else if (o1.priority > o2.priority) {
 				return -1;
 			} else {
 				return 0;

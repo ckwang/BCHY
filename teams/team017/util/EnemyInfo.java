@@ -17,7 +17,7 @@ public class EnemyInfo {
 	public boolean mobile;
 	public Direction direction = null;
 	public Robot robot = null;
-	public int cost;
+	public int priority;
 
 	public EnemyInfo(int roundNum, RobotInfo info) {
 		this.roundNum = roundNum;
@@ -25,7 +25,7 @@ public class EnemyInfo {
 		this.location = info.location;
 		this.level = info.robot.getRobotLevel();
 		this.id = info.robot.getID();
-		this.mobile = info.on || info.chassis == Chassis.BUILDING;
+		this.mobile = info.on || info.chassis != Chassis.BUILDING;
 		this.direction = info.direction;
 		this.robot = info.robot;
 	}
@@ -40,11 +40,11 @@ public class EnemyInfo {
 	}
 	
 	public void calculateCost(MapLocation loc) {
-		cost = 0;
-		cost |= mobile ? (1 << 20) : 0;
-		cost |= loc.distanceSquaredTo(location) << 15;
-		cost |= (level == RobotLevel.IN_AIR) ? (1 << 14) : 0;
-		cost |= (int) (hp * 10);
+		priority = 0;
+		priority |= mobile ? (1 << 25) : 0;
+		priority |= ~(loc.distanceSquaredTo(location) << 15);
+		priority |= (level == RobotLevel.IN_AIR) ? (1 << 14) : 0;
+		priority |= (int) (hp * 10);
 	}
 	
 	@Override
