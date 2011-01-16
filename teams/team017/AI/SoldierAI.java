@@ -6,7 +6,7 @@ import team017.combat.CombatSystem;
 import team017.message.BorderMessage;
 import team017.message.EnemyInformationMessage;
 import team017.message.FollowMeMessage;
-import team017.util.EnemyInfo;
+import team017.util.UnitInfo;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -53,15 +53,15 @@ public class SoldierAI extends AI {
 		while (true) {
 
 			controllers.senseNearby();
-			enemyNum = controllers.enemyInfosSet.size();
+			enemyNum = controllers.mobileEnemyNum();
 
 			try {processMessages();}
 			catch (Exception e1) {}
 
-			enemyNum = controllers.enemyInfosSet.size();
+			enemyNum = controllers.mobileEnemyNum();
 			MapLocation nextLoc = combat.attack();
 			
-			if (controllers.enemyInfosSet.size() == 0 && controllers.debrisLoc.size() != 0) {
+			if (controllers.mobileEnemyNum() == 0 && controllers.debrisNum() != 0) {
 				try {combat.attackDebris();}
 				catch (Exception e1) {e1.printStackTrace();}
 			}
@@ -155,7 +155,7 @@ public class SoldierAI extends AI {
 			return;
 		if (enemyNum > 0) {
 			msgHandler.clearOutQueue();
-			msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyInfosSet));
+			msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyMobile));
 			msgHandler.process();
 		} else if (!hasLeader) {
 			if (previousDir != controllers.myRC.getDirection() || Clock.getRoundNum() % 3 == 0) {
@@ -221,9 +221,9 @@ public class SoldierAI extends AI {
 					EnemyInformationMessage ehandler = new EnemyInformationMessage(
 							msg);
 					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
-						for (EnemyInfo e : ehandler.getInfos()) {
-							controllers.enemyInfosSet.remove(e);
-							controllers.enemyInfosSet.add(e);
+						for (UnitInfo e : ehandler.getInfos()) {
+							controllers.enemyMobile.remove(e);
+							controllers.enemyMobile.add(e);
 						}
 					}
 				}

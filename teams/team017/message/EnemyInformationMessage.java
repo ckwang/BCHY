@@ -5,20 +5,20 @@ import java.util.Set;
 
 import java.util.List;
 
-import team017.util.EnemyInfo;
+import team017.util.UnitInfo;
 import battlecode.common.Clock;
 import battlecode.common.Message;
 import battlecode.common.RobotLevel;
 
 public class EnemyInformationMessage extends GenericMessage{
-	private List<EnemyInfo> infos;
+	private List<UnitInfo> infos;
 
-	public EnemyInformationMessage (Set<EnemyInfo> infos) {
+	public EnemyInformationMessage (Set<UnitInfo> infos) {
 		super (MessageType.ENEMY_INFORMATION_MESSAGE);
 		
 		int sizePointer = intCounter++;
 		int size = 0;
-		for (EnemyInfo i : infos) {
+		for (UnitInfo i : infos) {
 			if (Clock.getRoundNum() - i.roundNum > 0)
 				continue;
 			size++;
@@ -37,10 +37,10 @@ public class EnemyInformationMessage extends GenericMessage{
 	public EnemyInformationMessage(Message msg) {
 		super(msg);
 //		int id, double hp, MapLocation location, RobotLevel level, boolean mobile		
-		infos = new ArrayList<EnemyInfo>();
+		infos = new ArrayList<UnitInfo>();
 		int size = msg.ints[intCounter++];
 		for (int i = 0; i < size; ++i) {
-			EnemyInfo enemy = new EnemyInfo (msg.ints[intCounter++], 
+			UnitInfo enemy = new UnitInfo (msg.ints[intCounter++], 
 					msg.ints[intCounter++],
 					((double) msg.ints[intCounter++]) / 100,
 					msg.locations[locCounter++],
@@ -51,7 +51,7 @@ public class EnemyInformationMessage extends GenericMessage{
 		
 	}
 	
-	public List<EnemyInfo> getInfos() {
+	public List<UnitInfo> getInfos() {
 		return infos;
 	}
 

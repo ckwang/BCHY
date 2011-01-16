@@ -2,7 +2,7 @@ package team017.AI;
 
 import team017.combat.CombatSystem;
 import team017.message.EnemyInformationMessage;
-import team017.util.EnemyInfo;
+import team017.util.UnitInfo;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -24,12 +24,12 @@ public class TowerAI extends AI {
 	public void proceed() {
 		while(true) {
 			try {
-				combat.senseNearby();
-				enemyNum = controllers.enemyInfosSet.size();
+				controllers.senseNearby();
+				enemyNum = controllers.enemyMobile.size();
 
 				
 				processMessages();
-				enemyNum = controllers.enemyInfosSet.size();
+				enemyNum = controllers.enemyMobile.size();
 				if (enemyNum == 0 && !controllers.motor.isActive()) {
 					controllers.motor.setDirection(controllers.myRC.getDirection().opposite());
 					yield();
@@ -47,7 +47,7 @@ public class TowerAI extends AI {
 				if (enemyNum > 0) {
 
 					msgHandler.clearOutQueue();
-					msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyInfosSet));
+					msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyMobile));
 					msgHandler.process();
 					}
 				
@@ -72,9 +72,9 @@ public class TowerAI extends AI {
 				if (enemyNum == 0) {
 					EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
 					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
-						for (EnemyInfo e: ehandler.getInfos()) {
-							controllers.enemyInfosSet.remove(e);
-							controllers.enemyInfosSet.add(e);
+						for (UnitInfo e: ehandler.getInfos()) {
+							controllers.enemyMobile.remove(e);
+							controllers.enemyMobile.add(e);
 						}	
 					}
 				}
