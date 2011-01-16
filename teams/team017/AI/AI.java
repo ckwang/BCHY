@@ -38,7 +38,7 @@ public abstract class AI {
 		msgHandler = new MessageHandler(controllers);
 		buildingSystem = new Builder(controllers, msgHandler);
 		
-		gridMap = new GridMap(homeLocation);
+		gridMap = new GridMap(controllers, homeLocation);
 	}
 
 	abstract public void proceed();
@@ -114,7 +114,7 @@ public abstract class AI {
 			if (hasChanged) {
 				computeEnemyBaseLocation();
 				gridMap.setBorders(borders);
-				gridMap.updateScoutLocation(controllers.myRC.getLocation(), Clock.getRoundNum());
+				gridMap.updateScoutLocation(controllers.myRC.getLocation());
 			}
 			
 		} catch (Exception e) {

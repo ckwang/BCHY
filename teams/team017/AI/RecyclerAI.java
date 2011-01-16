@@ -6,6 +6,7 @@ import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.GridMapMessage;
 import team017.util.Util;
 import battlecode.common.*;
 
@@ -30,7 +31,6 @@ public class RecyclerAI extends BuildingAI {
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
 		birthRoundNum = Clock.getRoundNum();
-		
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
 		} catch (GameActionException e) {
@@ -49,8 +49,8 @@ public class RecyclerAI extends BuildingAI {
 	@Override
 	public void proceed() {
 		
-		
-		if (Clock.getRoundNum() == 0)
+//		controllers.myRC.setIndicatorString(0, "START");
+		if (Clock.getRoundNum() <= 5)
 			init();
 		else{
 			
@@ -111,7 +111,7 @@ public class RecyclerAI extends BuildingAI {
 				
 				double fluxRate = getEffectiveFluxRate();
 				
-				if (controllers.myRC.getTeamResources() > 170) {
+				if (controllers.myRC.getTeamResources() > 170 ) {
 					if (fluxRate > 0)
 						constructUnitAtRatio();
 				}
@@ -239,6 +239,27 @@ public class RecyclerAI extends BuildingAI {
 				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
+				gridMap.setBorders(borders);
+				break;
+			}
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				gridMap.merge(handler.getGridMap(controllers));
+//				gridMap.printGridMap();
+				
 				break;
 			}
 			case BUILDING_REQUEST:{
@@ -473,20 +494,21 @@ public class RecyclerAI extends BuildingAI {
 
 		if (buildingSystem.constructUnit(types[index])) {
 			++unitConstructed;
-			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+			if (types[index] == UnitType.CONSTRUCTOR)
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+			else
+				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 		}
 		
-		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 500 && Clock.getRoundNum() < 1500 ){
+		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){
 			mySpawningState = spawningState.MIDDLE;
 			unitRatios[0] = 1;
-			unitRatios[1] = 1;
-			unitRatios[1] = 1;
+			unitRatios[1] = 2;
 			updateRatios();
 		} else if (mySpawningState == spawningState.MIDDLE && Clock.getRoundNum() > 1500) {
 			mySpawningState = spawningState.LATE;
 			unitRatios[0] = 1;
-			unitRatios[1] = 2;
-			unitRatios[1] = 2;
+			unitRatios[1] = 3;
 			updateRatios();
 		}
 	}

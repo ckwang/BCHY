@@ -11,11 +11,11 @@ import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.FollowMeMessage;
+import team017.message.GridMapMessage;
 import team017.message.ScoutingMessage;
 import team017.navigation.GridMap;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
-import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameObject;
@@ -38,6 +38,7 @@ public class ConstructorAI extends AI {
 	
 	public ConstructorAI(RobotController rc) {
 		super(rc);
+		navigator.updateMap();
 	}
 
 	public void yield() {
@@ -60,9 +61,9 @@ public class ConstructorAI extends AI {
 			
 			try {
 				
-				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
-				controllers.myRC.setIndicatorString(1, "");
-				controllers.myRC.setIndicatorString(2, "");
+//				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
+//				controllers.myRC.setIndicatorString(1, "");
+//				controllers.myRC.setIndicatorString(2, "");
 				
 				processMessages();
 				
@@ -80,11 +81,10 @@ public class ConstructorAI extends AI {
 
 				
 
-
-//				if (Clock.getRoundNum() % 6 == 0) {
+				if (Clock.getRoundNum() % 15 == 0) {
 //					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-//					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-//				}
+					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+				}
 				
 				
 				yield();
@@ -141,6 +141,9 @@ public class ConstructorAI extends AI {
 			if (!mineLocations.isEmpty())
 				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
 			yield();
+			
+			controllers.updateComponents();
+			
 //			controllers.myRC.setIndicatorString(2, "here");
 			
 //			// wake up one recycler
@@ -308,7 +311,7 @@ public class ConstructorAI extends AI {
 					yield();
 				}
 				msgHandler.queueMessage(new ConstructionCompleteMessage(target, UnitType.RECYCLER));
-				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
 				return true;
 			}
@@ -368,6 +371,7 @@ public class ConstructorAI extends AI {
 				return false;
 			yield();
 		}
+		msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 		return true;
 	}
 
@@ -384,6 +388,7 @@ public class ConstructorAI extends AI {
 				
 			navigator.setDestination(nearest);
 			nextDir = navigator.getNextDir(2);
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", mine:" + nearest);
 		}
 		else {
 			
@@ -394,85 +399,46 @@ public class ConstructorAI extends AI {
 //			if (checkTile == TerrainTile.OFF_MAP)
 //				gridMap.updateScoutLocation(Clock.getRoundNum());
 			
+			// if the scout location is too old
+			if (Clock.getRoundNum() - gridMap.getAssignedRoundNum() > 300) {
+				gridMap.setCurrentAsScouted();
+				gridMap.updateScoutLocation();
+			}
+			
 			navigator.setDestination(gridMap.getScoutLocation());
 			nextDir = navigator.getNextDir(4);
 			
 			if (nextDir == Direction.OMNI){
-				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + ": update!");
 				gridMap.setCurrentAsScouted();
-				gridMap.updateScoutLocation(Clock.getRoundNum());
+				gridMap.updateScoutLocation();
 				navigator.setDestination(gridMap.getScoutLocation());
 				nextDir = navigator.getNextDir(4);
 			}
 		}
-		
-		controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "," + gridMap.getScoutLocation());
-		
 		
 		if (nextDir != Direction.OMNI) {
 			if (!controllers.motor.isActive() ) {
 				if (controllers.myRC.getDirection() == nextDir) {
 					if (controllers.motor.canMove(nextDir)) {
 						controllers.motor.moveForward();
+						
+						MapLocation currentLoc = controllers.myRC.getLocation();
+						if (!gridMap.isScouted(currentLoc)) {
+							gridMap.setScouted(currentLoc);
+							gridMap.updateScoutLocation(currentLoc);
+						}
 					}
 				} else {
 					controllers.motor.setDirection(nextDir);
 				}
 			}
 		}
-//		else if (scoutDir != Direction.NONE && scoutDir != Direction.OMNI){
-////			controllers.myRC.setIndicatorString(0,"Scouting");
-//			if ( roachRounds > 0 ){
-//				controllers.myRC.setIndicatorString(0,"roachNavigate");
-//				roachNavigate();
-//				roachRounds--;
-//			} else if (sense_border() == scoutDir) {
-//				controllers.myRC.setIndicatorString(0,"enemyBaseLoc");
-//				navigator.setDestination(enemyBaseLoc[0]);
-//				scoutDir = Direction.OMNI;
-//			}
-//			else {
-//				controllers.myRC.setIndicatorString(0,"Scouting");
-//				navigator.setDestination(controllers.myRC.getLocation().add(scoutDir, 10));
-//				roachRounds = 100;
-//			}
-//
-//		}
 		else {
 //			controllers.myRC.setIndicatorString(1,"roachNavigate");
 			// do nothing;
 			if (!controllers.motor.isActive() )
 				roachNavigate();
 		}
-
-			// else if (!recyclerLocations.isEmpty()) {
-			// MapLocation currentLoc = controllers.myRC.getLocation();
-			// MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
-			// for (MapLocation loc : recyclerLocations) {
-			// if (currentLoc.distanceSquaredTo(loc) < currentLoc
-			// .distanceSquaredTo(nearest))
-			// nearest = loc;
-			// }
-			//
-			// controllers.myRC.setIndicatorString(0, currentLoc + ","
-			// + nearest);
-			//
-			// navigator.setDestination(nearest);
-			// Direction nextDir = navigator.getNextDir(0);
-			//
-			// if (nextDir != Direction.OMNI) {
-			// if (controllers.myRC.getDirection() == nextDir) {
-			// if (controllers.motor.canMove(nextDir)) {
-			// controllers.motor.moveForward();
-			// }
-			// } else {
-			// controllers.motor.setDirection(nextDir);
-			// }
-			// }
-			//
-			// }
-			
-		
 	}
 	
 	private MapLocation getNextScoutLoc() {
@@ -590,6 +556,28 @@ public class ConstructorAI extends AI {
 				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
+				gridMap.setBorders(borders);
+				break;
+			}
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				gridMap.merge(handler.getGridMap(controllers));
+				
+				controllers.myRC.setIndicatorString(0, "lalala");
+				
 				break;
 			}
 //			case SCOUTING_MESSAGE: {						

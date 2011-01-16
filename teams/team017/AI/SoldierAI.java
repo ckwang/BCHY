@@ -19,6 +19,7 @@ import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
 import battlecode.common.SensorController;
+import battlecode.common.TerrainTile;
 import battlecode.common.WeaponController;
 
 public class SoldierAI extends AI {
@@ -43,14 +44,21 @@ public class SoldierAI extends AI {
 	
 	private Direction followDir;
 	private Direction previousDir = null;
+	private MapLocation scoutLocation;
 	public SoldierAI(RobotController rc) {
 		super(rc);
 		combat = new CombatSystem(controllers);
+		scoutLocation = getNextScoutLoc();
+		navigator.updateMap();
 	}
 
 	public void proceed() {				
 		
 		while (true) {
+			
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
+			controllers.myRC.setIndicatorString(1, "");
+			controllers.myRC.setIndicatorString(2, "");
 
 			combat.senseNearby();
 			try {processMessages();}
@@ -86,6 +94,7 @@ public class SoldierAI extends AI {
 			
 				// Set a int so that it doesn't call navigate() after seeing an enemy
 				
+
 				if (controllers.comm != null){
 //					String s = "";
 //					for (int i = 0; i < combat.enemyInfos.size(); ++i)
@@ -264,36 +273,114 @@ public class SoldierAI extends AI {
 		}
 		return;
 	}
-
-	private void navigate() throws GameActionException {
-		if (leaderLoc == null && enemyBaseLoc[0] != null) {
-			if (reachedFirstBase)
-				navigator.setDestination(enemyBaseLoc[controllers.myRC.getRobot().getID() % 2 + 1]);
-			else
-				navigator.setDestination(enemyBaseLoc[0]);
+	
+	private MapLocation getNextScoutLoc() {
+		TerrainTile tile, checkTile;
+		Direction faceDir = controllers.myRC.getDirection();
+		final int EXPLORATION_SIZE = 10;
+		
+		// add some randomness to the initial direction
+		int n = Clock.getRoundNum() % 8;
+		for (int i = 0; i < n; i++) {
+			faceDir = faceDir.rotateRight();
 		}
-		Direction nextDir = navigator.getNextDir(0);
-		if (nextDir != Direction.OMNI) {
-			if (!motor.isActive() && motor.canMove(nextDir)) {
-				if (rc.getDirection() == nextDir) {
-					motor.moveForward();
-				} else {
-					motor.setDirection(nextDir);
+		
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		int multiple = 1;
+		while( multiple < 5 ){
+		
+			for (int i = 0; i < 8; i++){
+				MapLocation projectedLoc = currentLoc.add(faceDir, EXPLORATION_SIZE*multiple);
+				if ( (borders[1] == -1 || projectedLoc.x < borders[1]) &&
+					 (borders[3] == -1 || projectedLoc.x > borders[3]) &&
+					 (borders[2] == -1 || projectedLoc.y < borders[2]) &&
+					 (borders[0] == -1 || projectedLoc.y > borders[0])) {
+					
+				
+					tile = controllers.myRC.senseTerrainTile(projectedLoc);
+					checkTile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 3));
+					if (tile == null && checkTile != TerrainTile.OFF_MAP)
+						return projectedLoc;
 				}
+				faceDir = faceDir.rotateRight();
 			}
-			if (enemyBaseLoc[0] != null && controllers.myRC.getLocation().distanceSquaredTo(enemyBaseLoc[0]) < 25)
-				reachedFirstBase = true;
-		} else if (enemyBaseLoc[0] != null) {
-			if (reachedFirstBase)
-				navigator.setDestination(enemyBaseLoc[controllers.myRC.getRobot().getID() % 2 + 1]);
-			else
-				navigator.setDestination(enemyBaseLoc[0]);
-
-			leaderLoc = null;
-		} else {
-			leaderLoc = null;
-			roachNavigate();
+			
+			multiple++;
 		}
+		
+		return currentLoc.add(faceDir.opposite(), EXPLORATION_SIZE*multiple);
 	}
 
+	private void navigate() throws GameActionException {
+		
+		Direction nextDir = Direction.OMNI;
+		if (enemyBaseLoc[0] != null) {
+			navigator.setDestination(enemyBaseLoc[0]);
+			nextDir = navigator.getNextDir(2);
+			if (nextDir == Direction.OMNI){
+				enemyBaseLoc[0] = null;
+				navigator.setDestination(enemyBaseLoc[1]);
+				nextDir = navigator.getNextDir(2);
+			}
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e0: " + enemyBaseLoc[0]);
+		}
+		else if (enemyBaseLoc[1] != null){
+			navigator.setDestination(enemyBaseLoc[1]);
+			nextDir = navigator.getNextDir(2);
+			if (nextDir == Direction.OMNI){
+				enemyBaseLoc[1] = null;
+				navigator.setDestination(enemyBaseLoc[2]);
+				nextDir = navigator.getNextDir(2);
+			}
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e1: " + enemyBaseLoc[1]);
+		}
+		else if (enemyBaseLoc[2] != null){
+			navigator.setDestination(enemyBaseLoc[2]);
+			nextDir = navigator.getNextDir(2);
+			if (nextDir == Direction.OMNI){
+				enemyBaseLoc[2] = null;
+			}
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e2: " + enemyBaseLoc[2]);
+		}
+		else {
+			
+			TerrainTile checkTile = 
+				controllers.myRC.senseTerrainTile(
+						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
+			
+			if (checkTile == TerrainTile.OFF_MAP)
+				scoutLocation = getNextScoutLoc();
+			
+			navigator.setDestination(scoutLocation);
+			nextDir = navigator.getNextDir(9);
+			
+			if (nextDir == Direction.OMNI){
+				scoutLocation = getNextScoutLoc();
+				navigator.setDestination(scoutLocation);
+				nextDir = navigator.getNextDir(9);
+			}
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", scout: " + scoutLocation);
+		}
+		
+		
+		
+		
+		if (nextDir != Direction.OMNI) {
+			if (!controllers.motor.isActive() ) {
+				if (controllers.myRC.getDirection() == nextDir) {
+					if (controllers.motor.canMove(nextDir)) {
+						controllers.motor.moveForward();
+					}
+				} else {
+					controllers.motor.setDirection(nextDir);
+				}
+			}
+		}
+		else {
+//			controllers.myRC.setIndicatorString(1,"roachNavigate");
+			// do nothing;
+			if (!controllers.motor.isActive() )
+				roachNavigate();
+		}
+	}
 }
