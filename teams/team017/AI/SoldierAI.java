@@ -34,6 +34,7 @@ public class SoldierAI extends AI {
 	private boolean attacked = false;
 	private int attackRoundCounter = 0;
 	private int leaderMessageRoundCounter = 0;
+	private int leaderID = -1;
 	int enemyNum = 0;
 
 	private boolean reachedFirstBase = false;
@@ -126,6 +127,7 @@ public class SoldierAI extends AI {
 			}
 
 			if (attackRoundCounter > 2 && leaderMessageRoundCounter > 3) {
+				leaderID = -1;
 				try {navigate();}
 				catch (Exception e) {}
 			}
@@ -189,30 +191,33 @@ public class SoldierAI extends AI {
 
 			case FOLLOW_ME_MESSAGE:
 				FollowMeMessage fhandler = new FollowMeMessage(msg);
-				/*
-				 *  If 2 commanders meet, follow the one with a longer range of
-				 * broadcast
-				 * If the range is the same, follow the one with a smaller ID
-				 */
-				if (controllers.comm != null) {
-					if (controllers.comm.type().range < fhandler.getCommRange())
-						break;
-					else if (controllers.comm.type().range == fhandler
-							.getCommRange()
-							&& fhandler.getSourceID() < rc.getRobot().getID())
-						break;
+				if (leaderID == -1) {
+					leaderID = fhandler.getSourceID();
+				} 
+				if (leaderID == fhandler.getSourceID()) {
+					/*
+					 *  If 2 commanders meet, follow the one with a longer range of
+					 * broadcast
+					 * If the range is the same, follow the one with a smaller ID
+					 */
+					if (controllers.comm != null) {
+						if (controllers.comm.type().range < fhandler.getCommRange())
+							break;
+						else if (controllers.comm.type().range == fhandler.getCommRange()&& fhandler.getSourceID() < rc.getRobot().getID())
+							break;
+					}
+					leaderMessageRoundCounter = 0;
+					hasLeader = true;
+					MapLocation loc = fhandler.getSourceLocation();
+					followDir = fhandler.getFollowDirection();
+					if (leaderLoc != null) {
+						int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
+						int newdist = rc.getLocation().distanceSquaredTo(loc);
+						if (newdist < curdist)
+							leaderLoc = loc;
+					} else
+						leaderLoc = loc;	
 				}
-				leaderMessageRoundCounter = 0;
-				hasLeader = true;
-				MapLocation loc = fhandler.getSourceLocation();
-				followDir = fhandler.getFollowDirection();
-				if (leaderLoc != null) {
-					int curdist = rc.getLocation().distanceSquaredTo(leaderLoc);
-					int newdist = rc.getLocation().distanceSquaredTo(loc);
-					if (newdist < curdist)
-						leaderLoc = loc;
-				} else
-					leaderLoc = loc;
 				break;
 
 			case ENEMY_INFORMATION_MESSAGE:
