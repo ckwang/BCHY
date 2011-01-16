@@ -59,6 +59,8 @@ public class SoldierAI extends AI {
 			controllers.myRC.setIndicatorString(2, "");
 
 			combat.senseNearby();
+			enemyNum = combat.enemyInfosSet.size();
+
 			try {processMessages();}
 			catch (GameActionException e1) {}
 
@@ -209,8 +211,7 @@ public class SoldierAI extends AI {
 					 * If 2 commanders meet, follow the one with a longer range of broadcast
 					 * 
 					 * If the range is the same, follow the one with a smaller ID
- 
-					 */
+ 					 */
 					if (controllers.comm != null) {
 						if (controllers.comm.type().range < fhandler.getCommRange()) 
 							break;

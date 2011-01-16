@@ -38,7 +38,7 @@ public class BuildingLocations {
 	 * 6 * 2
 	 * 5 4 3
 	 */
-	public boolean[] emptyDirections = {true, true, true, true, true, true, true, true};
+//	public boolean[] emptyDirections = {true, true, true, true, true, true, true, true};
 	
 	public boolean[] emptyLocations = {true, true, true, true, true, true, true, true};
 	
@@ -356,7 +356,7 @@ public class BuildingLocations {
 					
 				} catch (GameActionException e) {
 					e.printStackTrace();
-					emptyDirections[i] = false;
+					emptyLocations[i] = false;
 				}
 			}
 		}
@@ -401,9 +401,9 @@ public class BuildingLocations {
 //	}
 	
 	
-	public boolean checkDirEmpty(Direction dir){
-		return emptyDirections[indexMapping(dir)];
-	}
+//	public boolean checkDirEmpty(Direction dir){
+//		return emptyDirections[indexMapping(dir)];
+//	}
 	
 	public MapLocation constructableLocation (ComponentType thisBuilder, ComponentType[] requiredBuilders) {
 		updateEmptyLocations();
