@@ -12,6 +12,7 @@ import team017.util.EnemyInfo;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.JumpController;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.MovementController;
@@ -27,7 +28,10 @@ public class SoldierAI extends AI {
 	private MovementController motor = controllers.motor;
 	private SensorController sensor = controllers.sensor;
 	private List<WeaponController> weapons = controllers.weapons;
+	private JumpController jump = controllers.jump;
 	private MapLocation leaderLoc = null;
+	private MapLocation destionation;
+	
 	private double prevHp = 50;
 	private boolean attacked = false;
 	private int attackRoundCounter = 0;

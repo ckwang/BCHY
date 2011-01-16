@@ -562,8 +562,8 @@ public class ConstructorAI extends AI {
 				UnitType type = handler.getUnitType();
 				if (type == null){	// there is nothing to build
 					builtLocations.add(handler.getSourceLocation());
-				} else if (handler.getBuildableDirection() != Direction.NONE) {
-					MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+				} else if (handler.getBuildableLocation() != null) {
+					MapLocation buildLoc = handler.getBuildableLocation();
 					if (buildBuildingAtLoc(buildLoc, type)){
 						msgHandler.clearOutQueue();
 						msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));

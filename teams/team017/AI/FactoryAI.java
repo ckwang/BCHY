@@ -32,16 +32,16 @@ public class FactoryAI extends BuildingAI {
 //					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingDirs);
 //				}
 //			}
-			if(buildingDirs.recyclerDirection != null){
-				
+			if(buildingLocs.recyclerLocation != null){
+
 //				if(Clock.getRoundNum() < 1000 && controllers.myRC.getTeamResources() > UnitType.MEDIUM_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.MEDIUM_COMMANDER.chassis.upkeep * 1.5){
 //					MapLocation buildLoc = buildingDirs.constructableLocation(ComponentType.FACTORY, UnitType.MEDIUM_COMMANDER.requiredBuilders);
 //					buildingSystem.constructUnit(buildLoc, UnitType.MEDIUM_COMMANDER, buildingDirs);
 //				} else 
 //					
 					if (controllers.myRC.getTeamResources() > 150 && getEffectiveFluxRate() > 1) {
-					MapLocation buildLoc = buildingDirs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
-					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingDirs);
+					MapLocation buildLoc = buildingLocs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
+					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingLocs);
 				
 				}
 			}
@@ -84,17 +84,17 @@ public class FactoryAI extends BuildingAI {
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation currentLoc = controllers.myRC.getLocation();
 				MapLocation buildingLocation = handler.getBuildingLocation();
-				Direction builderDir = currentLoc.directionTo(buildingLocation);
+//				Direction builderDir = currentLoc.directionTo(buildingLocation);
 				
 				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
 
-					buildingDirs.setDirections(handler.getBuildingType(), currentLoc.directionTo(handler.getBuildingLocation()));
+					buildingLocs.setLocations(handler.getBuildingType(), handler.getBuildingLocation());
 					if (handler.getBuildingType() == UnitType.RAILGUN_TOWER) {
-						buildingDirs.setDirections(handler.getBuildingType(), builderDir);
+						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
 						while(!buildingSystem.constructComponent(buildingLocation, UnitType.RAILGUN_TOWER)) {
 							GameObject obj = controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND);
 							if (obj == null || obj.getTeam() != controllers.myRC.getTeam()) {
-								buildingDirs.setDirections(handler.getBuildingType(), null);
+								buildingLocs.setLocations(handler.getBuildingType(), null);
 								break outer;
 							}
 							yield();

@@ -15,7 +15,8 @@ public class RecyclerAI extends BuildingAI {
 	private int unitConstructed = 0;
 	private int birthRoundNum;
 	private int inquiryIdleRound = 0;
-	
+	private MapLocation currentLoc = controllers.myRC.getLocation();
+
 	int [] unitRatios = {5, 1, 1};
 	int [] cumulatedRatios = {5, 6, 7};
 	int total = 7;
@@ -54,7 +55,7 @@ public class RecyclerAI extends BuildingAI {
 		else{
 			
 			// turn off if there is already a recycler nearby
-			if (buildingDirs.recyclerDirection != null) {
+			if (buildingLocs.recyclerLocation != null) {
 //				try {
 //					while (controllers.sensor.isActive())
 //						yield();
@@ -115,8 +116,44 @@ public class RecyclerAI extends BuildingAI {
 						constructUnitAtRatio();
 				}
 				
+				// Send message to build CHRONO_APOCALYPSE
+				MapLocation armoryLoc = buildingLocs.armoryLocation;
+				MapLocation factoryLoc = buildingLocs.factoryLocation;
+//				Direction armoryDir = buildingLocs.armoryDirection;
+//				Direction factoryDir = buildingLocs.factoryDirection;
+				if (armoryLoc != null && factoryLoc != null) {
+					/*
+					 * Case 1:
+					 * - - A
+					 * - R x
+					 * - - F
+					 * 
+					 * OR
+					 * 
+					 * - A x
+					 * - R F
+					 * - - -
+					 *
+					 * Case 2:
+					 * - - F
+					 * - R x
+					 * - - A
+					 * 
+					 * OR
+					 *  
+					 * - F x
+					 * - R A
+					 * - - -
+					 */
+					
+					if (buildingLocs.rotateLeft(armoryLoc, 2) == factoryLoc) {
+						
+					}
+					
+				}
+				
 				// turn off when the mine is depleted
-				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingDirs.clusterSize == 1)
+				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingLocs.clusterSize == 1)
 					controllers.myRC.turnOff();
 
 				yield();
@@ -230,62 +267,72 @@ public class RecyclerAI extends BuildingAI {
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
 					
 					int constructorID = handler.getSourceID();
-					Direction dir;
+					MapLocation loc;
+//					Direction dir;
 					
 					if (inquiryIdleRound > 0)
 						break;
 					
-					if (buildingDirs.clusterSize > 1) {
+					if (buildingLocs.clusterSize > 1) {
 						// if there are no towers around
-						if (buildingDirs.factoryDirection == null) {
+						if (buildingLocs.factoryLocation == null) {
 							for (int i = 4; i >= 2; i--) {
-								dir = buildingDirs.consecutiveEmpties(i);
-								if (dir != null)
-									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.FACTORY));
+								loc = buildingLocs.consecutiveEmpties(i);
+								if (loc != null)
+									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.FACTORY));
 							}
 							inquiryIdleRound = 5;
-						} else if (buildingDirs.railgunTowerDirection == null) {
+						} else if (buildingLocs.railgunTowerLocations.size() <3) {
 							for (int i = 3; i >= 2; i--) {
-								dir = buildingDirs.consecutiveEmpties(i);
-								if (dir != null)
-									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.RAILGUN_TOWER));
+								loc = buildingLocs.consecutiveEmpties(i);
+								if (loc != null)
+									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.RAILGUN_TOWER));
 							}
 							inquiryIdleRound = 5;
 						} 
-						else if (buildingDirs.armoryDirection == null) {
-							dir = buildingDirs.consecutiveEmpties(2);
-							if (dir != null)
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir.rotateRight(), UnitType.ARMORY));
+						else if (buildingLocs.armoryLocation == null) {
+							loc = buildingLocs.consecutiveEmpties(2);
+							/* - - E1
+							 * - R E2
+							 * - - -
+							 * 
+							 * E2 = R.add(R.directionTo(E1).rotateRight)
+							 * => E2 = E1.add(E1.diretcionTo(R).rotateLeft)
+							 * 
+							 */
+							
+							if (loc != null)
+								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc.add(loc.directionTo(currentLoc).rotateLeft()), UnitType.ARMORY));
 						inquiryIdleRound = 5;
 						}
 						else {
-							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, Direction.NONE, null));
+							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
 						}
 					} else {
 						// if there are no towers around
-						if (buildingDirs.towerDirection == null) {
+						if (buildingLocs.towerLocations.size() < 2) {
 							for (int i = 4; i >= 2; i--) {
-								dir = buildingDirs.consecutiveEmpties(i);
-								if (dir != null)
-									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.TOWER));
+								loc = buildingLocs.consecutiveEmpties(i);
+								if (loc != null)
+									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
 							}
 							inquiryIdleRound = 5;
-						} else if (buildingDirs.armoryDirection == null) {
+						} else if (buildingLocs.armoryLocation == null) {
 							for (int i = 3; i >= 2; i--) {
-								dir = buildingDirs.consecutiveEmpties(i);
-								if (dir != null)
-									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.ARMORY));
+								loc = buildingLocs.consecutiveEmpties(i);
+								if (loc != null)
+									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.ARMORY));
 							}
 							inquiryIdleRound = 5;
 						} 
-						else if (buildingDirs.factoryDirection == null) {
-							dir = buildingDirs.consecutiveEmpties(2);
-							if (dir != null)
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir.rotateRight(), UnitType.FACTORY));
+						else if (buildingLocs.factoryLocation == null) {
+							loc = buildingLocs.consecutiveEmpties(2);
+							if (loc != null)
+								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc.add(loc.directionTo(currentLoc).rotateLeft()), UnitType.FACTORY));
 						inquiryIdleRound = 5;
 						}
 						else {
-							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, Direction.NONE, null));
+							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
 						}
 					}
 
@@ -329,7 +376,6 @@ public class RecyclerAI extends BuildingAI {
 			
 			case CONSTRUCTION_COMPLETE: {
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
-				MapLocation currentLoc = controllers.myRC.getLocation();
 				MapLocation buildingLocation = handler.getBuildingLocation();
 				Direction builderDir = currentLoc.directionTo(buildingLocation);
 
@@ -339,25 +385,25 @@ public class RecyclerAI extends BuildingAI {
 				
 				// see if the target is adjacent
 				if (buildingLocation.isAdjacentTo(currentLoc)) {
-					
 					// UnitType.TOWER
 					if (handler.getBuildingType() == UnitType.TOWER) {
-						buildingDirs.setDirections(handler.getBuildingType(), builderDir);
+						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
 						while(!buildingSystem.constructComponent(buildingLocation, UnitType.TOWER)) {
 							GameObject obj = controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND);
 							if (obj == null || obj.getTeam() != controllers.myRC.getTeam()) {
-								buildingDirs.setDirections(handler.getBuildingType(), null);
+								buildingLocs.setLocations(handler.getBuildingType(), null);
 								break outer;
 							}
 							yield();
 						}
 						break;
+					// UnitType.RAILGUN_TOWER
 					} else if (handler.getBuildingType() == UnitType.RAILGUN_TOWER) {
-						buildingDirs.setDirections(handler.getBuildingType(), builderDir);
+						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
 						while(!buildingSystem.constructComponent(buildingLocation, UnitType.RAILGUN_TOWER)) {
 							GameObject obj = controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND);
 							if (obj == null || obj.getTeam() != controllers.myRC.getTeam()) {
-								buildingDirs.setDirections(handler.getBuildingType(), null);
+								buildingLocs.setLocations(handler.getBuildingType(), null);
 								break outer;
 							}
 							yield();
@@ -365,7 +411,7 @@ public class RecyclerAI extends BuildingAI {
 						break;
 					}
 					
-					buildingDirs.setDirections(handler.getBuildingType(), builderDir);
+					buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
 					// update the buildingDirs
 					
 					
