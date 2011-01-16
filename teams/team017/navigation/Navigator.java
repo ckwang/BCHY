@@ -25,8 +25,9 @@ public class Navigator {
 	private int moveDiagonally = 4;
 	
 	private boolean istracing;
-	private boolean iscw; 
-	private boolean hasWaited; 
+	private boolean iscw;
+	
+	private boolean computing; 
 	
 	private class EnhancedMapLocation{
 		public MapLocation loc;
@@ -43,6 +44,10 @@ public class Navigator {
 			cost = c;
 			isTracing = t;
 			isCW = cw;
+		}
+		
+		public boolean equals(EnhancedMapLocation m1){
+			return loc.equals(m1.loc);
 		}
 	}
 	
@@ -64,7 +69,7 @@ public class Navigator {
 		controllers = cs;
 		iscw = true;
 		istracing = false;
-		hasWaited = false;
+		computing = false;
 		myMap = new Map( cs.myRC.getLocation() );
 		comparator = new costComparator();
 		queue = new PriorityQueue<EnhancedMapLocation>(50, comparator);
@@ -76,7 +81,7 @@ public class Navigator {
 		previousRobLoc = null;
 		previousDir = Direction.OMNI;
 		istracing = false;
-		hasWaited = false;
+		computing = false;
 	}
 
 	public void setDestination(MapLocation loc) {
@@ -95,43 +100,46 @@ public class Navigator {
 
 	public Direction getNextDir(int tolerance) throws GameActionException {
 //		updateMap();
-		// return same direction at same location (given same destination)
+//		 return same direction at same location (given same destination)
 		if ( controllers.myRC.getLocation().equals(previousRobLoc) ){
 			if ( !controllers.motor.isActive() && needDetour(previousDir) ){
-				controllers.myRC.setIndicatorString(1, "DETOUR");
 				Direction faceDir = controllers.myRC.getDirection();
 				faceDir = iscw? faceDir.rotateRight().rotateRight(): faceDir.rotateLeft().rotateLeft();
 				previousDir = detour(faceDir, iscw);
 				istracing = false;
 				
 			}
-			hasWaited = false;
-			controllers.myRC.setIndicatorString(1, "PRECOMPUTE");
+//			controllers.myRC.setIndicatorString(1, "PRECOMPUTE");
 			return previousDir;
 		}
 		// navigation has been interrupted before
 		else if (previousRobLoc != null && 
 				   !previousRobLoc.isAdjacentTo(controllers.myRC.getLocation() )){
-			controllers.myRC.setIndicatorString(1, "RESET");
+//			controllers.myRC.setIndicatorString(1, "RESET");
 			reset();
 			return Direction.OMNI; 
 		}
 //		 using (BUG/ TangentBug) algorithm to find direction to destination
 		else{
 			previousRobLoc = controllers.myRC.getLocation();
-			controllers.myRC.setIndicatorString(1, "BUGGING");
+//			controllers.myRC.setIndicatorString(1, "BUGGING");
 			if (destination == null){
-				controllers.myRC.setIndicatorString(1, "NULL");
+//				controllers.myRC.setIndicatorString(1, "NULL");
 				reset();
 				previousDir = Direction.OMNI;
 				return Direction.OMNI;
 			}
 			else {
-				controllers.myRC.setIndicatorString(1, "BUGGING TO: " + modifiedDes.toString());
+//				controllers.myRC.setIndicatorString(1, "BUGGING TO: " + modifiedDes.toString());
 				previousDir = Bug(controllers.myRC.getLocation(), modifiedDes, tolerance);
 				return previousDir;
 			}
+			
+//			debug_tangentBug(controllers.myRC.getLocation(), modifiedDes, tolerance);
+//			return previousDir;
 		}
+		
+		
 	}
 
 	public Direction Bug(MapLocation s, MapLocation t, int tolerance)
@@ -170,7 +178,7 @@ public class Navigator {
 			nextLoc = traceNext(s, startTracingDir, iscw);
 			nextDir = s.directionTo(nextLoc);
 			
-			controllers.myRC.setIndicatorString(1, "TRACING to des:"+modifiedDes.toString()+" next: "+nextLoc.toString() );
+//			controllers.myRC.setIndicatorString(1, "TRACING to des:"+modifiedDes.toString()+" next: "+nextLoc.toString() );
 			
 			// The way is open
 			if ( isOpen(s, faceDir, nextDir, desDir, iscw) && isTraversable(s.add(desDir) ) ){
@@ -181,13 +189,13 @@ public class Navigator {
 			return nextDir;
 		
 		} else {
-			controllers.myRC.setIndicatorString(1, "NT "+modifiedDes.toString());
+//			controllers.myRC.setIndicatorString(1, "NT "+modifiedDes.toString());
 			if ( isTraversable(s.add(desDir)) ) {
-				controllers.myRC.setIndicatorString(1, "RECKONING to "+modifiedDes.toString());
+//				controllers.myRC.setIndicatorString(1, "RECKONING to "+modifiedDes.toString());
 				return desDir;
 			}
 			else {
-				controllers.myRC.setIndicatorString(1, "TRACE to "+modifiedDes.toString());
+//				controllers.myRC.setIndicatorString(1, "TRACE to "+modifiedDes.toString());
 				
 				istracing = true;
 				
@@ -211,7 +219,7 @@ public class Navigator {
 					
 					if ( isOpen(ibugLoc.loc, ibugLoc.faceDir, nextDir, desDir, ibugLoc.isCW) && isTraversable(ibugLoc.loc.add(desDir) )  ){
 						iscw = ibugLoc.isCW;
-						controllers.myRC.setIndicatorString(1,"TRACING DIR: " + (iscw? "CW" : "CCW") + modifiedDes.toString());
+//						controllers.myRC.setIndicatorString(1,"TRACING DIR: " + (iscw? "CW" : "CCW") + modifiedDes.toString());
 						return s.directionTo( iscw? nextCW:nextCCW );
 					} else {
 						queue.add(new EnhancedMapLocation(nextLoc, null, nextDir, computeCost(ibugLoc, nextDir), true, ibugLoc.isCW) );
@@ -226,17 +234,20 @@ public class Navigator {
 		
 	}
 	
-	public Direction debug_tangentBug(MapLocation s, MapLocation t, int tolerance)
+	public void debug_tangentBug(MapLocation s, MapLocation t, int tolerance)
 			throws GameActionException {
 
+		
 		// arrive the destination
 		if (s.distanceSquaredTo(t) <= tolerance) {
 			reset();
-			return Direction.OMNI;
+			previousDir = Direction.OMNI;
+			return;
 		}
 
 		Direction nextDir;
 		Direction desDir;
+		Direction faceDir = controllers.myRC.getDirection();
 		
 		// if target is not traversable, back-tracing the destination
 		while ( !isTraversable(t) ) {
@@ -246,67 +257,103 @@ public class Navigator {
 			// beside the source
 			if (s.distanceSquaredTo(t) <= tolerance) {
 				reset();
-				return Direction.OMNI;
+				previousDir = Direction.OMNI;
+				return;
+				
 			}
 		}
 		
-		modifiedDes = t;
-		MapLocation nextLoc;
 		
-		queue.clear();
-        
-        queue.add(new EnhancedMapLocation(s, null, s.directionTo(t), 0, false, false) );
-        
-        while( !queue.isEmpty() ){
-        	EnhancedMapLocation bugLoc = queue.poll();
-        	
-        	if (bugLoc.loc.distanceSquaredTo(t) <= tolerance) {
-        		EnhancedMapLocation nearestWayPoint = bugLoc;
-        		
-        		while (nearestWayPoint.lastWayPoint != null){
-        			nearestWayPoint = bugLoc.lastWayPoint;
-        		}
-    			return s.directionTo(nearestWayPoint.loc);
-    		}
-        	else{
-        		if( bugLoc.isTracing ){
-        			Direction startTracingDir = bugLoc.isCW? bugLoc.faceDir.rotateRight().rotateRight()
-        												   : bugLoc.faceDir.rotateLeft().rotateLeft();
-        			desDir = bugLoc.loc.directionTo(t);
-        			
-        			nextLoc = traceNext(bugLoc.loc, startTracingDir , bugLoc.isCW);
-        			
-        			nextDir = bugLoc.loc.directionTo(nextLoc);
-        			
-        			if ( isOpen(bugLoc.loc, bugLoc.faceDir, nextDir, desDir , bugLoc.isCW) 
-        				 && isTraversable(bugLoc.loc.add(desDir)) ){
-        				queue.add(new EnhancedMapLocation(bugLoc.loc.add(desDir), bugLoc, desDir, computeCost(bugLoc,desDir), false, false ));
-        			}
-        			queue.add(new EnhancedMapLocation(nextLoc, bugLoc.lastWayPoint, nextDir, computeCost(bugLoc,nextDir), true, bugLoc.isCW ));
-        		}
-        		
-        		else{
-        			desDir = bugLoc.loc.directionTo(t);
-        			if (isTraversable(bugLoc.loc.add(desDir))){
-        				queue.add(new EnhancedMapLocation(bugLoc.loc.add(desDir), bugLoc.lastWayPoint, desDir, bugLoc.cost, false, false ));
-        			}
-        			else {
-        				MapLocation nextCW = traceNext(bugLoc.loc, bugLoc.faceDir.rotateRight().rotateRight() , true);
-        				nextDir = bugLoc.loc.directionTo(nextCW);
-        				queue.add(new EnhancedMapLocation(nextCW, bugLoc, nextDir, computeCost(bugLoc,nextDir), true, true ));
-        				
-        				MapLocation nextCCW = traceNext(bugLoc.loc, bugLoc.faceDir.rotateLeft().rotateLeft() , false);
-        				nextDir = bugLoc.loc.directionTo(nextCCW);
-        				queue.add(new EnhancedMapLocation(nextCCW, bugLoc, nextDir, computeCost(bugLoc,nextDir), true, false ));
-        			}
-        		}
-        		
-        	}
-        }
-        
-        
+		modifiedDes = t;
+		
+//		System.out.println("DES: " + modifiedDes);
+		MapLocation nextLoc;
+		EnhancedMapLocation start;
 
-		return Direction.NONE;
+		start = new EnhancedMapLocation(s, null, s.directionTo(t), 0, false, false);
+		
+		if (!computing) { 
+			queue.clear();
+			queue.add(start);
+		}
+		
+		while ( !queue.isEmpty() ) {
+//			System.out.println(Clock.getBytecodeNum());
+			EnhancedMapLocation bugLoc = queue.poll();
+
+			if (bugLoc.loc.distanceSquaredTo(t) <= tolerance) {
+				EnhancedMapLocation nearestWayPoint = bugLoc;
+
+				while (!nearestWayPoint.lastWayPoint.equals(start)) {
+					
+					nearestWayPoint = nearestWayPoint.lastWayPoint;
+					
+				}
+				previousDir = s.directionTo(nearestWayPoint.loc);
+				return;
+			}
+			else if (controllers.myRC.senseTerrainTile(bugLoc.loc) == null){
+				EnhancedMapLocation nearestWayPoint = bugLoc;
+				queue.add(nearestWayPoint.lastWayPoint);
+				
+				while (!nearestWayPoint.lastWayPoint.equals(start)) {
+					
+					nearestWayPoint = nearestWayPoint.lastWayPoint;
+					
+				}
+				
+				previousDir = s.directionTo(nearestWayPoint.loc);
+				return;
+			}
+			else {
+				if (bugLoc.isTracing) {
+
+					Direction startTracingDir = bugLoc.isCW ? 
+							bugLoc.faceDir.rotateRight().rotateRight() : 
+							bugLoc.faceDir.rotateLeft().rotateLeft();
+					
+				    desDir = bugLoc.loc.directionTo(t);
+
+					nextLoc = traceNext(bugLoc.loc, startTracingDir, bugLoc.isCW);
+
+					nextDir = bugLoc.loc.directionTo(nextLoc);
+
+					if (isOpen(bugLoc.loc, bugLoc.faceDir, nextDir, desDir,bugLoc.isCW)
+							&& isTraversable(bugLoc.loc.add(desDir))) 
+					{
+						queue.add(new EnhancedMapLocation(bugLoc.loc.add(desDir), bugLoc, desDir, 
+								computeCost(bugLoc, desDir), false, false));
+					}
+					else{
+						queue.add(new EnhancedMapLocation(nextLoc, bugLoc, nextDir,
+							computeCost(bugLoc, nextDir), true, bugLoc.isCW));
+					}
+				}
+
+				else {
+
+					desDir = bugLoc.loc.directionTo(t);
+					if (isTraversable(bugLoc.loc.add(desDir))) {
+						queue.add(new EnhancedMapLocation(bugLoc.loc.add(desDir), bugLoc, desDir,
+								computeCost(bugLoc, desDir) , false, false));
+					} 
+					else {
+						MapLocation nextCW = traceNext(bugLoc.loc,bugLoc.faceDir,true);
+						
+						nextDir = bugLoc.loc.directionTo(nextCW);
+						queue.add(new EnhancedMapLocation(nextCW, bugLoc, nextDir, 
+								computeCost(bugLoc, nextDir), true, true));
+
+						MapLocation nextCCW = traceNext(bugLoc.loc,bugLoc.faceDir, false);
+						nextDir = bugLoc.loc.directionTo(nextCCW);
+						queue.add(new EnhancedMapLocation(nextCCW, bugLoc, nextDir, 
+								computeCost(bugLoc, nextDir), true, false));
+
+					}
+				}
+
+			}
+		}
 
 	}
 	
@@ -325,6 +372,7 @@ public class Navigator {
 				faceDir = faceDir.rotateRight();
 				step++;
 			}
+			step = 0;
 			while ( !isTraversable(currentLoc.add(faceDir)) && step < 8 ) {
 				faceDir = faceDir.rotateLeft();
 				step++;
@@ -334,6 +382,7 @@ public class Navigator {
 				faceDir = faceDir.rotateLeft();
 				step++;
 			}
+			step = 0;
 			while ( !isTraversable(currentLoc.add(faceDir)) && step < 8 ) {
 				faceDir = faceDir.rotateRight();
 				step++;
@@ -421,10 +470,10 @@ public class Navigator {
 	
 	private int computeCost(EnhancedMapLocation from, Direction nextDir){
 		if (nextDir.isDiagonal()){
-			return from.cost + moveDiagonally + ((from.faceDir==nextDir)? 1: 0);
+			return from.cost + moveDiagonally + ((from.faceDir==nextDir)? 0: 1);
 		}
 		else {
-			return from.cost + moveOrthogonally + ((from.faceDir==nextDir)? 1: 0);
+			return from.cost + moveOrthogonally + ((from.faceDir==nextDir)? 0: 1);
 		}
 	}
 	
