@@ -61,21 +61,21 @@ public class SoldierAI extends AI {
 			enemyNum = combat.enemyInfosSet.size();
 			MapLocation nextLoc = combat.attack();
 			
-			if (combat.enemyInfosSet.size() == 0 && combat.debrisLoc.size() != 0)
+			if (combat.enemyInfosSet.size() == 0 && combat.debrisLoc.size() != 0) {
 				try {combat.attackDebris();}
 				catch (Exception e1) {e1.printStackTrace();}
+			}
 
+//			controllers.myRC.setIndicatorString(0, "CurrentLoc:" + controllers.myRC.getLocation() +"NextLoc:" + nextLoc + "");
 			if (nextLoc != null && !controllers.motor.isActive()) {
 				navigator.setDestination(nextLoc);
 				try {
 					Direction nextDir = navigator.getNextDir(0);
 					if (rc.getDirection() == nextDir) {
-						if (controllers.motor.canMove(controllers.myRC
-								.getDirection()))
+						if (controllers.motor.canMove(controllers.myRC.getDirection()))
 							controllers.motor.moveForward();
 					} else if (nextDir == Direction.OMNI) {
-						if (controllers.motor.canMove(controllers.myRC
-								.getDirection().opposite()))
+						if (controllers.motor.canMove(controllers.myRC.getDirection().opposite()))
 							controllers.motor.moveBackward();
 					} else {
 						controllers.motor.setDirection(nextDir);
@@ -155,15 +155,11 @@ public class SoldierAI extends AI {
 			return;
 		if (enemyNum > 0) {
 			msgHandler.clearOutQueue();
-			msgHandler.queueMessage(new EnemyInformationMessage(
-					combat.enemyInfosSet));
+			msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));
 			msgHandler.process();
 		} else if (!hasLeader) {
-			if (previousDir != controllers.myRC.getDirection()
-					|| Clock.getRoundNum() % 3 == 0) {
-				msgHandler.queueMessage(new FollowMeMessage(
-						controllers.myRC.getDirection(),
-						controllers.comm.type().range));
+			if (previousDir != controllers.myRC.getDirection() || Clock.getRoundNum() % 3 == 0) {
+				msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection(),controllers.comm.type().range));
 			}
 		}
 	}
@@ -246,9 +242,7 @@ public class SoldierAI extends AI {
 				navigator.setDestination(enemyBaseLoc[1]);
 				nextDir = navigator.getNextDir(9);
 			}
-			controllers.myRC.setIndicatorString(0, controllers.myRC
-					.getLocation()
-					+ ", e0: " + enemyBaseLoc[0]);
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e0: " + enemyBaseLoc[0]);
 		} else if (enemyBaseLoc[1] != null) {
 			navigator.setDestination(enemyBaseLoc[1]);
 			nextDir = navigator.getNextDir(9);
@@ -257,18 +251,14 @@ public class SoldierAI extends AI {
 				navigator.setDestination(enemyBaseLoc[2]);
 				nextDir = navigator.getNextDir(9);
 			}
-			controllers.myRC.setIndicatorString(0, controllers.myRC
-					.getLocation()
-					+ ", e1: " + enemyBaseLoc[1]);
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e1: " + enemyBaseLoc[1]);
 		} else if (enemyBaseLoc[2] != null) {
 			navigator.setDestination(enemyBaseLoc[2]);
 			nextDir = navigator.getNextDir(9);
 			if (nextDir == Direction.OMNI) {
 				enemyBaseLoc[2] = null;
 			}
-			controllers.myRC.setIndicatorString(0, controllers.myRC
-					.getLocation()
-					+ ", e2: " + enemyBaseLoc[2]);
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e2: " + enemyBaseLoc[2]);
 		} else {
 			navigator.setDestination(gridMap.getScoutLocation());
 			nextDir = navigator.getNextDir(4);
