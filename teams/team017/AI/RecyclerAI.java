@@ -494,10 +494,7 @@ public class RecyclerAI extends BuildingAI {
 
 		if (buildingSystem.constructUnit(types[index])) {
 			++unitConstructed;
-			if (types[index] == UnitType.CONSTRUCTOR)
-				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-			else
-				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 		}
 		
 		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){

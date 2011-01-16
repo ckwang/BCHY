@@ -390,7 +390,7 @@ public class Navigator {
 	private boolean isTraversable(MapLocation loc){
 		
 		TerrainTile tile = controllers.myRC.senseTerrainTile(loc);
-		return ((tile == null) || (tile == TerrainTile.LAND)) && (myMap.getScore(loc) != 1);
+		return ((tile == null) || (tile == TerrainTile.LAND)) && (!myMap.isBlocked(loc));
 		
 	}
 	
@@ -436,7 +436,7 @@ public class Navigator {
 				info = controllers.sensor.senseRobotInfo(r);
 				
 				if (info.chassis == Chassis.BUILDING || info.chassis == Chassis.DEBRIS  || info.chassis == Chassis.DUMMY){
-					myMap.setScore(info.location, 1);
+					myMap.setBlocked(info.location, true);
 				}
 				
 			} catch (GameActionException e) {
