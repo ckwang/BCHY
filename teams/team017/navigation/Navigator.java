@@ -103,43 +103,43 @@ public class Navigator {
 //		 return same direction at same location (given same destination)
 		if ( controllers.myRC.getLocation().equals(previousRobLoc) ){
 			if ( !controllers.motor.isActive() && needDetour(previousDir) ){
-				controllers.myRC.setIndicatorString(1, "DETOUR");
 				Direction faceDir = controllers.myRC.getDirection();
 				faceDir = iscw? faceDir.rotateRight().rotateRight(): faceDir.rotateLeft().rotateLeft();
 				previousDir = detour(faceDir, iscw);
 				istracing = false;
 				
 			}
-			controllers.myRC.setIndicatorString(1, "PRECOMPUTE");
+//			controllers.myRC.setIndicatorString(1, "PRECOMPUTE");
 			return previousDir;
 		}
 		// navigation has been interrupted before
 		else if (previousRobLoc != null && 
 				   !previousRobLoc.isAdjacentTo(controllers.myRC.getLocation() )){
-			controllers.myRC.setIndicatorString(1, "RESET");
+//			controllers.myRC.setIndicatorString(1, "RESET");
 			reset();
 			return Direction.OMNI; 
 		}
 //		 using (BUG/ TangentBug) algorithm to find direction to destination
 		else{
 			previousRobLoc = controllers.myRC.getLocation();
-			controllers.myRC.setIndicatorString(1, "BUGGING");
+//			controllers.myRC.setIndicatorString(1, "BUGGING");
 			if (destination == null){
-				controllers.myRC.setIndicatorString(1, "NULL");
+//				controllers.myRC.setIndicatorString(1, "NULL");
 				reset();
 				previousDir = Direction.OMNI;
 				return Direction.OMNI;
 			}
 			else {
-				controllers.myRC.setIndicatorString(1, "BUGGING TO: " + modifiedDes.toString());
+//				controllers.myRC.setIndicatorString(1, "BUGGING TO: " + modifiedDes.toString());
 				previousDir = Bug(controllers.myRC.getLocation(), modifiedDes, tolerance);
 				return previousDir;
 			}
+			
+//			debug_tangentBug(controllers.myRC.getLocation(), modifiedDes, tolerance);
+//			return previousDir;
 		}
 		
-//		tangentBug(controllers.myRC.getLocation(), modifiedDes, tolerance);
-//		
-//		return previousDir;
+		
 	}
 
 	public Direction Bug(MapLocation s, MapLocation t, int tolerance)
@@ -178,7 +178,7 @@ public class Navigator {
 			nextLoc = traceNext(s, startTracingDir, iscw);
 			nextDir = s.directionTo(nextLoc);
 			
-			controllers.myRC.setIndicatorString(1, "TRACING to des:"+modifiedDes.toString()+" next: "+nextLoc.toString() );
+//			controllers.myRC.setIndicatorString(1, "TRACING to des:"+modifiedDes.toString()+" next: "+nextLoc.toString() );
 			
 			// The way is open
 			if ( isOpen(s, faceDir, nextDir, desDir, iscw) && isTraversable(s.add(desDir) ) ){
@@ -189,13 +189,13 @@ public class Navigator {
 			return nextDir;
 		
 		} else {
-			controllers.myRC.setIndicatorString(1, "NT "+modifiedDes.toString());
+//			controllers.myRC.setIndicatorString(1, "NT "+modifiedDes.toString());
 			if ( isTraversable(s.add(desDir)) ) {
-				controllers.myRC.setIndicatorString(1, "RECKONING to "+modifiedDes.toString());
+//				controllers.myRC.setIndicatorString(1, "RECKONING to "+modifiedDes.toString());
 				return desDir;
 			}
 			else {
-				controllers.myRC.setIndicatorString(1, "TRACE to "+modifiedDes.toString());
+//				controllers.myRC.setIndicatorString(1, "TRACE to "+modifiedDes.toString());
 				
 				istracing = true;
 				
@@ -219,7 +219,7 @@ public class Navigator {
 					
 					if ( isOpen(ibugLoc.loc, ibugLoc.faceDir, nextDir, desDir, ibugLoc.isCW) && isTraversable(ibugLoc.loc.add(desDir) )  ){
 						iscw = ibugLoc.isCW;
-						controllers.myRC.setIndicatorString(1,"TRACING DIR: " + (iscw? "CW" : "CCW") + modifiedDes.toString());
+//						controllers.myRC.setIndicatorString(1,"TRACING DIR: " + (iscw? "CW" : "CCW") + modifiedDes.toString());
 						return s.directionTo( iscw? nextCW:nextCCW );
 					} else {
 						queue.add(new EnhancedMapLocation(nextLoc, null, nextDir, computeCost(ibugLoc, nextDir), true, ibugLoc.isCW) );
@@ -234,7 +234,7 @@ public class Navigator {
 		
 	}
 	
-	public void tangentBug(MapLocation s, MapLocation t, int tolerance)
+	public void debug_tangentBug(MapLocation s, MapLocation t, int tolerance)
 			throws GameActionException {
 
 		
@@ -266,21 +266,19 @@ public class Navigator {
 		
 		modifiedDes = t;
 		
-		System.out.println("DES: " + modifiedDes);
+//		System.out.println("DES: " + modifiedDes);
 		MapLocation nextLoc;
 		EnhancedMapLocation start;
 
 		start = new EnhancedMapLocation(s, null, s.directionTo(t), 0, false, false);
 		
-		if (!computing) {
+		if (!computing) { 
 			queue.clear();
 			queue.add(start);
 		}
 		
-		computing = true;
-
 		while ( !queue.isEmpty() ) {
-			System.out.println(Clock.getBytecodeNum());
+//			System.out.println(Clock.getBytecodeNum());
 			EnhancedMapLocation bugLoc = queue.poll();
 
 			if (bugLoc.loc.distanceSquaredTo(t) <= tolerance) {
@@ -292,9 +290,22 @@ public class Navigator {
 					
 				}
 				previousDir = s.directionTo(nearestWayPoint.loc);
-				computing = false;
 				return;
-			} else {
+			}
+			else if (controllers.myRC.senseTerrainTile(bugLoc.loc) == null){
+				EnhancedMapLocation nearestWayPoint = bugLoc;
+				queue.add(nearestWayPoint.lastWayPoint);
+				
+				while (!nearestWayPoint.lastWayPoint.equals(start)) {
+					
+					nearestWayPoint = nearestWayPoint.lastWayPoint;
+					
+				}
+				
+				previousDir = s.directionTo(nearestWayPoint.loc);
+				return;
+			}
+			else {
 				if (bugLoc.isTracing) {
 
 					Direction startTracingDir = bugLoc.isCW ? 
