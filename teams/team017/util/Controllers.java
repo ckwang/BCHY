@@ -26,29 +26,10 @@ public class Controllers {
 		weapons = new ArrayList<WeaponController>();
 	}
 	
-	public List<WeaponController> weapons() throws Exception {
-		if (weapons.size() == 0)
-			throw new Exception("Null weapon");
-		return weapons;
-	}
-	
-	public SensorController sensor() throws Exception {
-		if (sensor == null)
-			throw new Exception("Null sensor");
-		return sensor;
-	}
-	
-	public BroadcastController comm() throws Exception {
-		if (comm == null)
-			throw new Exception("Null comm");
-		return comm;
-	}
-	
 	public int weaponNum() {return weapons.size();}
 	
 	public void updateComponents() {
 		ComponentController[] components = myRC.newComponents();
-		
 		for (ComponentController com : components) {
 			switch (com.componentClass()) {
 			case MOTOR:

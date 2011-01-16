@@ -5,12 +5,10 @@ import java.util.List;
 
 import team017.util.Controllers;
 import battlecode.common.Chassis;
-import battlecode.common.Clock;
 import battlecode.common.ComponentClass;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Mine;
 import battlecode.common.Robot;
@@ -272,19 +270,15 @@ public class BuildingLocations {
 //	}
 	
 	public void updateBuildingLocs() {
-		clusterSize = 0;
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		Mine[] mines = controllers.sensor.senseNearbyGameObjects(Mine.class);
-		for (Mine m: mines) {
-			clusterSize++;
-		}
+		clusterSize = mines.length;
 		
 		for (Robot r : robots) {
 			if (r.getTeam() == controllers.myRC.getTeam()) {
 				try {
 					RobotInfo info = controllers.sensor.senseRobotInfo(r);
 					MapLocation currentLoc = controllers.myRC.getLocation();
-					
 					if (info.location.isAdjacentTo(currentLoc) && info.on && info.chassis == Chassis.BUILDING) {
 						for (ComponentType com : info.components) {
 							if (com.componentClass == ComponentClass.BUILDER) {
@@ -297,7 +291,7 @@ public class BuildingLocations {
 						}
 					}
 				} catch (GameActionException e) {
-					e.printStackTrace();
+//					e.printStackTrace();
 				}
 			}
 		}
@@ -463,8 +457,6 @@ public class BuildingLocations {
 			dir = dir.rotateLeft();
 		return currentLoc.add(dir);
 	}
-
-	
 }
 	
 //	public MapLocation constructableLocation(ComponentType thisBuilder, ComponentType[] requiredBuilders) {
