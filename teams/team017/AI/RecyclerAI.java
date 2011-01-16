@@ -18,9 +18,9 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 
-	int [] unitRatios = {1, 5, 1};
-	int [] cumulatedRatios = {1, 6, 7};
-	int total = 7;
+	int [] unitRatios = {1, 3, 1};
+	int [] cumulatedRatios = new int[3];
+	int total;
 	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN} ;
 	double thresholds = 0.3;
 	
@@ -31,11 +31,13 @@ public class RecyclerAI extends BuildingAI {
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
 		birthRoundNum = Clock.getRoundNum();
+		updateRatios();
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
 		} catch (GameActionException e) {
 			e.printStackTrace();
 		}
+		
 	}
 	
 	@Override
