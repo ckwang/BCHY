@@ -30,6 +30,8 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
 	Mine[] minelist;
+	MapLocation nearestMine = null;
+	
 	
 	public ConstructorAI(RobotController rc) {
 		super(rc);
@@ -40,6 +42,7 @@ public class ConstructorAI extends AI {
 		super.yield();
 		updateLocationSets();
 		senseBorder();
+		
 		navigator.updateMap();
 	}
 
@@ -47,44 +50,30 @@ public class ConstructorAI extends AI {
 
 		// Initial movement
 		if (Clock.getRoundNum() == 0) {
-				init();
-				computeEnemyBaseLocation();
-				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+			init();
 		}
 
 		while (true) {
 			
 			try {
 				
-//				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
-//				controllers.myRC.setIndicatorString(1, "");
-//				controllers.myRC.setIndicatorString(2, "");
-				
 				processMessages();
 				
+				int before = Clock.getBytecodeNum();
 				buildRecyclers();
+				int after = Clock.getBytecodeNum();
+				controllers.myRC.setIndicatorString(2, (after - before) + ""); 
 				
 				navigate();
 				
-//				if (buildRecyclers()) {
-//					recyclerLocations.add(controllers.myRC.getLocation().add(controllers.myRC.getDirection()));
-//				}
-
-
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 400 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
 
-				
-
 				if (Clock.getRoundNum() % 15 == 0) {
-//					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
 					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 				}
 				
-				
 				yield();
-
-				// Conditions of building factories/armories
 
 			} catch (Exception e) {
 				System.out.println("caught exception:");
@@ -95,38 +84,13 @@ public class ConstructorAI extends AI {
 
 	private void init() {
 		try {
-//			int [] recyclerIDs = new int[2];
-//
-//			Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-//			if (robots.length == 2) {
-//				int j = 0;
-//				for (Robot r : robots) {
-//					if (r.getTeam() == controllers.myRC.getTeam()) {
-//						recyclerIDs[j++] = r.getID();
-//					}
-//				}
-//			}
-			
 			// look at the other three angles
 			for (int i = 0; i < 4; ++i) {
 				// Rotate twice Right for a 90 degrees turn
 				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight().rotateRight());
 				yield();
 				controllers.updateComponents();
-				
-//				// sense the initial 2 recyclers
-//				robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-//				if (robots.length >= 2) {
-//					int j = 0;
-//					for (Robot r : robots) {
-//						if (r.getTeam() == controllers.myRC.getTeam()) {
-//							recyclerIDs[j++] = r.getID();
-//						}
-//					}
-//				}
 			}
-			
-//			controllers.myRC.setIndicatorString(0, recyclerIDs[0] + "," + recyclerIDs[1]);
 			
 			// go build recyclers on the other two initial mines
 			if (!mineLocations.isEmpty()) {
@@ -138,41 +102,13 @@ public class ConstructorAI extends AI {
 			yield();
 			
 			controllers.updateComponents();
+			computeEnemyBaseLocation();
+			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 			
-//			controllers.myRC.setIndicatorString(2, "here");
-			
-//			// wake up one recycler
-//			while(controllers.comm.isActive())
-//				controllers.myRC.yield();
-//			controllers.comm.broadcastTurnOn(recyclerIDs);
 			
 		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
-		}
-	}
-	
-	private void init_return() throws GameActionException {
-		navigator.setDestination(homeLocation);
-
-		while (true) {
-			try {
-				Direction nextDir = navigator.getNextDir(0);
-
-				if (nextDir == Direction.OMNI)
-					break;
-
-				if (!controllers.motor.isActive() && controllers.motor.canMove(nextDir)) {
-					if (controllers.myRC.getDirection() == nextDir)
-						controllers.motor.moveForward();
-					else
-						controllers.motor.setDirection(nextDir);
-				}
-				yield();
-			} catch (Exception e) {
-				System.out.println("caught exception:");
-				e.printStackTrace();
-			}
 		}
 	}
 
@@ -214,10 +150,11 @@ public class ConstructorAI extends AI {
 	}
 
 	private boolean buildRecyclers() throws GameActionException{
-//		controllers.myRC.setIndicatorString(2, mineLocations.toString());
+		if (nearestMine == null)
+			nearestMine = new MapLocation(0, 0);
 		
 		// find a eligible mine
-		MapLocation target = null;
+		MapLocation currentLoc = controllers.myRC.getLocation();
 		List<MapLocation> toBeRemoved = new ArrayList<MapLocation>();
 		for (MapLocation mineLoc : mineLocations) {
 			// it needs to be empty
@@ -229,46 +166,22 @@ public class ConstructorAI extends AI {
 				}
 			}
 			
-			// it needs to be adjacent
-			if (controllers.myRC.getLocation().distanceSquaredTo(mineLoc) > 2) 
-				continue;
-			
-			// find one!
-			target = mineLoc;
-			break;
+			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(nearestMine))
+				nearestMine = mineLoc;
 		}
 		
 		// remove mines with buildings on them
 		mineLocations.removeAll(toBeRemoved);
 		
+		if (nearestMine.x == 0) {
+			nearestMine = null;
+			return false;
+		}
+		
 		// if there is a eligible site
-		if (target != null) {
-			
-			// face the building site
-			Direction buildDir = controllers.myRC.getLocation().directionTo(target);
-			if (controllers.myRC.getDirection() != buildDir) {
-				while (controllers.motor.isActive())
-					yield();
-				
-				controllers.motor.setDirection(buildDir);
-				yield();
-			}
-			
-//			if (!controllers.myRC.getLocation().isAdjacentTo(target))
-//				System.out.println("no!!!");
-			
-			// the building location should be clear
-			if (controllers.sensor.senseObjectAtLocation(target, RobotLevel.ON_GROUND) == null) {
-				while (!buildingSystem.constructUnit(target, UnitType.RECYCLER)) {
-					if (buildingSystem.canConstruct(RobotLevel.ON_GROUND) == false)
-						return false;
-					yield();
-				}
-				msgHandler.queueMessage(new ConstructionCompleteMessage(target, UnitType.RECYCLER));
-				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-				yield();
-				return true;
-			}
+		if (currentLoc.distanceSquaredTo(nearestMine) <= 2) {
+			buildBuildingAtLoc(nearestMine, UnitType.RECYCLER);
+			nearestMine = null;
 		}
 		
 		return false;
@@ -325,25 +238,22 @@ public class ConstructorAI extends AI {
 				return false;
 			yield();
 		}
-		msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+		if (type == UnitType.RECYCLER) {
+			msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.RECYCLER));
+			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+		} else {
+			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+		}
 		return true;
 	}
 
 	private void navigate() throws GameActionException {
 		Direction nextDir = Direction.OMNI;
-		if (!mineLocations.isEmpty()) {
-			MapLocation currentLoc = controllers.myRC.getLocation();
-			MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
-			for (MapLocation loc : mineLocations) {
-				if (currentLoc.distanceSquaredTo(loc) < currentLoc.distanceSquaredTo(nearest))
-					nearest = loc;
-				}
-				
-			navigator.setDestination(nearest);
+		if (nearestMine != null) {
+			navigator.setDestination(nearestMine);
 			nextDir = navigator.getNextDir(2);
 		}
 		else {
-			
 			navigator.setDestination(gridMap.getScoutLocation());
 			nextDir = navigator.getNextDir(4);
 		}
@@ -366,8 +276,6 @@ public class ConstructorAI extends AI {
 			}
 		}
 		else {
-//			controllers.myRC.setIndicatorString(1,"roachNavigate");
-			// do nothing;
 			if (!controllers.motor.isActive() )
 				roachNavigate();
 		}
