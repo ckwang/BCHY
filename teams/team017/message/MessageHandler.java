@@ -87,6 +87,8 @@ public class MessageHandler {
 	 * Check if the input message is valid by inspecting the check sum
 	 */
 	private boolean isValid(Message msg) {
+		if (msg.ints == null || msg.locations == null || msg.strings == null)	return false;
+		
 		boolean valid =  (msg.ints[3] == team) && (msg.ints[0] + msg.ints[1] + msg.locations[0].x + msg.locations[0].y + msg.ints[2] == msg.ints[4])
 		&& msg.ints[1] != controllers.myRC.getRobot().getID();
 

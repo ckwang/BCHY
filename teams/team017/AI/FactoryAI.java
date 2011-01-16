@@ -2,6 +2,7 @@ package team017.AI;
 
 import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
+import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
@@ -83,6 +84,7 @@ public class FactoryAI extends BuildingAI {
 				}
 				break;
 			}
+			
 			case CONSTRUCTION_COMPLETE: {
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation currentLoc = controllers.myRC.getLocation();
@@ -106,6 +108,11 @@ public class FactoryAI extends BuildingAI {
 					}
 				}
 				break;
+			}
+			
+			case CONSTRUCT_UNIT_MESSAGE: {
+				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
+				
 			}
 		}
 	}

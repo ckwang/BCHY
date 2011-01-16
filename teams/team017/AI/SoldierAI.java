@@ -59,6 +59,8 @@ public class SoldierAI extends AI {
 			controllers.myRC.setIndicatorString(2, "");
 
 			combat.senseNearby();
+			enemyNum = combat.enemyInfosSet.size();
+
 			try {processMessages();}
 			catch (GameActionException e1) {}
 
@@ -209,8 +211,7 @@ public class SoldierAI extends AI {
 					 * If 2 commanders meet, follow the one with a longer range of broadcast
 					 * 
 					 * If the range is the same, follow the one with a smaller ID
- 
-					 */
+ 					 */
 					if (controllers.comm != null) {
 						if (controllers.comm.type().range < fhandler.getCommRange()) 
 							break;
@@ -277,27 +278,27 @@ public class SoldierAI extends AI {
 		Direction nextDir = Direction.OMNI;
 		if (enemyBaseLoc[0] != null) {
 			navigator.setDestination(enemyBaseLoc[0]);
-			nextDir = navigator.getNextDir(2);
+			nextDir = navigator.getNextDir(9);
 			if (nextDir == Direction.OMNI){
 				enemyBaseLoc[0] = null;
 				navigator.setDestination(enemyBaseLoc[1]);
-				nextDir = navigator.getNextDir(2);
+				nextDir = navigator.getNextDir(9);
 			}
 			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e0: " + enemyBaseLoc[0]);
 		}
 		else if (enemyBaseLoc[1] != null){
 			navigator.setDestination(enemyBaseLoc[1]);
-			nextDir = navigator.getNextDir(2);
+			nextDir = navigator.getNextDir(9);
 			if (nextDir == Direction.OMNI){
 				enemyBaseLoc[1] = null;
 				navigator.setDestination(enemyBaseLoc[2]);
-				nextDir = navigator.getNextDir(2);
+				nextDir = navigator.getNextDir(9);
 			}
 			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", e1: " + enemyBaseLoc[1]);
 		}
 		else if (enemyBaseLoc[2] != null){
 			navigator.setDestination(enemyBaseLoc[2]);
-			nextDir = navigator.getNextDir(2);
+			nextDir = navigator.getNextDir(9);
 			if (nextDir == Direction.OMNI){
 				enemyBaseLoc[2] = null;
 			}
