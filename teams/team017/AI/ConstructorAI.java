@@ -238,12 +238,15 @@ public class ConstructorAI extends AI {
 				return false;
 			yield();
 		}
+		
+		msgHandler.clearOutQueue();
+		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.RECYCLER));
 		if (type == UnitType.RECYCLER) {
-			msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.RECYCLER));
 			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 		} else {
 			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 		}
+		
 		return true;
 	}
 
@@ -305,8 +308,6 @@ public class ConstructorAI extends AI {
 				} else if (handler.getBuildableLocation() != null) {
 					MapLocation buildLoc = handler.getBuildableLocation();
 					if (buildBuildingAtLoc(buildLoc, type)){
-						msgHandler.clearOutQueue();
-						msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
 //							builtLocations.add(handler.getSourceLocation());
 						yield();
 					}
