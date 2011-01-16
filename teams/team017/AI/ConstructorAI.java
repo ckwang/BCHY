@@ -238,15 +238,13 @@ public class ConstructorAI extends AI {
 				return false;
 			yield();
 		}
-		
 		msgHandler.clearOutQueue();
-		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.RECYCLER));
+		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
 		if (type == UnitType.RECYCLER) {
 			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 		} else {
 			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 		}
-		
 		return true;
 	}
 
