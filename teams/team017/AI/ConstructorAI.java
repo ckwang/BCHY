@@ -146,7 +146,7 @@ public class ConstructorAI extends AI {
 //				controllers.myRC.yield();
 //			controllers.comm.broadcastTurnOn(recyclerIDs);
 			
-		} catch (GameActionException e) {
+		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
@@ -195,7 +195,7 @@ public class ConstructorAI extends AI {
 				} else {
 					mineLocations.add(mine.getLocation());
 				}
-			} catch (GameActionException e) {
+			} catch (Exception e) {
 				continue;
 			}
 		}

@@ -62,7 +62,7 @@ public class SoldierAI extends AI {
 			enemyNum = combat.enemyInfosSet.size();
 
 			try {processMessages();}
-			catch (GameActionException e1) {}
+			catch (Exception e1) {}
 
 			
 			enemyNum = combat.enemyInfosSet.size();
@@ -70,7 +70,7 @@ public class SoldierAI extends AI {
 			
 			if (combat.enemyInfosSet.size() == 0 && combat.debrisLoc.size() != 0)
 				try {combat.attackDebris();}
-			catch (GameActionException e1) {
+			catch (Exception e1) {
 					e1.printStackTrace();
 				}
 			
@@ -87,7 +87,7 @@ public class SoldierAI extends AI {
 					} else { 
 						controllers.motor.setDirection(nextDir);
 					}
-				} catch (GameActionException e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -156,7 +156,7 @@ public class SoldierAI extends AI {
 			if (attackRoundCounter > 2 && leaderMessageRoundCounter > 3) {
 				try {navigate();}
 //				controllers.myRC.setIndicatorString(2, "navigate");}
-				catch (GameActionException e) {}
+				catch (Exception e) {}
 				
 			}
 			

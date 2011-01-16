@@ -34,7 +34,7 @@ public class RecyclerAI extends BuildingAI {
 		updateRatios();
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
-		} catch (GameActionException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
@@ -98,7 +98,7 @@ public class RecyclerAI extends BuildingAI {
 //						yield();
 //					controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 //					yield();				
-				} catch (GameActionException e1) {
+				} catch (Exception e1) {
 					System.out.println("caught exception:");
 					e1.printStackTrace();
 				}

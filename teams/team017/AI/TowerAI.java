@@ -53,7 +53,7 @@ public class TowerAI extends AI {
 					msgHandler.process();
 					}
 				
-			} catch (GameActionException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
