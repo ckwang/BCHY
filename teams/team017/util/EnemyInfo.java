@@ -2,7 +2,9 @@ package team017.util;
 
 
 import battlecode.common.Chassis;
+import battlecode.common.Direction;
 import battlecode.common.MapLocation;
+import battlecode.common.Robot;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 
@@ -13,7 +15,8 @@ public class EnemyInfo {
 	public MapLocation location;
 	public RobotLevel level;
 	public boolean mobile;
-	
+	public Direction direction = null;
+	public Robot robot = null;
 	public int cost;
 
 	public EnemyInfo(int roundNum, RobotInfo info) {
@@ -23,6 +26,8 @@ public class EnemyInfo {
 		this.level = info.robot.getRobotLevel();
 		this.id = info.robot.getID();
 		this.mobile = info.on || info.chassis == Chassis.BUILDING;
+		this.direction = info.direction;
+		this.robot = info.robot;
 	}
 	
 	public EnemyInfo (int roundNum, int id, double hp, MapLocation location, RobotLevel level, boolean mobile) {
@@ -36,7 +41,6 @@ public class EnemyInfo {
 	
 	public void calculateCost(MapLocation loc) {
 		cost = 0;
-		
 		cost |= mobile ? (1 << 20) : 0;
 		cost |= loc.distanceSquaredTo(location) << 15;
 		cost |= (level == RobotLevel.IN_AIR) ? (1 << 14) : 0;

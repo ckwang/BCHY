@@ -75,24 +75,6 @@ public class CombatSystem {
 		}
 		aveDamage = totalDamage/(float)c.weapons.size();
 	}
-
-	public boolean approachTarget() {
-		if (target1 != null)
-			return approach(target1);
-		else
-			return false;
-	};
-	
-	public boolean chaseTarget() {
-//		if (target1 != null)
-//			return chase(target1);
-//		else
-//			return false;
-		if (enemies.size() > 0)
-			return chase(enemies.get(0));
-		return false;
-	}
-	
 	
 	public boolean chase(Robot r) {
 		if (controllers.motor.isActive())
@@ -283,28 +265,6 @@ public class CombatSystem {
 //					enemies.remove(0);
 //					continue;
 //				}
-//<<<<<<< HEAD
-//=======
-////				if (info.hitpoints > controllers.myRC.getHitpoints())
-////					return true;
-//				MapLocation weakest = controllers.sensor
-//				.senseLocationOf(target1);
-//				int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
-////				if (dist > maxRange) {
-////					return false;
-////					if (target2 == null)
-////						return false;
-////					target1 = target2;
-////					target2 = null;
-////				}
-//				w.attackSquare(weakest, target1.getRobotLevel());
-//				attacked = true;
-//			} catch (GameActionException e) {
-//				if (target2 == null)
-//					return false;
-//				target1 = target2;
-//				target2 = null;
-//>>>>>>> refs/heads/Tower
 //			}
 //		}
 //	}
@@ -368,21 +328,11 @@ public class CombatSystem {
 				} else if (r.getTeam() == Team.NEUTRAL) {
 					debrisLoc.add(info.location);
 				}
-													
-//			String s = "";
-//			for (int i = 0; i < enemyInfos.size(); ++i)
-//				s += enemyInfos.get(i).location + " ";
-//			controllers.myRC.setIndicatorString (2,"Updated:" + s);
-
 			} catch (GameActionException e) {
 				continue;
 			}
 		}
 //		int after = Clock.getBytecodeNum();
-
-//		rc.setIndicatorString(0, "bytecode: " + (after - before));
-//		rc.setIndicatorString(1, "bytecode: " + (after - before));
-//		rc.setIndicatorString(2, "bytecode: " + (after - before));
 		
 //		Util.sortHp(hps, enemies);
 	
@@ -456,29 +406,15 @@ public class CombatSystem {
 	}
 	
 	public int enemyNum() {
-//		if (outdated())
-//			senseNearby();
 		return enemies.size();
 	}
 	
 	public int immobileEnemyNum() {
-//		if (outdated())
-//			senseNearby();
 		return immobileEnemies.size();
 	}
 	
 	public boolean hasEnemy() {
-//		if (outdated())
-//			senseNearby();
 		return (enemies.size() + immobileEnemies.size()) > 0;
-	}
-
-	public void print(Object o) {
-		System.out.println(o.toString());
-	}
-	
-	public boolean outdated() {
-		return Clock.getRoundNum() > lastUpdate + 1;
 	}
 	
 	public MapLocation attack() {
@@ -486,36 +422,20 @@ public class CombatSystem {
 			RobotController rc = controllers.myRC;
 			MapLocation currentLoc = rc.getLocation();
 			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
-			
 			boolean attacked = false;
-			
 			if (enemyInfosSet.size() == 0)
 				return null;
 
-
 			EnemyInfo[] enemyInfos = new EnemyInfo[enemyInfosSet.size()];
-
-			int before = Clock.getBytecodeNum();
-			
-//			enemyInfosSet.toArray(enemyInfos);
-			
 			int i = 0;
 			for (EnemyInfo info : enemyInfosSet) {
 				info.calculateCost(currentLoc);
 				enemyInfos[i] = info;
 				++i;
 			}
-			int after = Clock.getBytecodeNum();
-//			rc.setIndicatorString(0, "bytecode: " + (after - before));
-//			rc.setIndicatorString(1, "bytecode: " + (after - before));
-//			rc.setIndicatorString(2, "bytecode: " + (after - before));
-
-			
 			Arrays.sort(enemyInfos, comparator);
-			
 			int listPointer = 0;
 			EnemyInfo enemy = enemyInfos[listPointer];
-			
 			
 			for (WeaponController w : controllers.weapons) {
 				if (!w.isActive() && w.withinRange(enemy.location)) {
