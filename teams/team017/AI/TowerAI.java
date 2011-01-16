@@ -1,15 +1,19 @@
 package team017.AI;
 
 import team017.combat.CombatSystem;
+import team017.message.EnemyInformationMessage;
+import team017.util.EnemyInfo;
+import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+import battlecode.common.Message;
 import battlecode.common.RobotController;
 
 public class TowerAI extends AI {
 
 	private CombatSystem combat;
-	
+	private int enemyNum;
 	public TowerAI(RobotController rc) {
 		super(rc);
 		combat = new CombatSystem(controllers);
@@ -21,8 +25,12 @@ public class TowerAI extends AI {
 		while(true) {
 			try {
 				combat.senseNearby();
+				enemyNum = combat.enemyInfosSet.size();
+
 				
-				if (combat.enemyInfosSet.size() == 0 && !controllers.motor.isActive()) {
+				processMessages();
+				enemyNum = combat.enemyInfosSet.size();
+				if (enemyNum == 0 && !controllers.motor.isActive()) {
 					controllers.motor.setDirection(controllers.myRC.getDirection().opposite());
 					yield();
 				} else {
@@ -38,6 +46,12 @@ public class TowerAI extends AI {
 				}
 				controllers.updateComponents();
 				controllers.myRC.setIndicatorString(0, combat.enemyNum() +"");
+				if (enemyNum > 0) {
+
+					msgHandler.clearOutQueue();
+					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));
+					msgHandler.process();
+					}
 				
 			} catch (GameActionException e) {
 				// TODO Auto-generated catch block
@@ -53,8 +67,21 @@ public class TowerAI extends AI {
 	
 	@Override
 	protected void processMessages() throws GameActionException {
-		// TODO Auto-generated method stub
-		
+		while (msgHandler.hasMessage()) {
+			Message msg = msgHandler.nextMessage();
+			switch (msgHandler.getMessageType(msg)) {
+			case ENEMY_INFORMATION_MESSAGE:
+				if (enemyNum == 0) {
+					EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
+					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
+						for (EnemyInfo e: ehandler.getInfos()) {
+							combat.enemyInfosSet.remove(e);
+							combat.enemyInfosSet.add(e);
+						}	
+					}
+				}
+				break;		
+			}
+		}	
 	}
-
 }

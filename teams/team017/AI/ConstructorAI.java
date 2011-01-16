@@ -10,9 +10,7 @@ import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
-import team017.message.FollowMeMessage;
-import team017.message.ScoutingMessage;
-import team017.navigation.GridMap;
+import team017.message.GridMapMessage;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -24,7 +22,6 @@ import battlecode.common.Mine;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
-import battlecode.common.TerrainTile;
 
 public class ConstructorAI extends AI {
 
@@ -32,7 +29,6 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
-	private int roachRounds = 0;
 	Mine[] minelist;
 	
 	public ConstructorAI(RobotController rc) {
@@ -43,7 +39,7 @@ public class ConstructorAI extends AI {
 	public void yield() {
 		super.yield();
 		updateLocationSets();
-		sense_border();
+		senseBorder();
 		navigator.updateMap();
 	}
 
@@ -60,9 +56,9 @@ public class ConstructorAI extends AI {
 			
 			try {
 				
-				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
-				controllers.myRC.setIndicatorString(1, "");
-				controllers.myRC.setIndicatorString(2, "");
+//				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString() );
+//				controllers.myRC.setIndicatorString(1, "");
+//				controllers.myRC.setIndicatorString(2, "");
 				
 				processMessages();
 				
@@ -80,10 +76,10 @@ public class ConstructorAI extends AI {
 
 				
 
-//				if (Clock.getRoundNum() % 6 == 0) {
+				if (Clock.getRoundNum() % 15 == 0) {
 //					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-//					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-//				}
+					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+				}
 				
 				
 				yield();
@@ -140,6 +136,9 @@ public class ConstructorAI extends AI {
 			if (!mineLocations.isEmpty())
 				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0], UnitType.RECYCLER);
 			yield();
+			
+			controllers.updateComponents();
+			
 //			controllers.myRC.setIndicatorString(2, "here");
 			
 //			// wake up one recycler
@@ -152,48 +151,7 @@ public class ConstructorAI extends AI {
 			e.printStackTrace();
 		}
 	}
-
-	private void init_revolve() {
-
-		MapLocation[] locationList = {
-				homeLocation.add(Direction.NORTH_EAST, 2),
-				homeLocation.add(Direction.SOUTH_EAST, 2),
-				homeLocation.add(Direction.SOUTH_WEST, 2),
-				homeLocation.add(Direction.NORTH_WEST, 2) };
-		int index = 0;
-
-		while (true) {
-			try {
-
-				navigator.setDestination(locationList[index]);
-				// controllers.myRC.setIndicatorString(2,
-				// controllers.myRC.getLocation().toString()+locationList[index].toString());
-
-				Direction nextDir = navigator.getNextDir(0);
-				if (nextDir == Direction.OMNI) {
-					index++;
-					if (index == 4)
-						return;
-					continue;
-				}
-
-				if (!controllers.motor.isActive()
-						&& controllers.motor.canMove(nextDir)) {
-					if (controllers.myRC.getDirection() == nextDir) {
-						controllers.motor.moveForward();
-					} else {
-						controllers.motor.setDirection(nextDir);
-					}
-				}
-
-				yield();
-			} catch (Exception e) {
-				System.out.println("caught exception:");
-				e.printStackTrace();
-			}
-		}
-	}
-
+	
 	private void init_return() throws GameActionException {
 		navigator.setDestination(homeLocation);
 
@@ -307,7 +265,7 @@ public class ConstructorAI extends AI {
 					yield();
 				}
 				msgHandler.queueMessage(new ConstructionCompleteMessage(target, UnitType.RECYCLER));
-				msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
 				return true;
 			}
@@ -374,7 +332,6 @@ public class ConstructorAI extends AI {
 	private void navigate() throws GameActionException {
 		Direction nextDir = Direction.OMNI;
 		if (!mineLocations.isEmpty()) {
-//			controllers.myRC.setIndicatorString(1,"Mine");
 			MapLocation currentLoc = controllers.myRC.getLocation();
 			MapLocation nearest = currentLoc.add(Direction.NORTH, 100);
 			for (MapLocation loc : mineLocations) {
@@ -384,35 +341,24 @@ public class ConstructorAI extends AI {
 				
 			navigator.setDestination(nearest);
 			nextDir = navigator.getNextDir(2);
-			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + ", mine:" + nearest);
 		}
 		else {
 			
-//			TerrainTile checkTile = 
-//				controllers.myRC.senseTerrainTile(
-//						controllers.myRC.getLocation().add(controllers.myRC.getDirection(), 3));
-			
-//			if (checkTile == TerrainTile.OFF_MAP)
-//				gridMap.updateScoutLocation(Clock.getRoundNum());
-			
 			navigator.setDestination(gridMap.getScoutLocation());
 			nextDir = navigator.getNextDir(4);
-			
-			if (nextDir == Direction.OMNI){
-				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + ": update!");
-				gridMap.setCurrentAsScouted();
-				gridMap.updateScoutLocation(Clock.getRoundNum());
-				navigator.setDestination(gridMap.getScoutLocation());
-				nextDir = navigator.getNextDir(4);
-			}
 		}
-		
 		
 		if (nextDir != Direction.OMNI) {
 			if (!controllers.motor.isActive() ) {
 				if (controllers.myRC.getDirection() == nextDir) {
 					if (controllers.motor.canMove(nextDir)) {
 						controllers.motor.moveForward();
+						
+						MapLocation currentLoc = controllers.myRC.getLocation();
+						if (!gridMap.isScouted(currentLoc)) {
+							gridMap.setScouted(currentLoc);
+							gridMap.updateScoutLocation(currentLoc);
+						}
 					}
 				} else {
 					controllers.motor.setDirection(nextDir);
@@ -427,75 +373,12 @@ public class ConstructorAI extends AI {
 		}
 	}
 	
-	private MapLocation getNextScoutLoc() {
-		TerrainTile tile, checkTile;
-		Direction faceDir = controllers.myRC.getDirection();
-		final int EXPLORATION_SIZE = 10;
-		
-		// add some randomness to the initial direction
-		int n = Clock.getRoundNum() % 8;
-		for (int i = 0; i < n; i++) {
-			faceDir = faceDir.rotateRight();
-		}
-		
-		MapLocation currentLoc = controllers.myRC.getLocation();
-		int multiple = 1;
-		while( multiple < 5 ){
-		
-			for (int i = 0; i < 8; i++){
-				MapLocation projectedLoc = currentLoc.add(faceDir, EXPLORATION_SIZE*multiple);
-				if ( (borders[1] == -1 || projectedLoc.x < borders[1]) &&
-					 (borders[3] == -1 || projectedLoc.x > borders[3]) &&
-					 (borders[2] == -1 || projectedLoc.y < borders[2]) &&
-					 (borders[0] == -1 || projectedLoc.y > borders[0])) {
-					
-				
-					tile = controllers.myRC.senseTerrainTile(projectedLoc);
-					checkTile = controllers.myRC.senseTerrainTile(currentLoc.add(faceDir, 3));
-					if (tile == null && checkTile != TerrainTile.OFF_MAP)
-						return projectedLoc;
-				}
-				faceDir = faceDir.rotateRight();
-			}
-			
-			multiple++;
-		}
-		
-		return currentLoc.add(faceDir.opposite(), EXPLORATION_SIZE*multiple);
-	}
-
 	@Override
 	protected void processMessages() throws GameActionException {
 		// Check messages
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
-//			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-//				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
-//				if (!builtLocations.contains(handler.getSourceLocation())){
-//					if(handler.getAvailableSpace() == -1){
-//						builtLocations.add(handler.getSourceLocation());
-//					} else if (handler.getBuildableDirection() != Direction.NONE) {
-//						MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
-//						if (handler.getAvailableSpace() == 3) {
-//							if (buildBuildingAtLoc(buildLoc,UnitType.FACTORY)) {
-//								builtLocations.add(handler.getSourceLocation());
-//								msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
-//								MapLocation nextBuildLoc = handler.getSourceLocation().add(handler.getBuildableDirection().rotateRight());
-//								if(buildBuildingAtLoc(nextBuildLoc,UnitType.ARMORY)){
-//									msgHandler.queueMessage(new ConstructionCompleteMessage(nextBuildLoc, ComponentType.ARMORY));
-//								}
-//							}
-//						} else if (handler.getAvailableSpace() == 2) {
-//							if(buildBuildingAtLoc(buildLoc, UnitType.FACTORY)){
-//								msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, ComponentType.FACTORY));
-//								builtLocations.add(handler.getSourceLocation());
-//							}
-//						}
-//					}							
-//				}
-//				break;
-//			}
 			
 			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
 				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
@@ -511,8 +394,8 @@ public class ConstructorAI extends AI {
 				UnitType type = handler.getUnitType();
 				if (type == null){	// there is nothing to build
 					builtLocations.add(handler.getSourceLocation());
-				} else if (handler.getBuildableDirection() != Direction.NONE) {
-					MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+				} else if (handler.getBuildableLocation() != null) {
+					MapLocation buildLoc = handler.getBuildableLocation();
 					if (buildBuildingAtLoc(buildLoc, type)){
 						msgHandler.clearOutQueue();
 						msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
@@ -539,15 +422,30 @@ public class ConstructorAI extends AI {
 				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
+				gridMap.setBorders(borders);
 				break;
 			}
-//			case SCOUTING_MESSAGE: {						
-//				ScoutingMessage handler = new ScoutingMessage(msg);
-//				// update the borders
-//				if (scoutDir == Direction.NONE)
-//					scoutDir = handler.getScoutDirection();
-//				break;
-//			}
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				gridMap.merge(handler.getGridMap(controllers));
+				
+				controllers.myRC.setIndicatorString(0, "lalala");
+				
+				break;
+			}
 			}
 		}
 	}

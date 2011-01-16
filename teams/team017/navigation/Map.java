@@ -7,11 +7,12 @@ public class Map {
 	
 	private MapLocation origin;
 
-	int[][] score;
-	
+	int[] internalRecords;
+		
 	public Map(MapLocation origin) {
 		this.origin = origin;
-		score = new int[SIZE * 2][SIZE * 2];
+		
+		internalRecords = new int[(SIZE * SIZE * 4) / 32 + 1];
 	}
 	
 	
@@ -23,11 +24,23 @@ public class Map {
 		return loc.y - origin.y + SIZE;
 	}
 	
-	public int getScore(MapLocation loc) {
-		return score[getGridX(loc)][getGridY(loc)];
+	public boolean isBlocked(MapLocation loc) {
+		int total_offset = getGridY(loc) * SIZE + getGridX(loc);
+		int int_num = total_offset / 32;
+		int int_offset = total_offset % 32;
+		
+		return (internalRecords[int_num] & (1 << int_offset)) != 0;
 	}
 	
-	public void setScore(MapLocation loc, int score) {
-		this.score[getGridX(loc)][getGridY(loc)] = score;
+	public void setBlocked(MapLocation loc, boolean blocked) {
+		int total_offset = getGridY(loc) * SIZE + getGridX(loc);
+		int int_num = total_offset / 32;
+		int int_offset = total_offset % 32;
+		
+		if (blocked == true) { 
+			internalRecords[int_num] |= (1 << int_offset);
+		} else {
+			internalRecords[int_num] &= ~(1 << int_offset);
+		}
 	}
 }

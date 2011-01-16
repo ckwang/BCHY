@@ -27,7 +27,7 @@ public class Builder {
 		rc = controllers.myRC; 
 	}
 
-	public boolean constructUnit(MapLocation buildLoc, UnitType type, BuildingDirections builderDirs){
+	public boolean constructUnit(MapLocation buildLoc, UnitType type, BuildingLocations builderLocs){
 		try {
 			
 			// check if buildLoc is adjacent to current location
@@ -39,8 +39,8 @@ public class Builder {
 				
 				
 				// see if there are all the required builders 
-				builderDirs.updateBuildingDirs();
-				if (!builderDirs.isComplete(controllers.builder.type(), type.requiredBuilders))	{
+				builderLocs.updateBuildingLocs();
+				if (!builderLocs.isComplete(controllers.builder.type(), type.requiredBuilders))	{
 					return false;
 				}
 				
@@ -52,7 +52,7 @@ public class Builder {
 					// send messages to other builders
 					for(ComponentType builder: type.requiredBuilders){
 						if (builder != controllers.builder.type())
-							msgHandler.queueMessage(new BuildingRequestMessage(rc.getLocation().add(builderDirs.getDirections(builder)), buildLoc, type));
+							msgHandler.queueMessage(new BuildingRequestMessage(builderLocs.getLocations(builder), buildLoc, type));
 					}
 					
 					// build my responsible parts
@@ -79,8 +79,8 @@ public class Builder {
 
 	public boolean constructUnit(MapLocation buildLoc, UnitType type){
 		try{
-			if(type.selfBuild == false)
-				return false;
+//			if(type.selfBuild == false)
+//				return false;
 			Chassis chassis = type.chassis;
 			if (rc.getTeamResources() > chassis.cost + 20) {
 				if (canConstruct(chassis.level)) {

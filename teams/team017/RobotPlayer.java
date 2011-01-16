@@ -40,6 +40,8 @@ public class RobotPlayer implements Runnable {
 			case HEAVY:
 				if (Util.containsComponent(myRC.components(), ComponentType.CONSTRUCTOR)) {
 					new ConstructorAI(myRC).proceed();
+				} else if (Util.containsComponent(myRC.components(), ComponentType.DISH)) {
+					new CommanderAI(myRC).proceed();
 				} else {
 					new SoldierAI(myRC).proceed();
 				}

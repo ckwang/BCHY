@@ -36,14 +36,26 @@ public class ArmoryAI extends BuildingAI{
 				
 				double fluxRate = getEffectiveFluxRate();
 				if (buildIdleRound == 0 && controllers.myRC.getTeamResources() > 150 && fluxRate > 0.4) {
-					if (buildingDirs.recyclerDirection != null) {
-						Direction recyclerDir = buildingDirs.recyclerDirection; 
+					if (buildingLocs.recyclerLocation != null) {
+						MapLocation recyclerLoc = buildingLocs.recyclerLocation; 
 						SensorController sensor = controllers.sensor;
-						MapLocation[] buildLocs = {currentLoc.add(recyclerDir.rotateLeft()), currentLoc.add(recyclerDir.rotateRight()), currentLoc.add(recyclerDir.rotateLeft().rotateLeft()), currentLoc.add(recyclerDir.rotateRight().rotateRight())};
-						if (recyclerDir.isDiagonal()) {
+						MapLocation[] buildLocs = {buildingLocs.rotateRight(recyclerLoc), buildingLocs.rotateLeft(recyclerLoc), buildingLocs.rotateRight(buildingLocs.rotateRight(recyclerLoc)), buildingLocs.rotateLeft(buildingLocs.rotateLeft(recyclerLoc))};
+						/*
+						 * Case 1: (recyclerDir is Diagonal)
+						 * - x R
+						 * - A x
+						 * - - -
+						 * 
+						 * Case 2:
+						 * x R x
+						 * x A x
+						 * - - -
+						 */
+						
+						if (currentLoc.directionTo(recyclerLoc).isDiagonal()) {
 							for (int i = 0; i < 2; ++i) {
 								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingDirs)) {
+									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingLocs)) {
 										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
 											break;
 										yield();
@@ -55,7 +67,7 @@ public class ArmoryAI extends BuildingAI{
 						} else {
 							for (int i = 0; i < 4; ++i) {
 								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingDirs)) {
+									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingLocs)) {
 										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
 											break;
 										yield();
@@ -69,7 +81,7 @@ public class ArmoryAI extends BuildingAI{
 //					while (!buildingSystem.constructUnit(buildLoc, type, buildingDirs) {
 //						yield();
 //					}
-				}
+//				}
 //				 if (fluxRate > 0.6 && Clock.getRoundNum() < 1000 && controllers.myRC.getTeamResources() > 120) {
 //						Direction recyclerDir = buildingDirs.recyclerDirection; 
 //						SensorController sensor = controllers.sensor;
@@ -100,7 +112,8 @@ public class ArmoryAI extends BuildingAI{
 //					}
 				
 				yield();
-			} catch (Exception e) {
+				}
+				} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
 			}
@@ -127,7 +140,7 @@ public class ArmoryAI extends BuildingAI{
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation currentLoc = controllers.myRC.getLocation();
 				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
-					buildingDirs.setDirections(handler.getBuildingType(), currentLoc.directionTo(handler.getBuildingLocation()));
+					buildingLocs.setLocations(handler.getBuildingType(), handler.getBuildingLocation());
 				}
 				break;
 			}

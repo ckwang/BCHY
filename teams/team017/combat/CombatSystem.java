@@ -49,6 +49,7 @@ public class CombatSystem {
 	public List<MapLocation> alocs = new ArrayList<MapLocation>();
 	
 	public Set<EnemyInfo> enemyInfosSet = new HashSet<EnemyInfo>();
+	public List<MapLocation> debrisLoc = new ArrayList<MapLocation>();
 	
 	
 	public Robot target1 = null;
@@ -347,7 +348,7 @@ public class CombatSystem {
 //		reset();
 		RobotController rc = controllers.myRC;
 		int roundNum = Clock.getRoundNum();
-		int before = Clock.getBytecodeNum();
+//		int before = Clock.getBytecodeNum();
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		for (Robot r : robots) {
 			try {
@@ -364,6 +365,8 @@ public class CombatSystem {
 					EnemyInfo thisEnemy = new EnemyInfo(roundNum, info);
 					enemyInfosSet.remove(thisEnemy);
 					enemyInfosSet.add(thisEnemy);
+				} else if (r.getTeam() == Team.NEUTRAL) {
+					debrisLoc.add(info.location);
 				}
 													
 //			String s = "";
@@ -375,7 +378,7 @@ public class CombatSystem {
 				continue;
 			}
 		}
-		int after = Clock.getBytecodeNum();
+//		int after = Clock.getBytecodeNum();
 
 //		rc.setIndicatorString(0, "bytecode: " + (after - before));
 //		rc.setIndicatorString(1, "bytecode: " + (after - before));
@@ -436,6 +439,7 @@ public class CombatSystem {
 //	}
 
 	public void reset() {
+		debrisLoc.clear();
 		enemyInfosSet.clear();
 		allies.clear();
 		enemies.clear();
@@ -534,6 +538,28 @@ public class CombatSystem {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+
+	
+	public void attackDebris() throws GameActionException {
+		int listPointer = 0;
+		MapLocation loc = debrisLoc.get(listPointer);
+		
+		for (WeaponController w : controllers.weapons) {
+			if (!w.isActive()){
+				if (w.withinRange(loc)) {
+					w.attackSquare(loc, RobotLevel.ON_GROUND);
+				} else {
+					listPointer++;
+					if (listPointer == debrisLoc.size()) {
+						break;
+					} else {
+						loc = debrisLoc.get(listPointer);
+					}
+				}
+			}
+		}
 	}
 	
 //	public void towerAttack() {

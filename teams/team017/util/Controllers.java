@@ -6,6 +6,7 @@ import java.util.List;
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.ComponentController;
+import battlecode.common.JumpController;
 import battlecode.common.MovementController;
 import battlecode.common.RobotController;
 import battlecode.common.SensorController;
@@ -19,6 +20,7 @@ public class Controllers {
 	public SensorController sensor = null;
 	public BroadcastController comm = null;
 	public List<WeaponController> weapons = null;
+	public JumpController jump = null;
 	
 	public Controllers() {
 		weapons = new ArrayList<WeaponController>();
@@ -64,6 +66,13 @@ public class Controllers {
 			case WEAPON:
 				weapons.add((WeaponController) com);
 				break;
+			case MISC:
+				switch (com.type()) {
+				case JUMP:
+					jump = (JumpController) com;
+					break;
+				}
+			break;
 			}
 		}
 	}

@@ -40,7 +40,7 @@ public class AirAI extends AI {
 	public void yield() {
 		super.yield();
 		updateLocationSets();
-		sense_border();
+		senseBorder();
 	}
 
 	public void proceed() {
@@ -62,11 +62,13 @@ public class AirAI extends AI {
 					checkEmptyRecyclers();
 
 				
-
-				if (Clock.getRoundNum() % 6 == 0) {
-					msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection()));
-					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+				if (controllers.comm != null) {
+					if (Clock.getRoundNum() % 6 == 0) {
+						msgHandler.queueMessage(new FollowMeMessage(controllers.myRC.getDirection(), controllers.comm.type().range));
+						msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+					}					
 				}
+
 				
 //				if (enemyBaseLoc[0] != null)
 //					controllers.myRC.setIndicatorString(2, enemyBaseLoc[0].toString());
@@ -305,7 +307,7 @@ public class AirAI extends AI {
 			
 			if (nextDir == Direction.OMNI){
 				gridMap.setCurrentAsScouted();
-				gridMap.updateScoutLocation(Clock.getRoundNum());
+				gridMap.updateScoutLocation();
 				nextDir = currentLoc.directionTo(gridMap.getScoutLocation());
 			}
 		}
@@ -462,8 +464,8 @@ public class AirAI extends AI {
 				UnitType type = handler.getUnitType();
 				if (type == null){	// there is nothing to build
 					builtLocations.add(handler.getSourceLocation());
-				} else if (handler.getBuildableDirection() != Direction.NONE) {
-					MapLocation buildLoc = handler.getSourceLocation().add(handler.getBuildableDirection());
+				} else if (handler.getBuildableLocation() != null) {
+					MapLocation buildLoc = handler.getBuildableLocation();
 					if (buildBuildingAtLoc(buildLoc, type)){
 						msgHandler.clearOutQueue();
 						msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
