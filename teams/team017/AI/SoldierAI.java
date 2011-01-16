@@ -52,16 +52,16 @@ public class SoldierAI extends AI {
 	public void proceed() {
 		while (true) {
 
-			combat.senseNearby();
-			enemyNum = combat.enemyInfosSet.size();
+			controllers.senseNearby();
+			enemyNum = controllers.enemyInfosSet.size();
 
 			try {processMessages();}
 			catch (Exception e1) {}
 
-			enemyNum = combat.enemyInfosSet.size();
+			enemyNum = controllers.enemyInfosSet.size();
 			MapLocation nextLoc = combat.attack();
 			
-			if (combat.enemyInfosSet.size() == 0 && combat.debrisLoc.size() != 0)
+			if (controllers.enemyInfosSet.size() == 0 && controllers.debrisLoc.size() != 0)
 				try {combat.attackDebris();}
 				catch (Exception e1) {e1.printStackTrace();}
 
@@ -140,7 +140,7 @@ public class SoldierAI extends AI {
 	public void yield() {
 		previousDir = controllers.myRC.getDirection();
 		super.yield();
-		combat.reset();
+		controllers.reset();
 		navigator.updateMap();
 		if (controllers.myRC.getHitpoints() < prevHp) {
 			prevHp = controllers.myRC.getHitpoints();
@@ -156,7 +156,7 @@ public class SoldierAI extends AI {
 		if (enemyNum > 0) {
 			msgHandler.clearOutQueue();
 			msgHandler.queueMessage(new EnemyInformationMessage(
-					combat.enemyInfosSet));
+					controllers.enemyInfosSet));
 			msgHandler.process();
 		} else if (!hasLeader) {
 			if (previousDir != controllers.myRC.getDirection()
@@ -226,8 +226,8 @@ public class SoldierAI extends AI {
 							msg);
 					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
 						for (EnemyInfo e : ehandler.getInfos()) {
-							combat.enemyInfosSet.remove(e);
-							combat.enemyInfosSet.add(e);
+							controllers.enemyInfosSet.remove(e);
+							controllers.enemyInfosSet.add(e);
 						}
 					}
 				}

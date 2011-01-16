@@ -25,11 +25,11 @@ public class TowerAI extends AI {
 		while(true) {
 			try {
 				combat.senseNearby();
-				enemyNum = combat.enemyInfosSet.size();
+				enemyNum = controllers.enemyInfosSet.size();
 
 				
 				processMessages();
-				enemyNum = combat.enemyInfosSet.size();
+				enemyNum = controllers.enemyInfosSet.size();
 				if (enemyNum == 0 && !controllers.motor.isActive()) {
 					controllers.motor.setDirection(controllers.myRC.getDirection().opposite());
 					yield();
@@ -44,11 +44,10 @@ public class TowerAI extends AI {
 					yield();
 				}
 				controllers.updateComponents();
-				controllers.myRC.setIndicatorString(0, combat.enemyNum() +"");
 				if (enemyNum > 0) {
 
 					msgHandler.clearOutQueue();
-					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));
+					msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyInfosSet));
 					msgHandler.process();
 					}
 				
@@ -61,7 +60,7 @@ public class TowerAI extends AI {
 
 	public void yield() {
 		super.yield();
-		combat.reset();
+		controllers.reset();
 	}
 	
 	@Override
@@ -74,8 +73,8 @@ public class TowerAI extends AI {
 					EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
 					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
 						for (EnemyInfo e: ehandler.getInfos()) {
-							combat.enemyInfosSet.remove(e);
-							combat.enemyInfosSet.add(e);
+							controllers.enemyInfosSet.remove(e);
+							controllers.enemyInfosSet.add(e);
 						}	
 					}
 				}

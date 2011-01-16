@@ -48,8 +48,7 @@ public class CombatSystem {
 	public List<MapLocation> elocs = new ArrayList<MapLocation>();
 	public List<MapLocation> alocs = new ArrayList<MapLocation>();
 	
-	public Set<EnemyInfo> enemyInfosSet = new HashSet<EnemyInfo>();
-	public List<MapLocation> debrisLoc = new ArrayList<MapLocation>();
+
 	
 	
 	public Robot target1 = null;
@@ -323,19 +322,17 @@ public class CombatSystem {
 //				} else 
 				if (r.getTeam() == controllers.myRC.getTeam().opponent()) {
 					EnemyInfo thisEnemy = new EnemyInfo(roundNum, info);
-					enemyInfosSet.remove(thisEnemy);
-					enemyInfosSet.add(thisEnemy);
+					controllers.enemyInfosSet.remove(thisEnemy);
+					controllers.enemyInfosSet.add(thisEnemy);
 				} else if (r.getTeam() == Team.NEUTRAL) {
-					debrisLoc.add(info.location);
+					controllers.debrisLoc.add(info.location);
 				}
 			} catch (GameActionException e) {
 				continue;
 			}
 		}
 //		int after = Clock.getBytecodeNum();
-		
 //		Util.sortHp(hps, enemies);
-	
 	}
 	
 //	public void senseNearby() {
@@ -388,47 +385,31 @@ public class CombatSystem {
 //		}
 //	}
 
-	public void reset() {
-		debrisLoc.clear();
-		enemyInfosSet.clear();
-		allies.clear();
-		enemies.clear();
-		immobileEnemies.clear();
-		elocs.clear();
-		alocs.clear();
-		totalEnemiesHp = 0;
-		target1 = null;
-		target2 = null;
-	}
-	
-	public int allyNum() {
-		return allies.size();
-	}
-	
-	public int enemyNum() {
-		return enemies.size();
-	}
-	
-	public int immobileEnemyNum() {
-		return immobileEnemies.size();
-	}
-	
-	public boolean hasEnemy() {
-		return (enemies.size() + immobileEnemies.size()) > 0;
-	}
-	
+//	public void reset() {
+//		debrisLoc.clear();
+//		enemyInfosSet.clear();
+//		allies.clear();
+//		enemies.clear();
+//		immobileEnemies.clear();
+//		elocs.clear();
+//		alocs.clear();
+//		totalEnemiesHp = 0;
+//		target1 = null;
+//		target2 = null;
+//	}
+
 	public MapLocation attack() {
 		try {
 			RobotController rc = controllers.myRC;
 			MapLocation currentLoc = rc.getLocation();
 			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
 			boolean attacked = false;
-			if (enemyInfosSet.size() == 0)
+			if (controllers.enemyInfosSet.size() == 0)
 				return null;
 
-			EnemyInfo[] enemyInfos = new EnemyInfo[enemyInfosSet.size()];
+			EnemyInfo[] enemyInfos = new EnemyInfo[controllers.enemyInfosSet.size()];
 			int i = 0;
-			for (EnemyInfo info : enemyInfosSet) {
+			for (EnemyInfo info : controllers.enemyInfosSet) {
 				info.calculateCost(currentLoc);
 				enemyInfos[i] = info;
 				++i;
@@ -452,7 +433,6 @@ public class CombatSystem {
 					attacked = true;
 				}
 			}
-			
 			return attacked ? rc.getLocation() : enemy.location;
 		} catch (GameActionException e) {
 			e.printStackTrace();
@@ -464,7 +444,7 @@ public class CombatSystem {
 	
 	public void attackDebris() throws GameActionException {
 		int listPointer = 0;
-		MapLocation loc = debrisLoc.get(listPointer);
+		MapLocation loc = controllers.debrisLoc.get(listPointer);
 		
 		for (WeaponController w : controllers.weapons) {
 			if (!w.isActive()){
@@ -472,10 +452,10 @@ public class CombatSystem {
 					w.attackSquare(loc, RobotLevel.ON_GROUND);
 				} else {
 					listPointer++;
-					if (listPointer == debrisLoc.size()) {
+					if (listPointer == controllers.debrisLoc.size()) {
 						break;
 					} else {
-						loc = debrisLoc.get(listPointer);
+						loc = controllers.debrisLoc.get(listPointer);
 					}
 				}
 			}
