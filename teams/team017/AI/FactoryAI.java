@@ -42,11 +42,11 @@ public class FactoryAI extends BuildingAI {
 				
 				
 				
-//					if (controllers.myRC.getTeamResources() > 150 && getEffectiveFluxRate() > 1) {
-//					MapLocation buildLoc = buildingLocs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
-//					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingLocs);
-//				
-//				}
+					if (Clock.getRoundNum() > 1000 && controllers.myRC.getTeamResources() > 150 && getEffectiveFluxRate() > 1) {
+					MapLocation buildLoc = buildingLocs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
+					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingLocs);
+				
+				}
 			}
 //				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 120)
 //					buildingSystem.constructUnit(UnitType.TANK_KILLER);
