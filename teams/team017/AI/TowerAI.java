@@ -41,7 +41,6 @@ public class TowerAI extends AI {
 							controllers.motor.setDirection(nextDir);
 						}
 					}
-					
 					yield();
 				}
 				controllers.updateComponents();

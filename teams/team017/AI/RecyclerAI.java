@@ -5,6 +5,7 @@ import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.BuildingRequestMessage;
+import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.util.Util;
@@ -114,7 +115,9 @@ public class RecyclerAI extends BuildingAI {
 				double fluxRate = getEffectiveFluxRate();
 				
 				if (controllers.myRC.getTeamResources() > 170 ) {
-					if (fluxRate > 0)
+					if (Clock.getRoundNum() > 1000 && fluxRate > 1 && buildingLocs.factoryLocation != null)
+						msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.factoryLocation, UnitType.APOCALYPSE));
+					else if (fluxRate > 0.3)
 						constructUnitAtRatio();
 				}
 				
