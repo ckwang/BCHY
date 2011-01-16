@@ -37,9 +37,9 @@ public class CommanderAI extends AI {
 				processMessages();
 				
 //				rc.setIndicatorString(0, combat.enemyInfosSet.size() + "");
-				if (combat.enemyInfosSet.size() > 0) {
+				if (controllers.enemyInfosSet.size() > 0) {
 					msgHandler.clearOutQueue();
-					msgHandler.queueMessage(new EnemyInformationMessage(combat.enemyInfosSet));
+					msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyInfosSet));
 					msgHandler.process();
 				} else {
 					navigate();
@@ -63,8 +63,8 @@ public class CommanderAI extends AI {
 					EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
 					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
 						for (EnemyInfo e: ehandler.getInfos()) {
-							combat.enemyInfosSet.remove(e);
-							combat.enemyInfosSet.add(e);
+							controllers.enemyInfosSet.remove(e);
+							controllers.enemyInfosSet.add(e);
 						}	
 					}
 				break;
@@ -75,7 +75,7 @@ public class CommanderAI extends AI {
 	public void yield() {
 		previousDir = controllers.myRC.getDirection();
 		super.yield();
-		combat.reset();
+		controllers.reset();
 		navigator.updateMap();
 	}
 

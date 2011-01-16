@@ -327,6 +327,8 @@ public class RecyclerAI extends BuildingAI {
 				// if the constructor is inquiring it 
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
 					
+					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + ": i got the message from " + handler.getSourceID());
+					
 					int constructorID = handler.getSourceID();
 					MapLocation loc;
 					
