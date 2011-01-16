@@ -282,6 +282,41 @@ public class RecyclerAI extends BuildingAI {
 			}
 			
 			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
+/*
+ *	Case 5: T -> F -> rT -> A
+ *	T  rT F
+ * 	/  R  -
+ *  /  /  A
+ * 
+ *  /  T rT
+ *  /  R  F
+ *  /  A  -
+ *  
+ *  Case 4: T -> F -> rT
+ *  T rT  F
+ *  /  R  -
+ *  /  /  /
+ *  
+ *  /  T rT
+ *  /  R  F
+ *  /  /  -
+ *  
+ *  Case 3: F -> rT
+ *  / rT  F
+ *  /  R  -
+ *  /  /  /
+ *  
+ *  Case 2: T
+ *  T - /
+ *  / R /
+ *  / / /
+ *  
+ *  Conclusion : 
+ *  1. Always build a railgunTower at the left position of a Factory
+ *  2. Build a Tower at the empty location if empty != 3
+ *  3. Build at the second empty space if empty == 3 or empty == 4 and tower != null
+ *  
+ */
 				BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
 				
 				// if the constructor is inquiring it 
@@ -289,107 +324,46 @@ public class RecyclerAI extends BuildingAI {
 					
 					int constructorID = handler.getSourceID();
 					MapLocation loc;
-//					Direction dir;
 					
 					if (inquiryIdleRound > 0)
 						break;
 					
-					if (buildingLocs.clusterSize > 1) {
-						// if there are no towers around
-						if (buildingLocs.factoryLocation == null) {
-							for (int i = 4; i >= 2; i--) {
-								loc = buildingLocs.consecutiveEmpties(i);
-								if (loc != null)
-									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.FACTORY));
+					
+					if (buildingLocs.towerLocations.size() == 0) {
+						for (int i = 5; i >= 2; i--) {
+							loc = buildingLocs.consecutiveEmpties(i);
+							if (loc != null) {
+								if (i == 3 )
+									break;
+								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
+								inquiryIdleRound = 5;
+								break;
 							}
-							inquiryIdleRound = 5;
-						} else if (buildingLocs.railgunTowerLocations.size() <3) {
-							for (int i = 3; i >= 2; i--) {
-								loc = buildingLocs.consecutiveEmpties(i);
-								if (loc != null)
-									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.RAILGUN_TOWER));
-							}
-							inquiryIdleRound = 5;
-						} 
-						else if (buildingLocs.armoryLocation == null) {
-							loc = buildingLocs.consecutiveEmpties(2);
-							/* - - E1
-							 * - R E2
-							 * - - -
-							 * 
-							 * E2 = R.add(R.directionTo(E1).rotateRight)
-							 * => E2 = E1.add(E1.diretcionTo(R).rotateLeft)
-							 * 
-							 */
-							
+						}
+					} else if (buildingLocs.factoryLocation == null) {
+						for (int i = 4; i >= 3; i--) {
+							loc = buildingLocs.consecutiveEmpties(i);
 							if (loc != null)
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc.add(loc.directionTo(currentLoc).rotateLeft()), UnitType.ARMORY));
+								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
+						}
 						inquiryIdleRound = 5;
+					} else if (buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() == 0) {
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+						inquiryIdleRound = 5;
+					} else if (buildingLocs.armoryLocation == null) {
+						loc = buildingLocs.consecutiveEmpties(2);
+						if (loc != null) {
+							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.ARMORY));
 						}
-						else {
-							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-						}
+						inquiryIdleRound = 5;
 					} else {
-						// if there are no towers around
-						if (buildingLocs.towerLocations.size() < 2) {
-							for (int i = 4; i >= 2; i--) {
-								loc = buildingLocs.consecutiveEmpties(i);
-								if (loc != null)
-									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
-							}
-							inquiryIdleRound = 5;
-						} else if (buildingLocs.armoryLocation == null) {
-							for (int i = 3; i >= 2; i--) {
-								loc = buildingLocs.consecutiveEmpties(i);
-								if (loc != null)
-									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.ARMORY));
-							}
-							inquiryIdleRound = 5;
-						} 
-						else if (buildingLocs.factoryLocation == null) {
-							loc = buildingLocs.consecutiveEmpties(2);
-							if (loc != null)
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc.add(loc.directionTo(currentLoc).rotateLeft()), UnitType.FACTORY));
-						inquiryIdleRound = 5;
-						}
-						else {
-							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-						}
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
 					}
+
 
 					
 					
-//					// if there is already a tower around
-//					if (buildingDirs.towerDirection != null || inquiryIdleRound > 0) {
-//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, Direction.NONE, null));
-//						controllers.myRC.setIndicatorString(0, "Consecutive -1");
-//					} else if ( (dir = buildingDirs.consecutiveEmpties(2)) != Direction.NONE ) {
-////						controllers.myRC.setIndicatorString(1, "available dir:" + dir);
-//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, UnitType.TOWER));
-//						inquiryIdleRound = 5;
-//						controllers.myRC.setIndicatorString(0, "Consecutive 2");
-//					}
-						
-//					else if ( (dir = buildingDirs.consecutiveEmpties(4)) != Direction.NONE ) {
-//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 4));
-//						controllers.myRC.setIndicatorString(0, "Consecutive 4");
-//					} else if ( (dir = buildingDirs.consecutiveEmpties(3)) != Direction.NONE ) {
-//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 3));
-//						controllers.myRC.setIndicatorString(0, "Consecutive 3");
-//					} else if ( (dir = buildingDirs.consecutiveEmpties(2)) != Direction.NONE ) {
-//						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, dir, 2));
-//						controllers.myRC.setIndicatorString(0, "Consecutive 2");
-//					}
-					
-					
-//					} else if (buildingDirs.consecutiveEmpties(3) != Direction.NONE) {
-//						msgHandler.queueMessage(new BuildingLocationResponseMessage(buildingDirs.consecutiveEmpties(3), 3));
-//						controllers.myRC.setIndicatorString(0, "Consecutive 3");
-//					} else 
-//					if (buildingDirs.consecutiveEmpties(2) != Direction.NONE) {
-//						msgHandler.queueMessage(new BuildingLocationResponseMessage(buildingDirs.consecutiveEmpties(2), 2));
-////						controllers.myRC.setIndicatorString(0, "Consecutive 2");
-//					}
+
 					yield();
 				}
 				break;
