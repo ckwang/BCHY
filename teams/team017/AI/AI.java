@@ -11,7 +11,6 @@ import team017.message.MessageHandler;
 import team017.navigation.GridMap;
 import team017.navigation.Navigator;
 import team017.util.Controllers;
-import team017.util.EnhancedMineInfo;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -38,9 +37,9 @@ public abstract class AI {
 	protected MapLocation[] enemyBaseLoc = new MapLocation[3];
 	protected MapLocation homeLocation;
 	
-	protected Set<EnhancedMineInfo> enemyMines;
-	protected Set<EnhancedMineInfo> alliedMines;
-	protected Set<MapLocation> allMines;
+//	protected Set<EnhancedMineInfo> enemyMines;
+//	protected Set<EnhancedMineInfo> alliedMines;
+//	protected Set<MapLocation> allMines;
 
 	public AI(RobotController rc) {
 		controllers = new Controllers();
