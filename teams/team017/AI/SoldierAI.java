@@ -62,6 +62,7 @@ public class SoldierAI extends AI {
 //			controllers.senseNearby();
 			enemyNum = controllers.mobileEnemyNum();
 			MapLocation nextLoc = combat.attack();
+			combat.heal();
 			
 			if (nextLoc != null && !controllers.motor.isActive()) {
 				navigator.setDestination(nextLoc);

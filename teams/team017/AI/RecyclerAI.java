@@ -22,7 +22,7 @@ public class RecyclerAI extends BuildingAI {
 	int [] unitRatios = {1, 3, 1, 0, 0};
 	int [] cumulatedRatios = new int[5];
 	int total;
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.COMMANDER, UnitType.APOCALYPSE} ;
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.APOCALYPSE, UnitType.BATTLE_FORTRESS};
 	double thresholds = 0.3;
 	
 	private enum spawningState { EARLY, MIDDLE, LATE };
@@ -511,12 +511,22 @@ public class RecyclerAI extends BuildingAI {
 //			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 //		}
 		
+		
+//		Build more constructors if flux is insufficient
+		if (getEffectiveFluxRate() < 0.5 && Clock.getRoundNum() < 2000) {
+			unitRatios[0] = 5;
+			updateRatios();
+		} else {
+			unitRatios[0] = 1;
+			updateRatios();
+		}
+		
 		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){
 			mySpawningState = spawningState.MIDDLE;
-			unitRatios[0] = 1;
+			unitRatios[0] = 2;
 			unitRatios[1] = 2;
 			unitRatios[2] = 0;
-			unitRatios[3] = 1;
+			unitRatios[3] = 2;
 			unitRatios[4] = 1;
 
 			updateRatios();
@@ -525,8 +535,8 @@ public class RecyclerAI extends BuildingAI {
 			unitRatios[0] = 1;
 			unitRatios[1] = 0;
 			unitRatios[2] = 0;
-			unitRatios[3] = 1;
-			unitRatios[4] = 3;
+			unitRatios[3] = 3;
+			unitRatios[4] = 1;
 			updateRatios();
 		}
 	}

@@ -1,5 +1,6 @@
 package team017.combat;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -331,6 +332,27 @@ public class CombatSystem {
 //		target2 = null;
 //	}
 
+	public void heal() {
+		try {
+			WeaponController medic = controllers.medic;
+			if (medic == null || medic.isActive())
+				return;
+			List<RobotInfo> allies = new ArrayList();
+			allies.add(controllers.sensor.senseRobotInfo(controllers.myRC.getRobot()));
+			allies.addAll(controllers.allyMobile);
+			allies.addAll(controllers.allyImmobile);
+			Util.sortHp(allies);
+			for (RobotInfo r: allies) {
+				if (medic.withinRange(r.location)) {
+					medic.attackSquare(r.location,r.robot.getRobotLevel());
+					return;
+				}	
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public MapLocation attack() {
 		try {
 			RobotController rc = controllers.myRC;

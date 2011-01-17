@@ -29,8 +29,8 @@ public enum UnitType {
 // Factory + Recycler	
 	MEDIUM_CONSTRUCTOR(Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING),
 	MEDIUM_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.DISH, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
-	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SIGHT, ComponentType.PLATING),
-	APOCALYPSE(Chassis.HEAVY, ComponentType.REGEN, ComponentType.SHIELD, ComponentType.RAILGUN, ComponentType.RAILGUN, ComponentType.RADAR),
+	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.RADAR, ComponentType.MEDIC, ComponentType.SHIELD, ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG),
+	APOCALYPSE(Chassis.HEAVY, ComponentType.REGEN, ComponentType.HARDENED, ComponentType.SMG, ComponentType.BLASTER, ComponentType.RAILGUN, ComponentType.RADAR),
 	CHRONO_APOCALYPSE(Chassis.HEAVY, ComponentType.RAILGUN, ComponentType.RAILGUN, ComponentType.JUMP, ComponentType.RADAR, ComponentType.SHIELD, ComponentType.PLATING),
 
 // Buildings
