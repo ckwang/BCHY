@@ -29,13 +29,13 @@ public class Util {
 				&& !d1.opposite().equals(d2.rotateRight());
 	}
 
-	public static MapLocation aveLocation(List<MapLocation> list) {
+	public static MapLocation aveLocation(List<RobotInfo> list) {
 		if (list.size() == 0)
 			return null;
 		int x = 0, y = 0;
-		for (MapLocation loc : list) {
-			x += loc.x;
-			y += loc.y;
+		for (RobotInfo info: list) {
+			x += info.location.x;
+			y += info.location.y;
 		}
 		return new MapLocation(x / list.size(), y / list.size());
 	}

@@ -30,7 +30,7 @@ public class CommanderAI extends AI {
 		while (true) {
 			try {
 				
-				controllers.senseNearby();
+				controllers.senseAll();
 				processMessages();
 				
 //				rc.setIndicatorString(0, combat.enemyInfosSet.size() + "");
