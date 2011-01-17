@@ -20,7 +20,7 @@ public class TowerAI extends AI {
 	public void proceed() {
 		while(true) {
 			try {
-				controllers.senseNearby();
+				controllers.senseAll();
 				enemyNum = controllers.enemyMobile.size();
 
 				processMessages();

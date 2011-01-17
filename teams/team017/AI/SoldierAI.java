@@ -156,8 +156,7 @@ public class SoldierAI extends AI {
 //		int before = Clock.getBytecodesLeft();
 		previousDir = controllers.myRC.getDirection();
 		super.yield();
-		controllers.reset();
-		controllers.senseNearby();
+		controllers.senseAll();
 		navigator.updateMap();
 		if (controllers.myRC.getHitpoints() < prevHp) {
 			prevHp = controllers.myRC.getHitpoints();
@@ -165,7 +164,6 @@ public class SoldierAI extends AI {
 		} else {
 			attacked = false;
 		}
-		
 //		int after = Clock.getBytecodesLeft();
 //		System.out.println("yield: " + String.valueOf(before-after));
 	}

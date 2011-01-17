@@ -30,7 +30,7 @@ public class CommanderAI extends AI {
 	public void proceed() {
 		while (true) {
 			try {
-				controllers.senseNearby();
+				controllers.senseAll();
 				processMessages();
 				
 //				rc.setIndicatorString(0, combat.enemyInfosSet.size() + "");
@@ -72,7 +72,7 @@ public class CommanderAI extends AI {
 	public void yield() {
 		previousDir = controllers.myRC.getDirection();
 		super.yield();
-		controllers.reset();
+		controllers.senseAll();
 		navigator.updateMap();
 	}
 

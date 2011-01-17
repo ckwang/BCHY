@@ -5,12 +5,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import team017.combat.CombatSystem;
 import team017.construction.UnitType;
 import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
+import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -28,6 +30,10 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
+	
+	private boolean attacked = false;
+	private double prevHp = 0;
+	private CombatSystem combat;
 
 //	Mine[] minelist;
 	MapLocation nearestMine = null;
@@ -35,15 +41,9 @@ public class ConstructorAI extends AI {
 	public ConstructorAI(RobotController rc) {
 		super(rc);
 		navigator.updateMap();
+		combat = new CombatSystem(controllers);
 	}
-
-	public void yield() {
-		super.yield();
-		updateLocationSets();
-		senseBorder();
-		navigator.updateMap();
-	}
-
+	
 	public void proceed() {
 		// Initial movement
 		if (Clock.getRoundNum() == 0) {
@@ -58,7 +58,31 @@ public class ConstructorAI extends AI {
 				processMessages();
 
 				buildRecyclers();
-
+				int after = Clock.getBytecodeNum();
+//				controllers.myRC.setIndicatorString(2, (after - before) + "");
+				while (evaluateDanger());
+//					continue;
+				if (attacked && controllers.enemyNum() == 0) {
+					
+					Direction mydir = controllers.myRC.getDirection();
+					if (!controllers.motor.isActive()
+							&& controllers.motor.canMove(mydir.opposite())) {
+						try {
+							controllers.motor.moveBackward();
+							yield();
+						} catch (GameActionException e) {
+						}
+					}
+//					try {
+//						if (Clock.getRoundNum() % 2 == 0)
+//							controllers.motor.setDirection(mydir.rotateLeft().rotateLeft());
+//						else
+//							controllers.motor.setDirection(mydir.rotateRight().rotateRight());
+//					}
+//					catch (Exception e) {}
+					continue;
+				}
+					
 				navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
@@ -71,6 +95,52 @@ public class ConstructorAI extends AI {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public boolean evaluateDanger() {
+		controllers.senseAll();
+		MapLocation myloc = controllers.myRC.getLocation();
+		Direction mydir = controllers.myRC.getDirection();
+		if (controllers.mobileEnemyNum() > controllers.mobileAllyNum() + 2) {
+			MapLocation enemyCenter = Util.aveLocation(controllers.enemyMobile);
+			Direction edir = myloc.directionTo(enemyCenter);
+			int dist = myloc.distanceSquaredTo(enemyCenter);
+			escape(38 - dist, edir);
+			return true;
+		}
+//		else if (attacked) {
+//			if (!controllers.motor.isActive() && controllers.motor.canMove(mydir.opposite())) {
+//				try {controllers.motor.moveBackward();} 
+//				catch (GameActionException e) {}
+//			}
+//			return true;
+//		}
+		return false;
+			
+	}
+	
+	public void escape(int steps, Direction dir) {
+		int s = 0;
+		boolean flee = false;
+		while (s*s < steps) {
+			try {flee = combat.flee(dir);} 
+			catch (GameActionException e) {}
+			if (flee) {
+				++s;
+				yield();
+			}
+		}
+	}
+	
+	public void yield() {
+		super.yield();
+		controllers.senseAll();
+		updateLocationSets();
+		navigator.updateMap();
+		senseBorder();
+		attacked = controllers.myRC.getHitpoints() < prevHp;
+		prevHp = controllers.myRC.getHitpoints();
+//		controllers.myRC.setIndicatorString(2, "" + attacked + ": "+ prevHp);
 	}
 
 	private void init() {
@@ -106,7 +176,7 @@ public class ConstructorAI extends AI {
 	}
 
 	private void updateLocationSets() {
-		controllers.senseNearby();
+		controllers.senseAll();
 		MapLocation mineloc;
 		for (MineInfo minfo : controllers.mines) {
 			mineloc = minfo.mine.getLocation();
