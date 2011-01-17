@@ -19,10 +19,10 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 
-	int [] unitRatios = {1, 3, 1};
-	int [] cumulatedRatios = new int[3];
+	int [] unitRatios = {1, 3, 1, 1};
+	int [] cumulatedRatios = new int[4];
 	int total;
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN} ;
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.MEDIUM_COMMANDER} ;
 	double thresholds = 0.3;
 	
 	private enum spawningState { EARLY, MIDDLE, LATE };
@@ -117,8 +117,12 @@ public class RecyclerAI extends BuildingAI {
 				if (controllers.myRC.getTeamResources() > 170 ) {
 					if (Clock.getRoundNum() > 1000 && fluxRate > 1 && buildingLocs.factoryLocation != null)
 						msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.factoryLocation, UnitType.APOCALYPSE));
-					else if (fluxRate > 0.3)
+					else if (fluxRate > 0.3) {
 						constructUnitAtRatio();
+//						if (fluxRate > 0.6 && buildingLocs.factoryLocation != null)
+//							msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.factoryLocation, UnitType.MEDIUM_COMMANDER));
+
+					}
 				}
 				
 				// Send message to build CHRONO_APOCALYPSE
@@ -473,10 +477,29 @@ public class RecyclerAI extends BuildingAI {
 		// Find the production index
 		for (index = 0; seed >= cumulatedRatios[index]; ++index);
 
-		if (buildingSystem.constructUnit(types[index])) {
-			++unitConstructed;
-			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+//		
+		UnitType type = types[index];
+		
+		ComponentType chassisBuilder = type.getChassisBuilder();
+		if (chassisBuilder == ComponentType.RECYCLER) {
+			if (buildingSystem.constructUnit(type)) {
+				++unitConstructed;
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+			}
+		} else {
+			if (buildingLocs.getLocations(chassisBuilder) != null) {
+				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), type));
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+			}
 		}
+		
+
+//
+		
+//		if (buildingSystem.constructUnit(types[index])) {
+//			++unitConstructed;
+//			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+//		}
 		
 		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){
 			mySpawningState = spawningState.MIDDLE;

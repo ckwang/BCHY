@@ -35,7 +35,7 @@ public enum UnitType {
 	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER),
 	ARMORY(Chassis.BUILDING, ComponentType.ARMORY),
 	FACTORY (Chassis.BUILDING, ComponentType.FACTORY),
-	RAILGUN_TOWER (Chassis.BUILDING, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SMG, ComponentType.SMG, ComponentType.SMG, ComponentType.SMG, ComponentType.RAILGUN, ComponentType.RAILGUN),
+	RAILGUN_TOWER (Chassis.BUILDING, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.MEDIC, ComponentType.RAILGUN, ComponentType.RAILGUN),
 	TOWER (Chassis.BUILDING, ComponentType.ANTENNA, ComponentType.RADAR, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SMG, ComponentType.SMG);
 		
 	public final Chassis chassis;
@@ -112,4 +112,17 @@ public enum UnitType {
 				return null;
 		}
 	}
+	
+	public ComponentType getChassisBuilder () {
+		if (BuildMappings.canBuild(ComponentType.RECYCLER, chassis))
+			return ComponentType.RECYCLER;
+		else if (BuildMappings.canBuild(ComponentType.FACTORY, chassis))
+			return ComponentType.FACTORY;
+		else if (BuildMappings.canBuild(ComponentType.ARMORY, chassis))
+			return ComponentType.ARMORY;
+		else
+			return null;
+		
+	}
+	
 }

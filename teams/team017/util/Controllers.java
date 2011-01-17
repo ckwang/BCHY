@@ -9,6 +9,7 @@ import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.Clock;
 import battlecode.common.ComponentController;
+import battlecode.common.ComponentType;
 import battlecode.common.GameActionException;
 import battlecode.common.JumpController;
 import battlecode.common.MapLocation;
@@ -28,6 +29,7 @@ public class Controllers {
 	public SensorController sensor = null;
 	public BroadcastController comm = null;
 	public List<WeaponController> weapons = null;
+	public WeaponController medic = null;
 	public JumpController jump = null;
 	
 	public Set<EnemyInfo> enemyInfosSet = new HashSet<EnemyInfo>();
@@ -91,7 +93,10 @@ public class Controllers {
 				comm = (BroadcastController) com;
 				break;
 			case WEAPON:
-				weapons.add((WeaponController) com);
+				if (com.type() == ComponentType.MEDIC)
+					medic = (WeaponController) com;
+				else
+					weapons.add((WeaponController) com);
 				break;
 			case MISC:
 				switch (com.type()) {
