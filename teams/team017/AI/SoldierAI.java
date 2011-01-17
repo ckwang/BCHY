@@ -4,10 +4,8 @@ import java.util.List;
 
 import team017.combat.CombatSystem;
 import team017.message.BorderMessage;
-import team017.message.EnemyInformationMessage;
 import team017.message.FollowMeMessage;
 import team017.message.GridMapMessage;
-import team017.util.EnemyInfo;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -53,21 +51,18 @@ public class SoldierAI extends AI {
 	public void proceed() {
 		while (true) {
 
-			controllers.senseNearby();
-			enemyNum = controllers.enemyInfosSet.size();
+//			controllers.senseNearby();
+//			enemyNum = controllers.mobileEnemyNum();
+//			int before = Clock.getBytecodesLeft();
+//			int after = Clock.getBytecodesLeft();
+//			System.out.println("process msg: " + String.valueOf(before-after));
 
-			try {processMessages();}
-			catch (Exception e1) {}
-
-			enemyNum = controllers.enemyInfosSet.size();
+			processMessages();
+			
+//			controllers.senseNearby();
+			enemyNum = controllers.mobileEnemyNum();
 			MapLocation nextLoc = combat.attack();
 			
-			if (controllers.enemyInfosSet.size() == 0 && controllers.debrisLoc.size() != 0) {
-				try {combat.attackDebris();}
-				catch (Exception e1) {e1.printStackTrace();}
-			}
-
-//			controllers.myRC.setIndicatorString(0, "CurrentLoc:" + controllers.myRC.getLocation() +"NextLoc:" + nextLoc + "");
 			if (nextLoc != null && !controllers.motor.isActive()) {
 				navigator.setDestination(nextLoc);
 				try {
@@ -85,8 +80,15 @@ public class SoldierAI extends AI {
 					e.printStackTrace();
 				}
 			}
-
-			broadcast();
+			
+			yield();
+			
+			if (controllers.mobileEnemyNum() == 0 && controllers.debrisNum() != 0) {
+				try {combat.attackDebris();}
+				catch (Exception e1) {e1.printStackTrace();}
+			}
+			
+//			broadcast();
 
 			if (enemyNum > 0)
 				attackRoundCounter = 0;
@@ -124,8 +126,8 @@ public class SoldierAI extends AI {
 				} else {
 					hasLeader = false;
 				}
-			} catch (Exception e) {
-			}
+			} 
+			catch (Exception e) {}
 
 			if (attackRoundCounter > 2 && leaderMessageRoundCounter > 3) {
 				leaderID = -1;
@@ -139,9 +141,11 @@ public class SoldierAI extends AI {
 	}
 
 	public void yield() {
+//		int before = Clock.getBytecodesLeft();
 		previousDir = controllers.myRC.getDirection();
 		super.yield();
 		controllers.reset();
+		controllers.senseNearby();
 		navigator.updateMap();
 		if (controllers.myRC.getHitpoints() < prevHp) {
 			prevHp = controllers.myRC.getHitpoints();
@@ -149,6 +153,9 @@ public class SoldierAI extends AI {
 		} else {
 			attacked = false;
 		}
+		
+//		int after = Clock.getBytecodesLeft();
+//		System.out.println("yield: " + String.valueOf(before-after));
 	}
 
 	public void broadcast() {
@@ -156,7 +163,7 @@ public class SoldierAI extends AI {
 			return;
 		if (enemyNum > 0) {
 			msgHandler.clearOutQueue();
-			msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyInfosSet));
+//			msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyMobile));
 			msgHandler.process();
 		} else if (!hasLeader) {
 			if (previousDir != controllers.myRC.getDirection() || Clock.getRoundNum() % 3 == 0) {
@@ -166,7 +173,7 @@ public class SoldierAI extends AI {
 	}
 	
 	@Override
-	protected void processMessages() throws GameActionException {
+	protected void processMessages() {
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
@@ -174,7 +181,6 @@ public class SoldierAI extends AI {
 				BorderMessage handler = new BorderMessage(msg);
 				// update the borders
 				int[] newBorders = handler.getBorderDirection();
-
 				for (int i = 0; i < 4; ++i) {
 					if (newBorders[i] != -1) {
 						if (borders[i] != newBorders[i]) {
@@ -190,7 +196,6 @@ public class SoldierAI extends AI {
 				GridMapMessage handler = new GridMapMessage(msg);
 				// update the borders
 				int[] newBorders = handler.getBorders();
-
 				for (int i = 0; i < 4; ++i) {
 					if (newBorders[i] != -1){
 						if (borders[i] != newBorders[i]){
@@ -198,7 +203,6 @@ public class SoldierAI extends AI {
 						}
 					}
 				}
-				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
 				gridMap.merge(handler.getGridMap(controllers));
@@ -236,18 +240,18 @@ public class SoldierAI extends AI {
 				}
 				break;
 
-			case ENEMY_INFORMATION_MESSAGE:
-				if (enemyNum == 0) {
-					EnemyInformationMessage ehandler = new EnemyInformationMessage(
-							msg);
-					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
-						for (EnemyInfo e : ehandler.getInfos()) {
-							controllers.enemyInfosSet.remove(e);
-							controllers.enemyInfosSet.add(e);
-						}
-					}
-				}
-				break;
+//			case ENEMY_INFORMATION_MESSAGE:
+//				if (enemyNum == 0) {
+//					EnemyInformationMessage ehandler = new EnemyInformationMessage(
+//							msg);
+//					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
+//						for (UnitInfo e : ehandler.getInfos()) {
+//							controllers.enemyMobile.remove(e);
+//							controllers.enemyMobile.add(e);
+//						}
+//					}
+//				}
+//				break;
 			}
 		}
 	}

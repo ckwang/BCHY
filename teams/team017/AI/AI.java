@@ -66,6 +66,7 @@ public abstract class AI {
 	public void yield() {
 		msgHandler.process();
 		controllers.myRC.yield();
+		controllers.reset();
 	}
 	
 //	protected void senseMines() {
