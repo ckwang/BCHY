@@ -30,7 +30,6 @@ public class CommanderAI extends AI {
 	public void proceed() {
 		while (true) {
 			try {
-				
 				controllers.senseNearby();
 				processMessages();
 				

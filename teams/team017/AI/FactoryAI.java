@@ -126,5 +126,4 @@ public class FactoryAI extends BuildingAI {
 		}
 	}
 	}
-
 }

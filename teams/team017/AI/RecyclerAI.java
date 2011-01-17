@@ -513,11 +513,11 @@ public class RecyclerAI extends BuildingAI {
 		
 		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){
 			mySpawningState = spawningState.MIDDLE;
-			unitRatios[0] = 0;
-			unitRatios[1] = 0;
+			unitRatios[0] = 1;
+			unitRatios[1] = 2;
 			unitRatios[2] = 0;
 			unitRatios[3] = 1;
-			unitRatios[4] = 0;
+			unitRatios[4] = 1;
 
 			updateRatios();
 		} else if (mySpawningState == spawningState.MIDDLE && Clock.getRoundNum() > 1500) {
