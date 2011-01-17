@@ -82,7 +82,7 @@ public class GridMap {
 		int int_offset = total_offset % 32;
 		
 		boolean scouted = (internalRecords[int_num] & (1 << int_offset)) != 0; 
-		if (scouted) {
+		if (!scouted) {
 			if (controllers.myRC.senseTerrainTile(grid.toMapLocation()) != null) {
 				setScouted(grid);
 				return true;
@@ -117,13 +117,9 @@ public class GridMap {
 		setScouted(currentScoutGrid);
 	}
 	
-	public void setScoutedIfVisited(MapLocation loc) {
-		Grid grid = new Grid(loc);
-		currentScoutGrid = grid;
-		
-		if (controllers.myRC.senseTerrainTile(grid.toMapLocation()) != null) {
-			updateScoutLocation();
-		}
+	
+	public void setScoutLocation(MapLocation loc) {
+		currentScoutGrid = new Grid(loc);
 	}
 	
 	public void setBorders(int[] borders) {
@@ -138,9 +134,9 @@ public class GridMap {
 	
 	public MapLocation getScoutLocation() {
 		// if the scout location is too old
-		if (Clock.getRoundNum() - assignedRound > 300) {
+		if (Clock.getRoundNum() - assignedRound > 150) {
 			setCurrentAsScouted();
-			updateScoutLocation();
+			setScoutLocation(controllers.myRC.getLocation());
 		}
 		
 		// if we're standing at the spot
