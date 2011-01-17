@@ -404,36 +404,4 @@ public class CombatSystem {
 		}
 	}
 	
-//	public void towerAttack() {
-//		try {
-//			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
-//			if (enemyInfosSet.size() == 0)
-//				return;
-//			
-//			EnemyInfo[] enemyInfos = new EnemyInfo[enemyInfosSet.size()];
-//			enemyInfosSet.toArray(enemyInfos);
-//			Arrays.sort(enemyInfos, comparator);
-//			
-//			double [] attackedHp = new double [enemyInfos.length];
-//			int listPointer = 0;
-//			for (WeaponController w : controllers.weapons) {
-//				if (!w.isActive()) {
-//					if (listPointer == enemyInfos.length)
-//						--listPointer;
-//					EnemyInfo enemy = enemyInfos[listPointer];
-//					if (w.withinRange(enemy.location)) {
-//						w.attackSquare(enemy.location, enemy.level);
-//						attackedHp [listPointer] += w.type().attackPower;
-//						if (attackedHp [listPointer] > enemy.hp) {
-//							++listPointer;
-//						}
-//					} else if(!controllers.motor.isActive()) {
-//						controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(enemy.location));
-//					}
-//				}
-//			}
-//		} catch (GameActionException e) {
-//			e.printStackTrace();
-//		}
-//	}
 }

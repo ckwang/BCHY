@@ -478,19 +478,14 @@ public class Navigator {
 	}
 	
 	public void updateMap(){
-		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-		RobotInfo info;
-		for (Robot r : robots){
-			try {
-				info = controllers.sensor.senseRobotInfo(r);
-				
-				if (info.chassis == Chassis.BUILDING || info.chassis == Chassis.DEBRIS  || info.chassis == Chassis.DUMMY){
-					myMap.setBlocked(info.location, true);
-				}
-				
-			} catch (GameActionException e) {
-				e.printStackTrace();
-			}
+		for (RobotInfo info: controllers.allyImmobile) {
+			myMap.setBlocked(info.location, true);
+		}
+		for (RobotInfo info: controllers.enemyImmobile) {
+			myMap.setBlocked(info.location, true);
+		}
+		for (RobotInfo info: controllers.debris) {
+			myMap.setBlocked(info.location, true);
 		}
 	}
 	

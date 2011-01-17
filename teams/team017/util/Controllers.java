@@ -107,8 +107,8 @@ public class Controllers {
 			}
 			try {
 				rinfo = sensor.senseRobotInfo((Robot)o);
-				mobile = rinfo.chassis != Chassis.BUILDING && rinfo.on;
-				if (o.getTeam() == myRC.getTeam() && rinfo.chassis != Chassis.DUMMY) {
+				mobile = rinfo.on && rinfo.chassis != Chassis.BUILDING && rinfo.chassis != Chassis.DUMMY;
+				if (o.getTeam() == myRC.getTeam()) {
 					if (mobile)
 						allyMobile.add(rinfo);
 					else
@@ -121,7 +121,7 @@ public class Controllers {
 						enemyImmobile.add(rinfo);
 					}
 				} 
-				else if (o.getTeam() == Team.NEUTRAL) {
+				else if (rinfo.chassis == Chassis.DEBRIS) {
 					debris.add(rinfo);
 				}
 			} catch (GameActionException e) {
