@@ -1,9 +1,11 @@
 package team017.construction;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import team017.util.Controllers;
+import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.ComponentClass;
 import battlecode.common.ComponentType;
@@ -105,6 +107,20 @@ public class BuildingLocations {
 			return null;
 		}
 	}
+
+	public MapLocation getLocations (int code) {
+		switch (code) {
+		case Util.RECYCLER_CODE:
+			return recyclerLocation;
+		case Util.ARMORY_CODE:
+			return armoryLocation;
+		case Util.FACTORY_CODE:
+			return factoryLocation;
+		default:
+			return null;
+		}
+	}
+
 	
 	public MapLocation getLocations (UnitType type) {
 		switch (type) {
@@ -253,9 +269,10 @@ public class BuildingLocations {
 //		return Direction.NONE;
 //	}
 	
-	public boolean isComplete(ComponentType thisBuilder, ComponentType[] builders) {
-		for (ComponentType b : builders) {
-			if (getLocations(b) == null && b != thisBuilder)
+	public boolean isComplete(int thisBuilderCode, int requiredBuilders) {
+
+		for (int c: Util.builderCodes) {
+			if (thisBuilderCode != c && ((requiredBuilders & c) > 0) && getLocations(c) == null)
 				return false;
 		}
 		return true;
@@ -398,6 +415,35 @@ public class BuildingLocations {
 //	public boolean checkDirEmpty(Direction dir){
 //		return emptyDirections[indexMapping(dir)];
 //	}
+
+	public MapLocation constructableLocation (int thisBuilderCode, int requiredBuilders) {
+		updateEmptyLocations();
+
+		int i = 0;
+		List<MapLocation> builderLocs = new LinkedList();
+		
+		for (int c: Util.builderCodes) {
+			if (thisBuilderCode != c && ((requiredBuilders & c) > 0)) {
+				if (getLocations(c) == null)
+					return null;
+				builderLocs.add(getLocations(c));
+			}
+		}
+		
+		outer:
+		for (i = 0; i < 8; ++i) {
+			if (emptyLocations[i] == true) {
+				MapLocation buildingLoc = currentLoc.add(directionMapping[i]);
+				for (MapLocation builderLoc : builderLocs) {
+					if (!buildingLoc.isAdjacentTo(builderLoc))
+						continue outer;
+				}
+				return buildingLoc;
+			}
+		}
+		return null;
+	}
+
 	
 	public MapLocation constructableLocation (ComponentType thisBuilder, ComponentType[] requiredBuilders) {
 		updateEmptyLocations();

@@ -4,6 +4,7 @@ import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.util.Util;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -22,6 +23,8 @@ public class FactoryAI extends BuildingAI {
 
 	@Override
 	public void proceed() {
+		while (controllers.motor.isActive())
+			yield();
 		while (true) {
 			try {
 
@@ -114,7 +117,7 @@ public class FactoryAI extends BuildingAI {
 				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
 				if (controllers.myRC.getLocation() == handler.getBuilderLocation()) {
 					UnitType type = handler.getType();
-					MapLocation buildLoc = buildingLocs.constructableLocation(ComponentType.FACTORY, type.requiredBuilders);
+					MapLocation buildLoc = buildingLocs.constructableLocation(Util.FACTORY_CODE, type.requiredBuilders);
 					if (buildLoc != null)
 						buildingSystem.constructUnit(buildLoc,type, buildingLocs);
 				}

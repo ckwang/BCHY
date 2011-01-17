@@ -37,6 +37,7 @@ public abstract class AI {
 	protected MapLocation[] enemyBaseLoc = new MapLocation[3];
 	protected MapLocation homeLocation;
 	
+	
 //	protected Set<EnhancedMineInfo> enemyMines;
 //	protected Set<EnhancedMineInfo> alliedMines;
 //	protected Set<MapLocation> allMines;

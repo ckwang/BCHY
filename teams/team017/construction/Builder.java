@@ -40,7 +40,7 @@ public class Builder {
 				
 				// see if there are all the required builders 
 				builderLocs.updateBuildingLocs();
-				if (!builderLocs.isComplete(controllers.builder.type(), type.requiredBuilders))	{
+				if (!builderLocs.isComplete(Util.getBuilderCode(controllers.builder.type()), type.requiredBuilders))	{
 					return false;
 				}
 				
@@ -50,10 +50,18 @@ public class Builder {
 					rc.yield();
 					
 					// send messages to other builders
-					for(ComponentType builder: type.requiredBuilders){
-						if (builder != controllers.builder.type())
-							msgHandler.queueMessage(new BuildingRequestMessage(builderLocs.getLocations(builder), buildLoc, type));
+					
+					for (int c : Util.builderCodes) {
+						if (c != Util.getBuilderCode(controllers.builder.type()) && (c & type.requiredBuilders) > 0)
+							msgHandler.queueMessage(new BuildingRequestMessage(builderLocs.getLocations(c), buildLoc, type));
 					}
+					
+//					for (int builder: type.requiredBuilders)
+					
+//					for(ComponentType builder: type.requiredBuilders){
+//						if (builder != controllers.builder.type())
+//							msgHandler.queueMessage(new BuildingRequestMessage(builderLocs.getLocations(builder), buildLoc, type));
+//					}
 					
 					// build my responsible parts
 					for (ComponentType com : type.getComponentList(controllers.builder.type())) {
@@ -79,8 +87,6 @@ public class Builder {
 
 	public boolean constructUnit(MapLocation buildLoc, UnitType type){
 		try{
-//			if(type.selfBuild == false)
-//				return false;
 			Chassis chassis = type.chassis;
 			if (rc.getTeamResources() > chassis.cost + 20) {
 				if (canConstruct(chassis.level)) {

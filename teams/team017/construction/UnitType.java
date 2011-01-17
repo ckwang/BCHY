@@ -3,6 +3,8 @@ package team017.construction;
 import java.util.ArrayList;
 import java.util.List;
 
+import team017.util.Util;
+
 import battlecode.common.BuildMappings;
 import battlecode.common.Chassis;
 import battlecode.common.ComponentType;
@@ -10,7 +12,7 @@ import battlecode.common.ComponentType;
 public enum UnitType {
 // Recycler
 	CONSTRUCTOR(Chassis.LIGHT, ComponentType.CONSTRUCTOR, ComponentType.SIGHT, ComponentType.ANTENNA),
-	COMMANDER (Chassis.LIGHT, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SMG, ComponentType.PLATING),
+	COMMANDER (Chassis.LIGHT, ComponentType.RADAR, ComponentType.DISH),
 	GRIZZLY (Chassis.LIGHT, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.PLATING, ComponentType.SIGHT),
 	RADARGUN (Chassis.LIGHT, ComponentType.BLASTER, ComponentType.ANTENNA, ComponentType.RADAR),
 	HAMMER_TANK (Chassis.LIGHT, ComponentType.HAMMER,ComponentType.HAMMER, ComponentType.PLATING, ComponentType.SIGHT),//weak!!!
@@ -44,7 +46,8 @@ public enum UnitType {
 	public final ComponentType[] factoryComs;
 	public final ComponentType[] constructorComs;
 	public final ComponentType[] allComs;
-	public final ComponentType[] requiredBuilders;
+	public final int requiredBuilders;	// constructor, factory, armory, recycler
+//	public final ComponentType[] requiredBuilders;
 	
 	public final double totalCost;
 	public final boolean selfBuild;
@@ -82,17 +85,15 @@ public enum UnitType {
 		factoryList.toArray(factoryComs);
 		constructorList.toArray(constructorComs);
 		
-		List<ComponentType> requiredBuilderList = new ArrayList<ComponentType>();
+//		List<ComponentType> requiredBuilderList = new ArrayList<ComponentType>();
+		int required = 0;
+		if(recyclerComs.length != 0)	required |= Util.RECYCLER_CODE;
+		if(armoryComs.length != 0)	required |= Util.ARMORY_CODE;
+		if(factoryComs.length != 0)	required |= Util.FACTORY_CODE;
+		if(constructorComs.length != 0)	required |= Util.CONSTRUCTOR_CODE;
+		requiredBuilders = required;
 		
-		if(recyclerComs.length != 0)	requiredBuilderList.add(ComponentType.RECYCLER);
-		if(armoryComs.length != 0)	requiredBuilderList.add(ComponentType.ARMORY);
-		if(factoryComs.length != 0)	requiredBuilderList.add(ComponentType.FACTORY);
-		if(constructorComs.length != 0)	requiredBuilderList.add(ComponentType.CONSTRUCTOR);
-		
-		requiredBuilders = new ComponentType[requiredBuilderList.size()];
-		requiredBuilderList.toArray(requiredBuilders);
-		
-		selfBuild = requiredBuilders.length == 1;
+		selfBuild = requiredBuilders % 2 == 0;
 		
 		totalCost = t;
 		shouldBuild = false;

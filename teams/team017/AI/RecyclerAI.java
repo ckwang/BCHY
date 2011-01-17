@@ -22,7 +22,7 @@ public class RecyclerAI extends BuildingAI {
 	int [] unitRatios = {1, 3, 1, 0, 0};
 	int [] cumulatedRatios = new int[5];
 	int total;
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.MEDIUM_COMMANDER, UnitType.APOCALYPSE} ;
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.COMMANDER, UnitType.APOCALYPSE} ;
 	double thresholds = 0.3;
 	
 	private enum spawningState { EARLY, MIDDLE, LATE };
@@ -114,7 +114,9 @@ public class RecyclerAI extends BuildingAI {
 				
 				double fluxRate = getEffectiveFluxRate();
 				
-				if (controllers.myRC.getTeamResources() > 170 && fluxRate > 0.3 ) {
+				
+				
+				if (controllers.myRC.getTeamResources() > 200 && fluxRate > 0.3 ) {
 						constructUnitAtRatio();
 //						if (fluxRate > 0.6 && buildingLocs.factoryLocation != null)
 //							msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.factoryLocation, UnitType.MEDIUM_COMMANDER));
@@ -478,9 +480,21 @@ public class RecyclerAI extends BuildingAI {
 		
 		ComponentType chassisBuilder = type.getChassisBuilder();
 		if (chassisBuilder == ComponentType.RECYCLER) {
-			if (buildingSystem.constructUnit(type)) {
-				++unitConstructed;
-				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+//			Cannot be built by recycler itself
+			if ((type.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
+				if (buildingSystem.constructUnit(type)) {
+					++unitConstructed;
+					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+				}
+			} else {
+				MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, type.requiredBuilders);
+				if (buildLoc != null) {
+					if (buildingSystem.constructUnit(buildLoc,type, buildingLocs)) {
+						++unitConstructed;
+						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+						
+					}
+				}
 			}
 		} else {
 			if (buildingLocs.getLocations(chassisBuilder) != null) {
@@ -499,10 +513,11 @@ public class RecyclerAI extends BuildingAI {
 		
 		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){
 			mySpawningState = spawningState.MIDDLE;
-			unitRatios[0] = 1;
-			unitRatios[1] = 2;
+			unitRatios[0] = 0;
+			unitRatios[1] = 0;
+			unitRatios[2] = 0;
 			unitRatios[3] = 1;
-			unitRatios[4] = 1;
+			unitRatios[4] = 0;
 
 			updateRatios();
 		} else if (mySpawningState == spawningState.MIDDLE && Clock.getRoundNum() > 1500) {
