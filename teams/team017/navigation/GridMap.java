@@ -4,6 +4,7 @@ import team017.util.Controllers;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
+import battlecode.common.TerrainTile;
 
 
 /**
@@ -133,8 +134,8 @@ public class GridMap {
 	}
 	
 	public MapLocation getScoutLocation() {
-		// if the scout location is too old
-		if (Clock.getRoundNum() - assignedRound > 150) {
+		// if the scout location is too old or shown to be void
+		if (Clock.getRoundNum() - assignedRound > 150 || controllers.myRC.senseTerrainTile(currentScoutGrid.toMapLocation()) == TerrainTile.VOID) {
 			setCurrentAsScouted();
 			setScoutLocation(controllers.myRC.getLocation());
 		}
