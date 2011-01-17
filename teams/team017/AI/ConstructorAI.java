@@ -52,19 +52,18 @@ public class ConstructorAI extends AI {
 
 		while (true) {
 			try {
+				while (controllers.builder.isActive())
+					yield();
+				
 				processMessages();
-				int before = Clock.getBytecodeNum();
+
 				buildRecyclers();
-				int after = Clock.getBytecodeNum();
-				controllers.myRC.setIndicatorString(2, (after - before) + "");
+
 				navigate();
-				if (controllers.myRC.getTeamResources() > 100
-						&& Clock.getRoundNum() > 400
-						&& Clock.getRoundNum() % 2 == 1)
+				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
 				if (Clock.getRoundNum() % 15 == 0) {
-					msgHandler.queueMessage(new BorderMessage(borders,
-							homeLocation));
+					msgHandler.queueMessage(new BorderMessage(borders,homeLocation));
 				}
 				yield();
 			} catch (Exception e) {
@@ -132,33 +131,6 @@ public class ConstructorAI extends AI {
 			}
 		}
 
-//		minelist = controllers.sensor.senseNearbyGameObjects(Mine.class);
-//		for (Mine mine : minelist) {
-//			try {
-//				GameObject object = controllers.sensor.senseObjectAtLocation(
-//						mine.getLocation(), RobotLevel.ON_GROUND);
-//				if (object != null) {
-//					if (controllers.sensor.senseRobotInfo((Robot) object).chassis == Chassis.BUILDING) {
-//						if (mineLocations.contains(mine.getLocation()))
-//							mineLocations.remove(mine.getLocation());
-//						if (object.getTeam() == controllers.myRC.getTeam()) {
-//							recyclerLocations.add(mine.getLocation());
-//							if (!controllers.sensor
-//									.senseRobotInfo((Robot) object).on) {
-//								recyclerLocations.remove(mine.getLocation());
-//							}
-//						}
-//					}
-//				} else {
-//					mineLocations.add(mine.getLocation());
-//				}
-//			} catch (Exception e) {
-//				continue;
-//			}
-//		}
-		// mineLocations.toString();
-		// controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation()
-		// + ";" + mineLocations.toString());
 	}
 
 	private void checkEmptyRecyclers() throws GameActionException {
@@ -321,12 +293,11 @@ public class ConstructorAI extends AI {
 			switch (msgHandler.getMessageType(msg)) {
 
 			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(
-						msg);
+
+				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
 
 				// see if the message is intended for it
-				if (handler.getConstructorID() != controllers.myRC.getRobot()
-						.getID())
+				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
 					break;
 
 				// if it is not built
@@ -339,7 +310,6 @@ public class ConstructorAI extends AI {
 				} else if (handler.getBuildableLocation() != null) {
 					MapLocation buildLoc = handler.getBuildableLocation();
 					if (buildBuildingAtLoc(buildLoc, type)) {
-						// builtLocations.add(handler.getSourceLocation());
 						yield();
 					}
 				}

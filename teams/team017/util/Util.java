@@ -141,6 +141,20 @@ public class Util {
 		}
 	}
 	
+	public static void sortHpPercentage(List<RobotInfo> robots) {
+		int j;
+		RobotInfo tmp;
+		if (robots.size() < 1)
+			return;
+		for (int i = 1; i < robots.size(); ++i) {
+			tmp = robots.get(i);
+			for (j = i; j > 0 && (tmp.hitpoints / tmp.maxHp) < (robots.get(j-1).hitpoints / robots.get(j-1).maxHp); --j) {
+				robots.set(j, robots.get(j-1));
+			}
+			robots.set(j, tmp);
+		}
+	}
+	
 	public static void sortLocation(List<Integer> dists, List<Robot> robots) {
 		int j, tmp;
 		Robot r;

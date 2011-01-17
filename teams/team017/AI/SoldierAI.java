@@ -62,27 +62,39 @@ public class SoldierAI extends AI {
 //			controllers.senseNearby();
 			enemyNum = controllers.mobileEnemyNum();
 			MapLocation nextLoc = combat.attack();
+
 			combat.heal();
 			
 			if (nextLoc != null && !controllers.motor.isActive()) {
-				navigator.setDestination(nextLoc);
 				try {
-					Direction nextDir = navigator.getNextDir(0);
-					if (rc.getDirection() == nextDir) {
-						if (controllers.motor.canMove(controllers.myRC.getDirection()))
-							controllers.motor.moveForward();
-					} else if (nextDir == Direction.OMNI) {
-						if (controllers.motor.canMove(controllers.myRC.getDirection().opposite()))
-							controllers.motor.moveBackward();
-					} else {
-						controllers.motor.setDirection(nextDir);
-					}
+					if (!combat.withinRadius){
+					// Navigate to the enemy if it's not within the radius	
+						navigator.setDestination(nextLoc);
+						Direction nextDir = navigator.getNextDir(0);
+						if (rc.getDirection() == nextDir) {
+							if (controllers.motor.canMove(controllers.myRC.getDirection()))
+								controllers.motor.moveForward();
+						} else if (nextDir == Direction.OMNI) {
+							if (controllers.motor.canMove(controllers.myRC.getDirection().opposite()))
+								controllers.motor.moveBackward();
+						} else {
+							controllers.motor.setDirection(nextDir);
+						}
+					} 
+					
+					// Face the enemy if it's within the radius but not within range
+					else {
+						Direction nextDir = controllers.myRC.getLocation().directionTo(nextLoc);
+						if (nextDir != Direction.OMNI) 
+							controllers.motor.setDirection(nextDir);
+					} 
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 			
-			yield();
+//			yield();
 			
 			if (controllers.mobileEnemyNum() == 0 && controllers.debrisNum() != 0) {
 				try {combat.attackDebris();}
@@ -113,8 +125,7 @@ public class SoldierAI extends AI {
 								// Move to the front of the leader if cant move
 								// in the same direction
 							} else {
-								navigator.setDestination(leaderLoc.add(
-										followDir, 3));
+								navigator.setDestination(leaderLoc.add(followDir, 3));
 								Direction nextDir = navigator.getNextDir(2);
 								if (rc.getDirection() == nextDir)
 									motor.moveForward();
@@ -130,7 +141,7 @@ public class SoldierAI extends AI {
 			} 
 			catch (Exception e) {}
 
-			if (attackRoundCounter > 2 && leaderMessageRoundCounter > 3) {
+			if (attackRoundCounter > 5 && leaderMessageRoundCounter > 3) {
 				leaderID = -1;
 				try {navigate();}
 				catch (Exception e) {}

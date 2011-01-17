@@ -7,6 +7,7 @@ import java.util.List;
 
 import team017.util.Controllers;
 import team017.util.Util;
+import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -22,6 +23,7 @@ public class CombatSystem {
 
 	public MapLocation selfLoc;
 	public Direction nextDir = Direction.NONE;
+	public boolean withinRadius = true;
 	
 	
 	public float totalDamage = 0;
@@ -341,10 +343,11 @@ public class CombatSystem {
 			allies.add(controllers.sensor.senseRobotInfo(controllers.myRC.getRobot()));
 			allies.addAll(controllers.allyMobile);
 			allies.addAll(controllers.allyImmobile);
-			Util.sortHp(allies);
+			Util.sortHpPercentage(allies);
 			for (RobotInfo r: allies) {
 				if (medic.withinRange(r.location)) {
-					medic.attackSquare(r.location,r.robot.getRobotLevel());
+					if (r.hitpoints < r.maxHp)
+						medic.attackSquare(r.location,r.robot.getRobotLevel());
 					return;
 				}	
 			}
@@ -358,6 +361,7 @@ public class CombatSystem {
 			RobotController rc = controllers.myRC;
 			MapLocation currentLoc = rc.getLocation();
 			boolean attacked = false;
+			withinRadius = true;
 			
 			List<RobotInfo> enemies = new LinkedList<RobotInfo>();
 			Util.sortHp(controllers.enemyMobile);
@@ -372,7 +376,12 @@ public class CombatSystem {
 			RobotInfo enemy = enemies.get(0);
 			double hp = enemy.hitpoints;
 			for (WeaponController w : controllers.weapons) {
-				if (!w.isActive() && w.withinRange(enemy.location)) {
+				if (!w.withinRange(enemy.location)) {
+					if (currentLoc.distanceSquaredTo(enemy.location) > w.type().range) {
+						withinRadius = false;
+					}
+					
+				} else if (!w.isActive()) {
 					w.attackSquare(enemy.location, enemy.robot.getRobotLevel());
 					if (hp <= w.type().attackPower) {
 						listPointer++;
@@ -387,6 +396,7 @@ public class CombatSystem {
 					attacked = true;
 				}
 			}
+			
 			if (attacked) {
 				if (enemy.direction == null) {
 					return enemy.location;

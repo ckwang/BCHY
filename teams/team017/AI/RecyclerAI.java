@@ -123,42 +123,6 @@ public class RecyclerAI extends BuildingAI {
 
 				}
 				
-				// Send message to build CHRONO_APOCALYPSE
-				MapLocation armoryLoc = buildingLocs.armoryLocation;
-				MapLocation factoryLoc = buildingLocs.factoryLocation;
-//				Direction armoryDir = buildingLocs.armoryDirection;
-//				Direction factoryDir = buildingLocs.factoryDirection;
-				if (armoryLoc != null && factoryLoc != null) {
-					/*
-					 * Case 1:
-					 * - - A
-					 * - R x
-					 * - - F
-					 * 
-					 * OR
-					 * 
-					 * - A x
-					 * - R F
-					 * - - -
-					 *
-					 * Case 2:
-					 * - - F
-					 * - R x
-					 * - - A
-					 * 
-					 * OR
-					 *  
-					 * - F x
-					 * - R A
-					 * - - -
-					 */
-					
-					if (buildingLocs.rotateLeft(armoryLoc, 2) == factoryLoc) {
-						
-					}
-					
-				}
-				
 				// turn off when the mine is depleted
 				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingLocs.clusterSize == 1)
 					controllers.myRC.turnOff();
@@ -270,6 +234,9 @@ public class RecyclerAI extends BuildingAI {
 				break;
 			}
 			case BUILDING_REQUEST:{
+				controllers.myRC.setIndicatorString(0, "Building Request Got" + Clock.getRoundNum());
+				controllers.myRC.setIndicatorString(1, "Building Request Got" + Clock.getRoundNum());
+				controllers.myRC.setIndicatorString(2, "Building Request Got" + Clock.getRoundNum());
 				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
 					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
@@ -289,91 +256,113 @@ public class RecyclerAI extends BuildingAI {
 			}
 			
 			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
-/*
- *	Case 5: T -> F -> rT -> A
- *	T  rT F
- * 	/  R  -
- *  /  /  A
- * 
- *  /  T rT
- *  /  R  F
- *  /  A  -
- *  
- *  Case 4: T -> F -> rT
- *  T rT  F
- *  /  R  -
- *  /  /  /
- *  
- *  /  T rT
- *  /  R  F
- *  /  /  -
- *  
- *  Case 3: F -> rT
- *  / rT  F
- *  /  R  -
- *  /  /  /
- *  
- *  Case 2: T
- *  T - /
- *  / R /
- *  / / /
- *  
- *  Conclusion : 
- *  1. Always build a railgunTower at the left position of a Factory
- *  2. Build a Tower at the empty location if empty != 3
- *  3. Build at the second empty space if empty == 3 or empty == 4 and tower != null
- *  
- */
 				BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
+
+				
 				
 				// if the constructor is inquiring it 
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
 					
-					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + ": i got the message from " + handler.getSourceID());
 					
 					int constructorID = handler.getSourceID();
 					MapLocation loc;
 					
 					if (inquiryIdleRound > 0)
 						break;
-					
-					
-					if (buildingLocs.towerLocations.size() == 0) {
-						for (int i = 5; i >= 2; i--) {
-							loc = buildingLocs.consecutiveEmpties(i);
+
+					//	Build a tower at the initial base
+					if (birthRoundNum < 300) {
+						if (buildingLocs.towerLocations.size() == 0) {
+							loc = buildingLocs.consecutiveEmpties(1);
 							if (loc != null) {
-								if (i == 3 )
-									break;
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
 								inquiryIdleRound = 5;
 								break;
 							}
 						}
-					} else if (buildingLocs.factoryLocation == null) {
-						for (int i = 4; i >= 3; i--) {
-							loc = buildingLocs.consecutiveEmpties(i);
+					} else {
+						if (buildingLocs.factoryLocation == null) {
+							loc = buildingLocs.consecutiveEmpties(3);
 							if (loc != null)
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
+							inquiryIdleRound = 3;
+						} else if (buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() == 0) {
+							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+							inquiryIdleRound = 5;
 						}
-						inquiryIdleRound = 5;
-					} else if (buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() == 0) {
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-						inquiryIdleRound = 5;
-					} else if (buildingLocs.armoryLocation == null) {
-						loc = buildingLocs.consecutiveEmpties(2);
-						if (loc != null) {
-							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.ARMORY));
-						}
-						inquiryIdleRound = 5;
-					} else {
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
 					}
-
-
+					
+//					/*
+//					 *	Case 5: T -> F -> rT -> A
+//					 *	T  rT F
+//					 * 	/  R  -
+//					 *  /  /  A
+//					 * 
+//					 *  /  T rT
+//					 *  /  R  F
+//					 *  /  A  -
+//					 *  
+//					 *  Case 4: T -> F -> rT
+//					 *  T rT  F
+//					 *  /  R  -
+//					 *  /  /  /
+//					 *  
+//					 *  /  T rT
+//					 *  /  R  F
+//					 *  /  /  -
+//					 *  
+//					 *  Case 3: F -> rT
+//					 *  / rT  F
+//					 *  /  R  -
+//					 *  /  /  /
+//					 *  
+//					 *  Case 2: T
+//					 *  T - /
+//					 *  / R /
+//					 *  / / /
+//					 *  
+//					 *  Conclusion : 
+//					 *  1. Always build a railgunTower at the left position of a Factory
+//					 *  2. Build a Tower at the empty location if empty != 3
+//					 *  3. Build at the second empty space if empty == 3 or empty == 4 and tower != null
+//					 *  
+//					 */
+//					else {
+//						if (buildingLocs.towerLocations.size() == 0) {
+//							for (int i = 5; i >= 2; i--) {
+//								loc = buildingLocs.consecutiveEmpties(i);
+//								if (loc != null) {
+//									if (i == 3 )
+//										break;
+//									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
+//									inquiryIdleRound = 5;
+//									break;
+//								}
+//							}
+//
+//						} else if (buildingLocs.factoryLocation == null) {
+//							for (int i = 4; i >= 3; i--) {
+//								loc = buildingLocs.consecutiveEmpties(i);
+//								if (loc != null)
+//									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
+//							}
+//							inquiryIdleRound = 5;
+//						} else if (buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() == 0) {
+//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+//							inquiryIdleRound = 5;
+//						} else if (buildingLocs.armoryLocation == null) {
+//							loc = buildingLocs.consecutiveEmpties(2);
+//							if (loc != null) {
+//								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.ARMORY));
+//							}
+//							inquiryIdleRound = 5;
+//						} else {
+//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
+//						}
+//						yield();
+//					}
 					
 					
-
-					yield();
 				}
 				break;
 			}
