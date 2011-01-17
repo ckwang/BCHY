@@ -6,6 +6,7 @@ import team017.combat.CombatSystem;
 import team017.message.BorderMessage;
 import team017.message.EnemyInformationMessage;
 import team017.message.FollowMeMessage;
+import team017.message.GridMapMessage;
 import team017.util.EnemyInfo;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -169,7 +170,7 @@ public class SoldierAI extends AI {
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
-			case BORDER:
+			case BORDER:{
 				BorderMessage handler = new BorderMessage(msg);
 				// update the borders
 				int[] newBorders = handler.getBorderDirection();
@@ -184,7 +185,26 @@ public class SoldierAI extends AI {
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
 				break;
+			}
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
 
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				gridMap.merge(handler.getGridMap(controllers));
+				
+				break;
+			}
 			case FOLLOW_ME_MESSAGE:
 				FollowMeMessage fhandler = new FollowMeMessage(msg);
 				if (leaderID == -1) {
