@@ -1,9 +1,7 @@
 package team017.AI;
 
 import team017.combat.CombatSystem;
-import team017.message.EnemyInformationMessage;
 import team017.message.FollowMeMessage;
-import team017.util.EnemyInfo;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -32,14 +30,13 @@ public class CommanderAI extends AI {
 		while (true) {
 			try {
 				
-				if (controllers.sensor != null)
-					combat.senseNearby();
+				controllers.senseNearby();
 				processMessages();
 				
 //				rc.setIndicatorString(0, combat.enemyInfosSet.size() + "");
-				if (controllers.enemyInfosSet.size() > 0) {
+				if (controllers.enemyMobile.size() > 0) {
 					msgHandler.clearOutQueue();
-					msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyInfosSet));
+//					msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyMobile));
 					msgHandler.process();
 				} else {
 					navigate();
@@ -59,15 +56,15 @@ public class CommanderAI extends AI {
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
-			case ENEMY_INFORMATION_MESSAGE:
-					EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
-					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
-						for (EnemyInfo e: ehandler.getInfos()) {
-							controllers.enemyInfosSet.remove(e);
-							controllers.enemyInfosSet.add(e);
-						}	
-					}
-				break;
+//			case ENEMY_INFORMATION_MESSAGE:
+//					EnemyInformationMessage ehandler = new EnemyInformationMessage(msg);
+//					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
+//						for (UnitInfo e: ehandler.getInfos()) {
+//							controllers.enemyMobile.remove(e);
+//							controllers.enemyMobile.add(e);
+//						}	
+//					}
+//				break;
 			}
 		}
 	}

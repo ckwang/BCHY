@@ -1,17 +1,19 @@
 package team017.util;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
+import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentController;
 import battlecode.common.GameActionException;
+import battlecode.common.GameObject;
 import battlecode.common.JumpController;
-import battlecode.common.MapLocation;
+import battlecode.common.Mine;
+import battlecode.common.MineInfo;
 import battlecode.common.MovementController;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
@@ -30,49 +32,115 @@ public class Controllers {
 	public List<WeaponController> weapons = null;
 	public JumpController jump = null;
 	
-	public Set<EnemyInfo> enemyInfosSet = new HashSet<EnemyInfo>();
-	public List<MapLocation> debrisLoc = new ArrayList<MapLocation>();
+	public List<RobotInfo> allyMobile = new LinkedList<RobotInfo>();
+	public List<RobotInfo> allyImmobile = new LinkedList<RobotInfo>();
+	public List<RobotInfo> enemyMobile = new LinkedList<RobotInfo>();
+	public List<RobotInfo> enemyImmobile = new LinkedList<RobotInfo>();
+	public List<RobotInfo> debris = new LinkedList<RobotInfo>();
+	public List<MineInfo> mines = new ArrayList<MineInfo>();
+	
+	public int lastUpdate = -1;
 	
 	public Controllers() {
 		weapons = new ArrayList<WeaponController>();
 	}
 	
 	public void reset() {
-		debrisLoc.clear();
-		enemyInfosSet.clear();
+		allyMobile.clear();
+		allyImmobile.clear();
+		enemyMobile.clear();
+		enemyImmobile.clear();
+		debris.clear();
+		mines.clear();
+	}
+	
+	public int debrisNum() {
+		if (lastUpdate < Clock.getRoundNum())
+			senseNearby();
+		return debris.size();
+	}
+	
+	public int mobileEnemyNum() {
+		if (lastUpdate < Clock.getRoundNum())
+			senseNearby();
+		return enemyMobile.size();
+	}
+	
+	public int immobileEnemyNum() {
+		if (lastUpdate < Clock.getRoundNum())
+			senseNearby();
+		return enemyImmobile.size();
+	}
+	
+	public int mobileAllyNum() {
+		if (lastUpdate < Clock.getRoundNum())
+			senseNearby();
+		return allyMobile.size();
+	}
+	
+	public int immobileAllyNum() {
+		if (lastUpdate < Clock.getRoundNum())
+			senseNearby();
+		return allyImmobile.size();
 	}
 	
 	public void senseNearby() {
-//		reset();
+//		int before = Clock.getBytecodesLeft();
+		if (sensor == null)
+			return;
 		int roundNum = Clock.getRoundNum();
-//		int before = Clock.getBytecodeNum();
-		Robot[] robots = sensor.senseNearbyGameObjects(Robot.class);
-		for (Robot r : robots) {
+		if (roundNum == lastUpdate)
+			return;
+		MineInfo minfo;
+		RobotInfo rinfo;
+		Boolean mobile;
+		GameObject[] objects = sensor.senseNearbyGameObjects(GameObject.class);
+		for (GameObject o: objects) {
+			if (o instanceof Mine) {
+				try {
+					minfo = sensor.senseMineInfo((Mine)o);
+					mines.add(minfo);
+				} catch (GameActionException e) {
+					e.printStackTrace();
+				}
+				continue;
+			}
 			try {
-				RobotInfo info = sensor.senseRobotInfo(r);
-//				if (r.getTeam() == controllers.myRC.getTeam()) {
-//					ComponentType[] components = info.components;
-//					if (Util.hasWeapon(components)) {
-//						allies.add(r);
-//						MapLocation loc = controllers.sensor.senseLocationOf(r);
-//						alocs.add(loc);
-//					}
-//				} else 
-				if (r.getTeam() == myRC.getTeam().opponent()) {
-					EnemyInfo thisEnemy = new EnemyInfo(roundNum, info);
-					enemyInfosSet.remove(thisEnemy);
-					enemyInfosSet.add(thisEnemy);
-				} else if (r.getTeam() == Team.NEUTRAL) {
-					debrisLoc.add(info.location);
+				rinfo = sensor.senseRobotInfo((Robot)o);
+				mobile = rinfo.chassis != Chassis.BUILDING && rinfo.on;
+				if (o.getTeam() == myRC.getTeam() && rinfo.chassis != Chassis.DUMMY) {
+					if (mobile)
+						allyMobile.add(rinfo);
+					else
+						allyImmobile.add(rinfo);
+				} 
+				else if (o.getTeam() == myRC.getTeam().opponent()) {
+					if (mobile) {
+						enemyMobile.add(rinfo);
+					} else {
+						enemyImmobile.add(rinfo);
+					}
+				} 
+				else if (o.getTeam() == Team.NEUTRAL) {
+					debris.add(rinfo);
 				}
 			} catch (GameActionException e) {
 				continue;
 			}
 		}
-//		Util.sortHp(hps, enemies);
+		lastUpdate = roundNum;
+//		int after = Clock.getBytecodesLeft();
+//		if ((before-after) > 1100 || (before-after) < -1100)
+//			System.out.println("used bytecode: "+ String.valueOf(before - after));
 	}
 	
 //	public int weaponNum() {return weapons.size();}
+	
+	public boolean isMobile(RobotInfo info) {
+		return info.on && (info.chassis != Chassis.BUILDING)
+				&& (info.chassis != Chassis.DUMMY)
+				&& (info.chassis != Chassis.DEBRIS);
+	}
 	
 	public void updateComponents() {
 		ComponentController[] components = myRC.newComponents();
