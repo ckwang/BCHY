@@ -259,6 +259,8 @@ public class ConstructorAI extends AI {
 			nextDir = navigator.getNextDir(4);
 		}
 		
+//		controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "," + gridMap.getScoutLocation());
+		
 		if (nextDir != Direction.OMNI) {
 			if (!controllers.motor.isActive() ) {
 				if (controllers.myRC.getDirection() == nextDir) {
@@ -267,7 +269,7 @@ public class ConstructorAI extends AI {
 						
 						MapLocation currentLoc = controllers.myRC.getLocation();
 						if (!gridMap.isScouted(currentLoc)) {
-							gridMap.setScoutedIfVisited(currentLoc);
+							gridMap.setScoutLocation(currentLoc);
 						}
 					}
 				} else {
