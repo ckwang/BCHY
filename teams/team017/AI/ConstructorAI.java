@@ -31,7 +31,8 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
-	private boolean attacked = false;
+	private int attackedRound = 0;;
+	
 	private double prevHp = 0;
 	private CombatSystem combat;
 
@@ -58,30 +59,30 @@ public class ConstructorAI extends AI {
 				processMessages();
 
 				buildRecyclers();
-				int after = Clock.getBytecodeNum();
-//				controllers.myRC.setIndicatorString(2, (after - before) + "");
-				while (evaluateDanger());
-//					continue;
-				if (attacked && controllers.enemyNum() == 0) {
-					
-					Direction mydir = controllers.myRC.getDirection();
-					if (!controllers.motor.isActive()
-							&& controllers.motor.canMove(mydir.opposite())) {
-						try {
-							controllers.motor.moveBackward();
-							yield();
-						} catch (GameActionException e) {
-						}
-					}
-//					try {
-//						if (Clock.getRoundNum() % 2 == 0)
-//							controllers.motor.setDirection(mydir.rotateLeft().rotateLeft());
-//						else
-//							controllers.motor.setDirection(mydir.rotateRight().rotateRight());
+				
+//				while (evaluateDanger());
+//
+//				
+//				if (attacked && controllers.enemyNum() == 0) {
+//					
+//					Direction mydir = controllers.myRC.getDirection();
+//					if (!controllers.motor.isActive()
+//							&& controllers.motor.canMove(mydir.opposite())) {
+//						try {
+//							controllers.motor.moveBackward();
+//							yield();
+//						} catch (GameActionException e) {
+//						}
 //					}
-//					catch (Exception e) {}
-					continue;
-				}
+////					try {
+////						if (Clock.getRoundNum() % 2 == 0)
+////							controllers.motor.setDirection(mydir.rotateLeft().rotateLeft());
+////						else
+////							controllers.motor.setDirection(mydir.rotateRight().rotateRight());
+////					}
+////					catch (Exception e) {}
+//					continue;
+//				}
 					
 				navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
@@ -138,7 +139,10 @@ public class ConstructorAI extends AI {
 		updateLocationSets();
 		navigator.updateMap();
 		senseBorder();
-		attacked = controllers.myRC.getHitpoints() < prevHp;
+		
+		if (controllers.myRC.getHitpoints() < prevHp) {
+			attackedRound = Clock.getRoundNum();
+		}
 		prevHp = controllers.myRC.getHitpoints();
 //		controllers.myRC.setIndicatorString(2, "" + attacked + ": "+ prevHp);
 	}
@@ -322,8 +326,13 @@ public class ConstructorAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
+		
+		
 		Direction nextDir = Direction.OMNI;
-		if (nearestMine != null) {
+		if (Clock.getRoundNum() - attackedRound <= 50) {
+			navigator.setDestination(homeLocation);
+			nextDir = navigator.getNextDir(9);
+		} else if (nearestMine != null) {
 			navigator.setDestination(nearestMine);
 			nextDir = navigator.getNextDir(2);
 		} else {

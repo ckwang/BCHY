@@ -56,11 +56,12 @@ public class GridMap {
 		
 		public Grid[] getNeighbors(int d) {
 			Direction currentDir = controllers.myRC.getDirection();
+			boolean rightward = Clock.getRoundNum() % 2 == 0 ? true : false;
 			
 			Grid[] neighbors = new Grid[8];
 			for (int i = 0; i < 8; i++) {
 				neighbors[i] = add(currentDir, d);
-				currentDir = currentDir.rotateRight();
+				currentDir = rightward ? currentDir.rotateRight() : currentDir.rotateLeft();
 			}
 			
 			return neighbors;
@@ -177,9 +178,9 @@ public class GridMap {
 	
 	public void updateScoutLocation() {
 		int roundNum = Clock.getRoundNum();
-		int randomness = (roundNum % 3) + 7;
+		int randomness = roundNum ;
 		
-		for (int i = 1; i <= 7; i++) {
+		for (int i = 1; i <= 5; i++) {
 			Grid[] neighbors = currentScoutGrid.getNeighbors(i);
 			
 			for (int j = 0; j < 8; j++) {
