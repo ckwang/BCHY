@@ -1,46 +1,22 @@
 package team017.combat;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import team017.util.Controllers;
-import team017.util.UnitInfo;
 import team017.util.Util;
-import battlecode.common.Chassis;
-import battlecode.common.Clock;
-import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
-import battlecode.common.MovementController;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
-import battlecode.common.Team;
 import battlecode.common.WeaponController;
 
 public class CombatSystem {
 
-	//higher priority = less than
-	public class compareEnemyInfoByDistance implements Comparator<UnitInfo> {
-		public int compare(UnitInfo o1, UnitInfo o2) {
-			if (o1.priority < o2.priority) {
-				return 1;
-			} else if (o1.priority > o2.priority) {
-				return -1;
-			} else {
-				return 0;
-			}
-		}		
-	}
-	
 	private Controllers controllers;
 
 	public MapLocation selfLoc;
@@ -359,39 +335,33 @@ public class CombatSystem {
 		try {
 			RobotController rc = controllers.myRC;
 			MapLocation currentLoc = rc.getLocation();
-			compareEnemyInfoByDistance comparator = new compareEnemyInfoByDistance();
 			boolean attacked = false;
 			
-			Set<UnitInfo> enemies = new HashSet<UnitInfo>();
+			List<RobotInfo> enemies = new LinkedList<RobotInfo>();
+			Util.sortHp(controllers.enemyMobile);
 			enemies.addAll(controllers.enemyMobile);
 			enemies.addAll(controllers.enemyImmobile);
 			
 			if (enemies.size() == 0)
 				return null;
 
-			UnitInfo[] enemyInfos = new UnitInfo[enemies.size()];
-			int i = 0;
-			for (UnitInfo info : enemies) {
-				info.calculateCost(currentLoc);
-				enemyInfos[i] = info;
-				++i;
-			}
-			Arrays.sort(enemyInfos, comparator);
+
 			int listPointer = 0;
-			UnitInfo enemy = enemyInfos[listPointer];
-			
+			RobotInfo enemy = enemies.get(0);
+			double hp = enemy.hitpoints;
 			for (WeaponController w : controllers.weapons) {
 				if (!w.isActive() && w.withinRange(enemy.location)) {
-					w.attackSquare(enemy.location, enemy.level);
-					enemy.hp -= w.type().attackPower;
-					if (enemy.hp < 0) {
+					w.attackSquare(enemy.location, enemy.robot.getRobotLevel());
+					if (hp <= w.type().attackPower) {
 						listPointer++;
-						if (listPointer == enemyInfos.length) {
+						if (listPointer == enemies.size()) {
 							break;
 						} else {
-							enemy = enemyInfos[listPointer];
+							enemy = enemies.get(listPointer);
+							hp = enemy.hitpoints;
 						}
 					}
+					hp -= w.type().attackPower;
 					attacked = true;
 				}
 			}
@@ -399,7 +369,7 @@ public class CombatSystem {
 				if (enemy.direction == null) {
 					return enemy.location;
 				}
-				else if (Util.isFacing(enemy.direction, rc.getDirection())) {
+				else if (Util.isFacing(enemy.direction, rc.getDirection().opposite())) {
 					return currentLoc;
 				}
 			} else {

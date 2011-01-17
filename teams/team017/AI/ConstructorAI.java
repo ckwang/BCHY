@@ -238,8 +238,9 @@ public class ConstructorAI extends AI {
 				return false;
 			yield();
 		}
+		msgHandler.clearOutQueue();
+		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
 		if (type == UnitType.RECYCLER) {
-			msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, UnitType.RECYCLER));
 			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 		} else {
 			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
@@ -266,8 +267,7 @@ public class ConstructorAI extends AI {
 						
 						MapLocation currentLoc = controllers.myRC.getLocation();
 						if (!gridMap.isScouted(currentLoc)) {
-							gridMap.setScouted(currentLoc);
-							gridMap.updateScoutLocation(currentLoc);
+							gridMap.setScoutedIfVisited(currentLoc);
 						}
 					}
 				} else {
@@ -305,8 +305,6 @@ public class ConstructorAI extends AI {
 				} else if (handler.getBuildableLocation() != null) {
 					MapLocation buildLoc = handler.getBuildableLocation();
 					if (buildBuildingAtLoc(buildLoc, type)){
-						msgHandler.clearOutQueue();
-						msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
 //							builtLocations.add(handler.getSourceLocation());
 						yield();
 					}
@@ -349,8 +347,6 @@ public class ConstructorAI extends AI {
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
 				gridMap.merge(handler.getGridMap(controllers));
-				
-				controllers.myRC.setIndicatorString(0, "lalala");
 				
 				break;
 			}

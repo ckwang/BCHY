@@ -10,6 +10,7 @@ import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Robot;
+import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 
 public class Util {
@@ -115,6 +116,20 @@ public class Util {
 			}
 			hps.set(j, tmp);
 			robots.set(j, r);
+		}
+	}
+	
+	public static void sortHp(List<RobotInfo> robots) {
+		int j;
+		RobotInfo tmp;
+		if (robots.size() < 1)
+			return;
+		for (int i = 1; i < robots.size(); ++i) {
+			tmp = robots.get(i);
+			for (j = i; j > 0 && tmp.hitpoints < robots.get(j-1).hitpoints; --j) {
+				robots.set(j, robots.get(j-1));
+			}
+			robots.set(j, tmp);
 		}
 	}
 	

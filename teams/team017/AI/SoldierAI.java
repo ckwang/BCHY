@@ -4,9 +4,8 @@ import java.util.List;
 
 import team017.combat.CombatSystem;
 import team017.message.BorderMessage;
-import team017.message.EnemyInformationMessage;
 import team017.message.FollowMeMessage;
-import team017.util.UnitInfo;
+import team017.message.GridMapMessage;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -85,7 +84,7 @@ public class SoldierAI extends AI {
 				}
 			}
 
-			broadcast();
+//			broadcast();
 
 			if (enemyNum > 0)
 				attackRoundCounter = 0;
@@ -155,7 +154,7 @@ public class SoldierAI extends AI {
 			return;
 		if (enemyNum > 0) {
 			msgHandler.clearOutQueue();
-			msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyMobile));
+//			msgHandler.queueMessage(new EnemyInformationMessage(controllers.enemyMobile));
 			msgHandler.process();
 		} else if (!hasLeader) {
 			if (previousDir != controllers.myRC.getDirection() || Clock.getRoundNum() % 3 == 0) {
@@ -169,7 +168,7 @@ public class SoldierAI extends AI {
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
-			case BORDER:
+			case BORDER:{
 				BorderMessage handler = new BorderMessage(msg);
 				// update the borders
 				int[] newBorders = handler.getBorderDirection();
@@ -184,7 +183,26 @@ public class SoldierAI extends AI {
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
 				break;
+			}
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
 
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				gridMap.merge(handler.getGridMap(controllers));
+				
+				break;
+			}
 			case FOLLOW_ME_MESSAGE:
 				FollowMeMessage fhandler = new FollowMeMessage(msg);
 				if (leaderID == -1) {
@@ -216,18 +234,18 @@ public class SoldierAI extends AI {
 				}
 				break;
 
-			case ENEMY_INFORMATION_MESSAGE:
-				if (enemyNum == 0) {
-					EnemyInformationMessage ehandler = new EnemyInformationMessage(
-							msg);
-					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
-						for (UnitInfo e : ehandler.getInfos()) {
-							controllers.enemyMobile.remove(e);
-							controllers.enemyMobile.add(e);
-						}
-					}
-				}
-				break;
+//			case ENEMY_INFORMATION_MESSAGE:
+//				if (enemyNum == 0) {
+//					EnemyInformationMessage ehandler = new EnemyInformationMessage(
+//							msg);
+//					if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
+//						for (UnitInfo e : ehandler.getInfos()) {
+//							controllers.enemyMobile.remove(e);
+//							controllers.enemyMobile.add(e);
+//						}
+//					}
+//				}
+//				break;
 			}
 		}
 	}
