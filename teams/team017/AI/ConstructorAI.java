@@ -267,8 +267,7 @@ public class ConstructorAI extends AI {
 						
 						MapLocation currentLoc = controllers.myRC.getLocation();
 						if (!gridMap.isScouted(currentLoc)) {
-							gridMap.setScouted(currentLoc);
-							gridMap.updateScoutLocation(currentLoc);
+							gridMap.setScoutedIfVisited(currentLoc);
 						}
 					}
 				} else {
@@ -348,8 +347,6 @@ public class ConstructorAI extends AI {
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
 				gridMap.merge(handler.getGridMap(controllers));
-				
-				controllers.myRC.setIndicatorString(0, "lalala");
 				
 				break;
 			}

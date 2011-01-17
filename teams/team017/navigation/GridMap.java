@@ -117,6 +117,15 @@ public class GridMap {
 		setScouted(currentScoutGrid);
 	}
 	
+	public void setScoutedIfVisited(MapLocation loc) {
+		Grid grid = new Grid(loc);
+		currentScoutGrid = grid;
+		
+		if (controllers.myRC.senseTerrainTile(grid.toMapLocation()) != null) {
+			updateScoutLocation();
+		}
+	}
+	
 	public void setBorders(int[] borders) {
 		for (int i = 0; i < 4; i++) {
 			if (borders[i] == -1) {
