@@ -21,10 +21,12 @@ public class TowerAI extends AI {
 		while(true) {
 			try {
 				controllers.senseAll();
-				enemyNum = controllers.enemyMobile.size();
+//				enemyNum = controllers.enemyMobile.size();
 
 				processMessages();
-				enemyNum = controllers.enemyMobile.size();
+				enemyNum = controllers.enemyMobile.size() + controllers.enemyImmobile.size();
+
+				combat.heal();
 				if (enemyNum == 0 && !controllers.motor.isActive()) {
 					controllers.motor.setDirection(controllers.myRC.getDirection().opposite());
 					yield();
@@ -39,7 +41,6 @@ public class TowerAI extends AI {
 					yield();
 				}
 				
-				combat.heal();
 				
 				controllers.updateComponents();
 				if (enemyNum > 0) {

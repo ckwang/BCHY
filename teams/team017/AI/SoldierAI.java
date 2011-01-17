@@ -65,6 +65,10 @@ public class SoldierAI extends AI {
 
 			combat.heal();
 			
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation() + "");
+			controllers.myRC.setIndicatorString(1, nextLoc + "");
+			controllers.myRC.setIndicatorString(2, combat.withinRadius + "");
+			
 			if (nextLoc != null && !controllers.motor.isActive()) {
 				try {
 					if (!combat.withinRadius){
@@ -141,7 +145,7 @@ public class SoldierAI extends AI {
 			} 
 			catch (Exception e) {}
 
-			if (attackRoundCounter > 5 && leaderMessageRoundCounter > 3) {
+			if (nextLoc == null && attackRoundCounter > 5 && leaderMessageRoundCounter > 3) {
 				leaderID = -1;
 				try {navigate();}
 				catch (Exception e) {}
