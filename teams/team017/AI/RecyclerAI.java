@@ -19,10 +19,10 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 
-	int [] unitRatios = {1, 3, 1};
-	int [] cumulatedRatios = new int[3];
+	int [] unitRatios = {1, 3, 1, 0, 0};
+	int [] cumulatedRatios = new int[5];
 	int total;
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN} ;
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.APOCALYPSE, UnitType.BATTLE_FORTRESS};
 	double thresholds = 0.3;
 	
 	private enum spawningState { EARLY, MIDDLE, LATE };
@@ -114,11 +114,13 @@ public class RecyclerAI extends BuildingAI {
 				
 				double fluxRate = getEffectiveFluxRate();
 				
-				if (controllers.myRC.getTeamResources() > 170 ) {
-					if (Clock.getRoundNum() > 1000 && fluxRate > 1 && buildingLocs.factoryLocation != null)
-						msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.factoryLocation, UnitType.APOCALYPSE));
-					else if (fluxRate > 0.3)
+				
+				
+				if (controllers.myRC.getTeamResources() > 200 && fluxRate > 0.3 ) {
 						constructUnitAtRatio();
+//						if (fluxRate > 0.6 && buildingLocs.factoryLocation != null)
+//							msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.factoryLocation, UnitType.MEDIUM_COMMANDER));
+
 				}
 				
 				// Send message to build CHRONO_APOCALYPSE
@@ -473,20 +475,68 @@ public class RecyclerAI extends BuildingAI {
 		// Find the production index
 		for (index = 0; seed >= cumulatedRatios[index]; ++index);
 
-		if (buildingSystem.constructUnit(types[index])) {
-			++unitConstructed;
-			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+//		
+		UnitType type = types[index];
+		
+		ComponentType chassisBuilder = type.getChassisBuilder();
+		if (chassisBuilder == ComponentType.RECYCLER) {
+//			Cannot be built by recycler itself
+			if ((type.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
+				if (buildingSystem.constructUnit(type)) {
+					++unitConstructed;
+					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+				}
+			} else {
+				MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, type.requiredBuilders);
+				if (buildLoc != null) {
+					if (buildingSystem.constructUnit(buildLoc,type, buildingLocs)) {
+						++unitConstructed;
+						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+						
+					}
+				}
+			}
+		} else {
+			if (buildingLocs.getLocations(chassisBuilder) != null) {
+				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), type));
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+			}
+		}
+		
+
+//
+		
+//		if (buildingSystem.constructUnit(types[index])) {
+//			++unitConstructed;
+//			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+//		}
+		
+		
+//		Build more constructors if flux is insufficient
+		if (getEffectiveFluxRate() < 0.5 && Clock.getRoundNum() < 2000) {
+			unitRatios[0] = 5;
+			updateRatios();
+		} else {
+			unitRatios[0] = 1;
+			updateRatios();
 		}
 		
 		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){
 			mySpawningState = spawningState.MIDDLE;
-			unitRatios[0] = 1;
+			unitRatios[0] = 2;
 			unitRatios[1] = 2;
+			unitRatios[2] = 0;
+			unitRatios[3] = 2;
+			unitRatios[4] = 1;
+
 			updateRatios();
 		} else if (mySpawningState == spawningState.MIDDLE && Clock.getRoundNum() > 1500) {
 			mySpawningState = spawningState.LATE;
 			unitRatios[0] = 1;
-			unitRatios[1] = 3;
+			unitRatios[1] = 0;
+			unitRatios[2] = 0;
+			unitRatios[3] = 3;
+			unitRatios[4] = 1;
 			updateRatios();
 		}
 	}

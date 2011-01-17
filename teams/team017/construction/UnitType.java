@@ -3,6 +3,8 @@ package team017.construction;
 import java.util.ArrayList;
 import java.util.List;
 
+import team017.util.Util;
+
 import battlecode.common.BuildMappings;
 import battlecode.common.Chassis;
 import battlecode.common.ComponentType;
@@ -10,7 +12,7 @@ import battlecode.common.ComponentType;
 public enum UnitType {
 // Recycler
 	CONSTRUCTOR(Chassis.LIGHT, ComponentType.CONSTRUCTOR, ComponentType.SIGHT, ComponentType.ANTENNA),
-	COMMANDER (Chassis.LIGHT, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SMG, ComponentType.PLATING),
+	COMMANDER (Chassis.LIGHT, ComponentType.RADAR, ComponentType.DISH),
 	GRIZZLY (Chassis.LIGHT, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.PLATING, ComponentType.SIGHT),
 	RADARGUN (Chassis.LIGHT, ComponentType.BLASTER, ComponentType.ANTENNA, ComponentType.RADAR),
 	HAMMER_TANK (Chassis.LIGHT, ComponentType.HAMMER,ComponentType.HAMMER, ComponentType.PLATING, ComponentType.SIGHT),//weak!!!
@@ -27,15 +29,15 @@ public enum UnitType {
 // Factory + Recycler	
 	MEDIUM_CONSTRUCTOR(Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING),
 	MEDIUM_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.DISH, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
-	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SIGHT, ComponentType.PLATING),
-	APOCALYPSE(Chassis.HEAVY, ComponentType.REGEN, ComponentType.SHIELD, ComponentType.RAILGUN, ComponentType.RAILGUN, ComponentType.RADAR),
+	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.RADAR, ComponentType.MEDIC, ComponentType.SHIELD, ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG),
+	APOCALYPSE(Chassis.HEAVY, ComponentType.REGEN, ComponentType.HARDENED, ComponentType.SMG, ComponentType.BLASTER, ComponentType.RAILGUN, ComponentType.RADAR),
 	CHRONO_APOCALYPSE(Chassis.HEAVY, ComponentType.RAILGUN, ComponentType.RAILGUN, ComponentType.JUMP, ComponentType.RADAR, ComponentType.SHIELD, ComponentType.PLATING),
 
 // Buildings
 	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER),
 	ARMORY(Chassis.BUILDING, ComponentType.ARMORY),
 	FACTORY (Chassis.BUILDING, ComponentType.FACTORY),
-	RAILGUN_TOWER (Chassis.BUILDING, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SMG, ComponentType.SMG, ComponentType.SMG, ComponentType.SMG, ComponentType.RAILGUN, ComponentType.RAILGUN),
+	RAILGUN_TOWER (Chassis.BUILDING, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.MEDIC, ComponentType.RAILGUN, ComponentType.RAILGUN),
 	TOWER (Chassis.BUILDING, ComponentType.ANTENNA, ComponentType.RADAR, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SMG, ComponentType.SMG);
 		
 	public final Chassis chassis;
@@ -44,7 +46,8 @@ public enum UnitType {
 	public final ComponentType[] factoryComs;
 	public final ComponentType[] constructorComs;
 	public final ComponentType[] allComs;
-	public final ComponentType[] requiredBuilders;
+	public final int requiredBuilders;	// constructor, factory, armory, recycler
+//	public final ComponentType[] requiredBuilders;
 	
 	public final double totalCost;
 	public final boolean selfBuild;
@@ -82,17 +85,15 @@ public enum UnitType {
 		factoryList.toArray(factoryComs);
 		constructorList.toArray(constructorComs);
 		
-		List<ComponentType> requiredBuilderList = new ArrayList<ComponentType>();
+//		List<ComponentType> requiredBuilderList = new ArrayList<ComponentType>();
+		int required = 0;
+		if(recyclerComs.length != 0)	required |= Util.RECYCLER_CODE;
+		if(armoryComs.length != 0)	required |= Util.ARMORY_CODE;
+		if(factoryComs.length != 0)	required |= Util.FACTORY_CODE;
+		if(constructorComs.length != 0)	required |= Util.CONSTRUCTOR_CODE;
+		requiredBuilders = required;
 		
-		if(recyclerComs.length != 0)	requiredBuilderList.add(ComponentType.RECYCLER);
-		if(armoryComs.length != 0)	requiredBuilderList.add(ComponentType.ARMORY);
-		if(factoryComs.length != 0)	requiredBuilderList.add(ComponentType.FACTORY);
-		if(constructorComs.length != 0)	requiredBuilderList.add(ComponentType.CONSTRUCTOR);
-		
-		requiredBuilders = new ComponentType[requiredBuilderList.size()];
-		requiredBuilderList.toArray(requiredBuilders);
-		
-		selfBuild = requiredBuilders.length == 1;
+		selfBuild = requiredBuilders % 2 == 0;
 		
 		totalCost = t;
 		shouldBuild = false;
@@ -112,4 +113,17 @@ public enum UnitType {
 				return null;
 		}
 	}
+	
+	public ComponentType getChassisBuilder () {
+		if (BuildMappings.canBuild(ComponentType.RECYCLER, chassis))
+			return ComponentType.RECYCLER;
+		else if (BuildMappings.canBuild(ComponentType.FACTORY, chassis))
+			return ComponentType.FACTORY;
+		else if (BuildMappings.canBuild(ComponentType.ARMORY, chassis))
+			return ComponentType.ARMORY;
+		else
+			return null;
+		
+	}
+	
 }

@@ -15,6 +15,14 @@ import battlecode.common.RobotLevel;
 
 public class Util {
 
+	public final static int RECYCLER_CODE = 1 << 0;
+	public final static int FACTORY_CODE = 1 << 1;
+	public final static int ARMORY_CODE = 1 << 2;
+	public final static int CONSTRUCTOR_CODE = 1 << 3;
+	public final static int[] builderCodes = {Util.RECYCLER_CODE, Util.ARMORY_CODE, Util.FACTORY_CODE};
+
+
+	
 	public static Direction[] dirs = { Direction.NORTH, Direction.NORTH_EAST,
 			Direction.EAST, Direction.SOUTH_EAST, Direction.SOUTH,
 			Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
@@ -151,4 +159,16 @@ public class Util {
 		}
 	}
 
+	public static int getBuilderCode (ComponentType type) {
+		switch (type) {
+		case RECYCLER:
+			return RECYCLER_CODE;
+		case ARMORY:
+			return ARMORY_CODE;
+		case FACTORY:
+			return FACTORY_CODE;
+		default:
+			return 0;
+		}
+	}
 }

@@ -52,32 +52,37 @@ public class ArmoryAI extends BuildingAI{
 						 * - - -
 						 */
 						
-						if (currentLoc.directionTo(recyclerLoc).isDiagonal()) {
-							for (int i = 0; i < 2; ++i) {
-								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingLocs)) {
-										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
-											break;
-										yield();
-									}
-									buildIdleRound = 300;
-									break;
-								}
-							}
-						} else {
-							for (int i = 0; i < 4; ++i) {
-								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingLocs)) {
-										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
-											break;
-										yield();
-									}
-									buildIdleRound = 300;
-									break;
-								}
-							}
-						}
+//						if (currentLoc.directionTo(recyclerLoc).isDiagonal()) {
+//							for (int i = 0; i < 2; ++i) {
+//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
+//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingLocs)) {
+//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
+//											break;
+//										yield();
+//									}
+//									buildIdleRound = 300;
+//									break;
+//								}
+//							}
+//						} else {
+//							for (int i = 0; i < 4; ++i) {
+//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
+//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingLocs)) {
+//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
+//											break;
+//										yield();
+//									}
+//									buildIdleRound = 300;
+//									break;
+//								}
+//							}
+//						}
+//						
+						
 					}
+					
+					
+					
 //					while (!buildingSystem.constructUnit(buildLoc, type, buildingDirs) {
 //						yield();
 //					}

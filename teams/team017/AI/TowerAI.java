@@ -38,6 +38,9 @@ public class TowerAI extends AI {
 					}
 					yield();
 				}
+				
+				combat.heal();
+				
 				controllers.updateComponents();
 				if (enemyNum > 0) {
 					msgHandler.clearOutQueue();
