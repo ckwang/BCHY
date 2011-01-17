@@ -19,10 +19,10 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 
-	int [] unitRatios = {1, 3, 1, 1};
-	int [] cumulatedRatios = new int[4];
+	int [] unitRatios = {1, 3, 1, 0, 0};
+	int [] cumulatedRatios = new int[5];
 	int total;
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.MEDIUM_COMMANDER} ;
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.MEDIUM_COMMANDER, UnitType.APOCALYPSE} ;
 	double thresholds = 0.3;
 	
 	private enum spawningState { EARLY, MIDDLE, LATE };
@@ -114,15 +114,11 @@ public class RecyclerAI extends BuildingAI {
 				
 				double fluxRate = getEffectiveFluxRate();
 				
-				if (controllers.myRC.getTeamResources() > 170 ) {
-					if (Clock.getRoundNum() > 1000 && fluxRate > 1 && buildingLocs.factoryLocation != null)
-						msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.factoryLocation, UnitType.APOCALYPSE));
-					else if (fluxRate > 0.3) {
+				if (controllers.myRC.getTeamResources() > 170 && fluxRate > 0.3 ) {
 						constructUnitAtRatio();
 //						if (fluxRate > 0.6 && buildingLocs.factoryLocation != null)
 //							msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.factoryLocation, UnitType.MEDIUM_COMMANDER));
 
-					}
 				}
 				
 				// Send message to build CHRONO_APOCALYPSE
@@ -505,11 +501,17 @@ public class RecyclerAI extends BuildingAI {
 			mySpawningState = spawningState.MIDDLE;
 			unitRatios[0] = 1;
 			unitRatios[1] = 2;
+			unitRatios[3] = 1;
+			unitRatios[4] = 1;
+
 			updateRatios();
 		} else if (mySpawningState == spawningState.MIDDLE && Clock.getRoundNum() > 1500) {
 			mySpawningState = spawningState.LATE;
 			unitRatios[0] = 1;
-			unitRatios[1] = 3;
+			unitRatios[1] = 0;
+			unitRatios[2] = 0;
+			unitRatios[3] = 1;
+			unitRatios[4] = 3;
 			updateRatios();
 		}
 	}
