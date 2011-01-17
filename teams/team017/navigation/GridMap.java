@@ -42,7 +42,10 @@ public class GridMap {
 			this.gridY = gridY;
 		}
 		
-		public Grid add(int x_offset, int y_offset) {
+		public Grid add(Direction dir, int multiple) {
+			int x_offset = dir.dx * multiple;
+			int y_offset = dir.dy * multiple;
+			
 			return new Grid(gridX + x_offset, gridY + y_offset);
 		}
 		
@@ -52,8 +55,13 @@ public class GridMap {
 		}
 		
 		public Grid[] getNeighbors(int d) {
-			// NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST, NORTH
-			Grid[] neighbors = {add(0, -d), add(d, -d), add(d, 0), add(d, d), add(0, d), add(-d, d), add(-d, 0), add(-d, -d)};
+			Direction currentDir = controllers.myRC.getDirection();
+			
+			Grid[] neighbors = new Grid[8];
+			for (int i = 0; i < 8; i++) {
+				neighbors[i] = add(currentDir, d);
+				currentDir = currentDir.rotateRight();
+			}
 			
 			return neighbors;
 		}
@@ -169,12 +177,13 @@ public class GridMap {
 	
 	public void updateScoutLocation() {
 		int roundNum = Clock.getRoundNum();
+		int randomness = (roundNum % 3) + 7;
 		
 		for (int i = 1; i <= 7; i++) {
 			Grid[] neighbors = currentScoutGrid.getNeighbors(i);
 			
 			for (int j = 0; j < 8; j++) {
-				Grid neighbor = neighbors[(roundNum + j) % 8];
+				Grid neighbor = neighbors[(randomness + j) % 8];
 				if (isInbound(neighbor) && !isScouted(neighbor)) {
 					currentScoutGrid = neighbor;
 					assignedRound = roundNum;
