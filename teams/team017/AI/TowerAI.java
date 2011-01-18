@@ -1,11 +1,11 @@
 package team017.AI;
 
 import team017.combat.CombatSystem;
-import battlecode.common.Direction;
+import team017.util.Util;
 import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
 
 public class TowerAI extends AI {
 
@@ -31,13 +31,17 @@ public class TowerAI extends AI {
 					controllers.motor.setDirection(controllers.myRC.getDirection().opposite());
 					yield();
 				} else {
-					MapLocation nextLoc = combat.attack();
-					if (nextLoc != null) {
-						Direction nextDir = controllers.myRC.getLocation().directionTo(combat.attack());
-						if (nextDir != Direction.OMNI && !controllers.motor.isActive()) {
-							controllers.motor.setDirection(nextDir);
-						}
+//					MapLocation nextLoc = combat.attack();
+					if (controllers.weapons.size() > 0) {
+						combat.w = controllers.weapons.get(0);
+						attack();
 					}
+//					if (nextLoc != null) {
+//						Direction nextDir = controllers.myRC.getLocation().directionTo(combat.attack());
+//						if (nextDir != Direction.OMNI && !controllers.motor.isActive()) {
+//							controllers.motor.setDirection(nextDir);
+//						}
+//					}
 					yield();
 				}
 				
@@ -60,6 +64,57 @@ public class TowerAI extends AI {
 //		super.yield();
 //		controllers.reset();
 //	}
+	
+	public void attack() {
+		RobotInfo target;
+		if (controllers.mobileEnemyNum() > 0) {
+			Util.sortHp(controllers.enemyMobile);
+			target = combat.getTarget();
+			if (target == null) return;
+			for (int i = 0; i < 3 && !combat.canAttack(target); ++i) {
+				try {
+					target = controllers.sensor.senseRobotInfo(target.robot);
+				} catch (GameActionException e) {
+					e.printStackTrace();
+					return;
+				}
+				yield();
+			}
+			while (!combat.attackTarget(target)) {
+				try {
+					target = controllers.sensor.senseRobotInfo(target.robot);
+				} catch (GameActionException e) {
+					return;
+				}
+				yield();
+			}
+		}
+		else if (controllers.immobileEnemyNum() > 0) {
+			Util.sortHp(controllers.enemyImmobile);
+			target = combat.getImmobile();
+			if (target == null) return;
+			for (int i = 0; i < 3 && !combat.canAttack(target); ++i) {
+				if (i != 0) {
+					try {
+						target = controllers.sensor.senseRobotInfo(target.robot);
+					} catch (GameActionException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						return;
+					}
+				}
+				yield();
+			}
+			while (!combat.shoot(target)) {
+				try {
+					target = controllers.sensor.senseRobotInfo(target.robot);
+				} catch (GameActionException e) {
+					return;
+				}
+			}
+			yield();
+		}
+	}
 	
 	@Override
 	protected void processMessages() throws GameActionException {

@@ -4,6 +4,7 @@ import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.TurnOffMessage;
 import team017.util.Util;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
@@ -123,6 +124,14 @@ public class FactoryAI extends BuildingAI {
 				}
 				break;
 			}
+			
+			case TURN_OFF_MESSAGE: {
+				TurnOffMessage handler = new TurnOffMessage(msg);
+				if (controllers.myRC.getLocation() == handler.getBuildingLoc())
+					controllers.myRC.turnOff();
+				break;
+			}
+			
 		}
 	}
 	}

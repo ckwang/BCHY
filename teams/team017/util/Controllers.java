@@ -63,12 +63,6 @@ public class Controllers {
 		return enemyMobile.size() + enemyImmobile.size();
 	}
 	
-	public int debrisNum() {
-		if (lastUpdateRobot < Clock.getRoundNum())
-			senseAll();
-		return debris.size();
-	}
-	
 	public int mobileEnemyNum() {
 		if (lastUpdateRobot < Clock.getRoundNum())
 			senseAll();
@@ -79,18 +73,6 @@ public class Controllers {
 		if (lastUpdateRobot < Clock.getRoundNum())
 			senseAll();
 		return enemyImmobile.size();
-	}
-	
-	public int mobileAllyNum() {
-		if (lastUpdateRobot < Clock.getRoundNum())
-			senseAll();
-		return allyMobile.size();
-	}
-	
-	public int immobileAllyNum() {
-		if (lastUpdateRobot < Clock.getRoundNum())
-			senseAll();
-		return allyImmobile.size();
 	}
 	
 	public void senseMine() {

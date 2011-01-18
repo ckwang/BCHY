@@ -1,18 +1,16 @@
 package team017.combat;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 
 import team017.util.Controllers;
 import team017.util.Util;
+import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Robot;
-import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 import battlecode.common.WeaponController;
@@ -20,24 +18,22 @@ import battlecode.common.WeaponController;
 public class CombatSystem {
 
 	private Controllers controllers;
+	public WeaponController w = null;
 
-	public MapLocation selfLoc;
+	int lastUpdate = -1;
+	public MapLocation myloc;
+	public Direction mydir;
+	
 	public Direction nextDir = Direction.NONE;
-
-	public boolean withinRadius = true;
-	public float totalDamage = 0;
-	public float aveDamage = 0;
-	public int maxRange = 0;
-
+	RobotInfo lastAttacked = null;
+	boolean killed;
+	
 	public CombatSystem(Controllers c) {
 		controllers = c;
-		for (WeaponController w : c.weapons) {
-			totalDamage += w.type().attackPower;
-			int r = w.type().range * w.type().range;
-			if (maxRange < r)
-				maxRange = r;
-		}
-		aveDamage = totalDamage / (float) c.weapons.size();
+		myloc = controllers.myRC.getLocation();
+		mydir = controllers.myRC.getDirection();
+		if (c.weapons.size() > 0)
+			w = controllers.weapons.get(0);
 	}
 
 	public boolean chase(Robot r) {
@@ -87,34 +83,33 @@ public class CombatSystem {
 	// /*
 	// * return true is moved
 	// */
-	// public boolean approach(Robot r) {
-	// if (controllers.motor.isActive())
-	// return false;
-	// MapLocation cur = controllers.myRC.getLocation();
-	// try {
-	// MapLocation loc = controllers.sensor.senseLocationOf(r);
-	// Direction dir = cur.directionTo(loc);
-	// if (dir == Direction.OMNI || dir == Direction.NONE)
-	// return false;
-	// if (cur.isAdjacentTo(loc)) {
-	// controllers.motor.setDirection(dir);
-	// }
-	// else if (Util.isFacing(controllers.myRC.getDirection(), dir)
-	// && controllers.motor.canMove(dir))
-	// controllers.motor.moveForward();
-	// else if (Util.isFacing(controllers.myRC.getDirection().opposite(),
-	// dir)
-	// && controllers.motor.canMove(controllers.myRC
-	// .getDirection().opposite()))
-	// controllers.motor.moveBackward();
-	// else {
-	// controllers.motor.setDirection(dir);
-	// }
-	// return true;
-	// } catch (GameActionException e) {
-	// return false;
-	// }
-	// }
+	public boolean approach(Robot r) {
+		if (controllers.motor.isActive())
+			return false;
+		MapLocation cur = controllers.myRC.getLocation();
+		try {
+			MapLocation loc = controllers.sensor.senseLocationOf(r);
+			Direction dir = cur.directionTo(loc);
+			if (dir == Direction.OMNI || dir == Direction.NONE)
+				return false;
+			if (cur.isAdjacentTo(loc)) {
+				controllers.motor.setDirection(dir);
+			} else if (Util.isFacing(controllers.myRC.getDirection(), dir)
+					&& controllers.motor.canMove(dir))
+				controllers.motor.moveForward();
+			else if (Util.isFacing(controllers.myRC.getDirection().opposite(),
+					dir)
+					&& controllers.motor.canMove(controllers.myRC
+							.getDirection().opposite()))
+				controllers.motor.moveBackward();
+			else {
+				controllers.motor.setDirection(dir);
+			}
+			return true;
+		} catch (GameActionException e) {
+			return false;
+		}
+	}
 
 	// public MapLocation mass() {
 	// Robot r;
@@ -179,8 +174,8 @@ public class CombatSystem {
 	// }
 
 	/*
-	 * return true of moved, false if just set direction or motor active
-	 * assume enemy in front (sensor range 180 degree)
+	 * return true of moved, false if just set direction or motor active assume
+	 * enemy in front (sensor range 180 degree)
 	 */
 	public boolean flee(Direction edir) throws GameActionException {
 		if (controllers.motor.isActive())
@@ -190,11 +185,12 @@ public class CombatSystem {
 				&& controllers.motor.canMove(mydir.opposite())) {
 			controllers.motor.moveBackward();
 			return true;
-		} 
-//		else if (Util.isFacing(mydir.opposite(), edir) && controllers.motor.canMove(mydir)) {
-//			controllers.motor.moveForward();
-//			return true;
-//		} 
+		}
+		// else if (Util.isFacing(mydir.opposite(), edir) &&
+		// controllers.motor.canMove(mydir)) {
+		// controllers.motor.moveForward();
+		// return true;
+		// }
 		else {
 			Direction toTurn = null;
 			Direction left = edir.rotateLeft();
@@ -349,79 +345,201 @@ public class CombatSystem {
 			WeaponController medic = controllers.medic;
 			if (medic == null || medic.isActive())
 				return;
-			List<RobotInfo> allies = new ArrayList();
-			allies.add(controllers.sensor.senseRobotInfo(controllers.myRC.getRobot()));
+			List<RobotInfo> allies = new ArrayList<RobotInfo>();
+			allies.add(controllers.sensor.senseRobotInfo(controllers.myRC
+					.getRobot()));
 			allies.addAll(controllers.allyMobile);
 			allies.addAll(controllers.allyImmobile);
-			Util.sortHpPercentage(allies);
-			for (RobotInfo r: allies) {
+			Util.sortHp(allies);
+			for (RobotInfo r : allies) {
 				if (medic.withinRange(r.location)) {
-					if (r.hitpoints < r.maxHp)
-						medic.attackSquare(r.location,r.robot.getRobotLevel());
+					medic.attackSquare(r.location, r.robot.getRobotLevel());
 					return;
-				}	
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public MapLocation attack() {
-		try {
-			RobotController rc = controllers.myRC;
-			MapLocation currentLoc = rc.getLocation();
-			boolean attacked = false;
-			withinRadius = true;
-			
-			List<RobotInfo> enemies = new LinkedList<RobotInfo>();
-			Util.sortHp(controllers.enemyMobile);
-			enemies.addAll(controllers.enemyMobile);
-			enemies.addAll(controllers.enemyImmobile);
-
-			if (enemies.size() == 0)
-				return null;
-
-			int listPointer = 0;
-			RobotInfo enemy = enemies.get(0);
-			double hp = enemy.hitpoints;
-			for (WeaponController w : controllers.weapons) {
-				if (!w.withinRange(enemy.location)) {
-					if (currentLoc.distanceSquaredTo(enemy.location) > w.type().range) {
-						withinRadius = false;
-					}
-					
-				} else if (!w.isActive()) {
-					w.attackSquare(enemy.location, enemy.robot.getRobotLevel());
-					if (hp <= w.type().attackPower) {
-						listPointer++;
-						if (listPointer == enemies.size()) {
-							break;
-						} else {
-							enemy = enemies.get(listPointer);
-							hp = enemy.hitpoints;
-						}
-					}
+	public boolean shoot(RobotInfo r) {
+		double hp = r.hitpoints;
+		for (WeaponController w : controllers.weapons) {
+			if (!w.isActive() && w.withinRange(r.location)) {
+				try {
+					w.attackSquare(r.location, r.robot.getRobotLevel());
+					if (hp <= w.type().attackPower)
+						return true;
 					hp -= w.type().attackPower;
-					attacked = true;
+				} catch (Exception e) {
+					e.printStackTrace();
+					
 				}
 			}
-			
-			if (attacked) {
-				if (enemy.direction == null) {
-					return enemy.location;
-				} else if (Util.isFacing(enemy.direction, rc.getDirection()
-						.opposite())) {
-					return currentLoc;
-				}
-			} else {
-				return enemy.location;
-			}
-			return attacked ? rc.getLocation() : enemy.location;
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
-		return null;
+		return false;
 	}
+	
+	//return to move forward
+	public boolean attackTarget(RobotInfo r) {
+		if (shoot(r))
+			return true;
+		updatePosition();
+		Direction edir = myloc.directionTo(r.location);
+		if (edir == Direction.OMNI || edir == Direction.NONE) {
+			System.out.println("attack self");
+		}
+		int dis = myloc.distanceSquaredTo(r.location);
+		if (dis >= w.type().range*0.9 && Util.isFacing(mydir, edir)) {
+			if (controllers.myRC.getHitpoints() < 3.5)
+				moveForward();
+		}
+		//enemy facing, retreat back
+		if (dis < w.type().range*0.9 && Util.isFacing(mydir, edir.opposite())) {
+			if (controllers.myRC.getHitpoints() < 3.5)
+				moveBackward();
+		}
+//		if (Util.isFacing(r.direction, edir.opposite())) {
+//			moveBackward();
+//			return false;
+//		}
+		//behind enemy, chase forward
+		if (Util.isFacing(r.direction, edir)) {
+			if (dis > w.type().range*0.6 && mydir == edir) {
+				moveForward();
+			}
+			return false;
+		}
+		else {
+			try {
+				if (!controllers.motor.isActive())
+					controllers.motor.setDirection(edir);
+			} catch (GameActionException e) {
+				e.printStackTrace();
+			}
+			return false;
+		}
+	}
+	
+	public boolean canAttack(RobotInfo r) {
+//		WeaponController w;
+//		if (controllers.weapons.size() > 0)
+//			w = controllers.weapons.get(0);
+//		else
+//			return null;
+		updatePosition();
+		Direction edir = myloc.directionTo(r.location);
+		if (w.withinRange(r.location))
+			return true;
+		if (mydir == edir) {
+			moveForward();
+		}
+		else if (!controllers.motor.isActive()) {
+			try {controllers.motor.setDirection(edir);} 
+			catch (GameActionException e) {}
+		}
+		return false;
+	}
+	
+	public RobotInfo getImmobile() {
+		RobotInfo target = null;
+//		WeaponController w;
+//		if (controllers.weapons.size() > 0)
+//			w = controllers.weapons.get(0);
+//		else
+//			return null;
+		for (RobotInfo r: controllers.enemyImmobile) {
+			if (w.withinRange(r.location)) {
+				target = r;
+				break;
+			}
+		}
+		if (target == null) {
+			for (RobotInfo r: controllers.enemyImmobile) {
+				int d = myloc.distanceSquaredTo(r.location);
+				if (d < w.type().range) {
+					target = r;
+					break;
+				}
+			}
+		}
+		return target;
+	}
+	
+	public RobotInfo getTarget() {
+		RobotInfo target = null;
+//		WeaponController w;
+//		if (controllers.weapons.size() > 0)
+//			w = controllers.weapons.get(0);
+//		else
+//			return null;
+		for (RobotInfo r: controllers.enemyMobile) {
+			if (w.withinRange(r.location)) {
+				target = r;
+				break;
+			}
+		}
+		if (target == null) {
+			for (RobotInfo r: controllers.enemyMobile) {
+				int d = myloc.distanceSquaredTo(r.location);
+				if (d < w.type().range) {
+					target = r;
+					break;
+				}
+			}
+		}
+		return target;
+	}
+
+//	public MapLocation attack() {
+//		try {
+//			RobotController rc = controllers.myRC;
+//			MapLocation currentLoc = rc.getLocation();
+//			boolean attacked = false;
+//
+//			List<RobotInfo> enemies = new LinkedList<RobotInfo>();
+//			Util.sortHp(controllers.enemyMobile);
+//			enemies.addAll(controllers.enemyMobile);
+//			enemies.addAll(controllers.enemyImmobile);
+//
+//			if (enemies.size() == 0)
+//				return null;
+//
+//			int listPointer = 0;
+//			RobotInfo enemy = enemies.get(0);
+//			double hp = enemy.hitpoints;
+//			for (WeaponController w : controllers.weapons) {
+//				if (!w.isActive() && w.withinRange(enemy.location)) {
+//					w.attackSquare(enemy.location, enemy.robot.getRobotLevel());
+//					if (hp <= w.type().attackPower) {
+//						listPointer++;
+//						if (listPointer == enemies.size()) {
+//							break;
+//						} else {
+//							enemy = enemies.get(listPointer);
+//							hp = enemy.hitpoints;
+//						}
+//					}
+//					hp -= w.type().attackPower;
+//					attacked = true;
+//				}
+//			}
+//			if (attacked) {
+//				if (enemy.direction == null) {
+//					return enemy.location;
+//				} else if (Util.isFacing(enemy.direction, rc.getDirection()
+//						.opposite())) {
+//					return currentLoc;
+//				}
+//			} else {
+//				return enemy.location;
+//			}
+//			return attacked ? rc.getLocation() : enemy.location;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		return null;
+//	}
 
 	public void attackDebris() throws GameActionException {
 		int listPointer = 0;
@@ -440,6 +558,42 @@ public class CombatSystem {
 					}
 				}
 			}
+		}
+	}
+	
+	public boolean moveForward() {
+		updatePosition();
+		if (!controllers.motor.isActive() && controllers.motor.canMove(mydir)) {
+			try {
+				controllers.motor.moveForward();
+				return true;
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	public boolean moveBackward() {
+		updatePosition();
+		if (!controllers.motor.isActive() && controllers.motor.canMove(mydir.opposite())) {
+			try {
+				controllers.motor.moveBackward();
+				return true;
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	public void updatePosition() {
+		if (lastUpdate < Clock.getRoundNum()) {
+			mydir = controllers.myRC.getDirection();
+			myloc = controllers.myRC.getLocation();
+			lastUpdate = Clock.getRoundNum();
 		}
 	}
 

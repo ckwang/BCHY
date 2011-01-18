@@ -106,7 +106,7 @@ public class ConstructorAI extends AI {
 		controllers.senseAll();
 		MapLocation myloc = controllers.myRC.getLocation();
 		Direction mydir = controllers.myRC.getDirection();
-		if (controllers.mobileEnemyNum() > controllers.mobileAllyNum() + 2) {
+		if (controllers.mobileEnemyNum() > controllers.allyMobile.size() + 2) {
 			MapLocation enemyCenter = Util.aveLocation(controllers.enemyMobile);
 			Direction edir = myloc.directionTo(enemyCenter);
 			int dist = myloc.distanceSquaredTo(enemyCenter);
