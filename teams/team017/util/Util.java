@@ -1,5 +1,6 @@
 package team017.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import team017.construction.UnitType;
@@ -152,6 +153,26 @@ public class Util {
 				robots.set(j, robots.get(j-1));
 			}
 			robots.set(j, tmp);
+		}
+	}
+	
+	public static void sortLocation(List<RobotInfo> robots, MapLocation myloc) {
+		int j, dis;
+		RobotInfo r;
+		if (robots.size() == 0)
+			return;
+		List<Integer> dist = new ArrayList<Integer>(robots.size());
+		dist.add(myloc.distanceSquaredTo(robots.get(0).location));
+		for (int i = 1; i < robots.size(); ++i) {
+			r = robots.get(i);
+			dis = myloc.distanceSquaredTo(r.location);
+			dist.add(dis);
+			for (j = i; j > 0 && dis < dist.get(j-1); --j) {
+				dist.set(j, dist.get(j-1));
+				robots.set(j, robots.get(j-1));
+			}
+			dist.set(j, dis);
+			robots.set(j, r);
 		}
 	}
 	
