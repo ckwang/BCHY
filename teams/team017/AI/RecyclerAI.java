@@ -19,7 +19,7 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 
-	int [] unitRatios = {1, 0, 0, 0, 0};
+	int [] unitRatios = {1, 0, 0, 1, 0};
 	int [] cumulatedRatios = new int[5];
 	int total;
 	
@@ -569,5 +569,6 @@ public class RecyclerAI extends BuildingAI {
 			unitRatios[3] = 0;
 			unitRatios[4] = 0;
 		}
+		updateRatios();
 	}
 }
