@@ -34,6 +34,15 @@ public class RecyclerAI extends BuildingAI {
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
 		birthRoundNum = Clock.getRoundNum();
+		if (birthRoundNum > 1500){
+			mySpawningState = spawningState.LATE;
+			unitRatios[0] = 2;
+			unitRatios[1] = 0;
+			unitRatios[2] = 0;
+			unitRatios[3] = 3;
+			unitRatios[4] = 1;
+			updateRatios();
+		}
 		updateRatios();
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
@@ -509,7 +518,7 @@ public class RecyclerAI extends BuildingAI {
 			updateRatios();
 		}
 		
-		if (mySpawningState == spawningState.INIT && unitConstructed > 2){
+		if (mySpawningState == spawningState.INIT && unitConstructed > 1){
 			mySpawningState = spawningState.EARLY;
 			unitRatios[0] = 1;
 			unitRatios[2] = 1;

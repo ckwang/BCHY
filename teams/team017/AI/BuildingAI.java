@@ -53,7 +53,7 @@ public abstract class BuildingAI extends AI {
 			}
 		}
 		
-		return fluxRate[0] + (sum / n) + 0.25*(controllers.myRC.getTeamResources()/250);
+		return fluxRate[0] + (sum / n) + 0.1*(controllers.myRC.getTeamResources()/250);
 	}
 	
 	protected double getFluxAcceleration() {

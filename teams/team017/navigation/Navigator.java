@@ -14,6 +14,7 @@ public class Navigator {
 	private Controllers controllers;
 
 	private Map myMap;
+	private int mapResetCounter = 100;
 	
 	private MapLocation destination;
 	private MapLocation modifiedDes;
@@ -478,6 +479,14 @@ public class Navigator {
 	}
 	
 	public void updateMap(){
+		
+		if (mapResetCounter < 0){
+			myMap = new Map( controllers.myRC.getLocation() );
+			mapResetCounter = 100;
+		}
+		mapResetCounter--;
+			
+		
 		for (RobotInfo info: controllers.allyImmobile) {
 			myMap.setBlocked(info.location, true);
 		}
