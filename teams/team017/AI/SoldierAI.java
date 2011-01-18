@@ -224,7 +224,7 @@ public class SoldierAI extends AI {
 				}
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.merge(handler.getGridMap(controllers));
+				gridMap.merge(handler.getBorders(), handler.getInternalRecords());
 				
 				break;
 			}
