@@ -149,7 +149,7 @@ public class SoldierAI extends AI {
 
 			if (nextLoc == null && attackRoundCounter > 5 && leaderMessageRoundCounter > 3) {
 				leaderID = -1;
-				if (Clock.getRoundNum() < 1000 || Clock.getRoundNum() - birthRound > 100) {
+				if (Clock.getRoundNum() - birthRound > 50) {
 					try {navigate();}
 					catch (Exception e) {}
 					
