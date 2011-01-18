@@ -35,6 +35,7 @@ public class SoldierAI extends AI {
 	private int leaderMessageRoundCounter = 0;
 	private int leaderID = -1;
 	int enemyNum = 0;
+	private int birthRound;
 
 	private boolean reachedFirstBase = false;
 	private boolean hasLeader = false;
@@ -49,6 +50,7 @@ public class SoldierAI extends AI {
 	}
 
 	public void proceed() {
+		birthRound = Clock.getRoundNum();
 		while (true) {
 
 //			controllers.senseNearby();
@@ -99,11 +101,11 @@ public class SoldierAI extends AI {
 			}
 			
 //			yield();
+			try {
+				if (controllers.mobileEnemyNum() == 0 && controllers.debrisNum() != 0) 
+					combat.attackDebris();
+			}catch (Exception e1) {e1.printStackTrace();}
 			
-			if (controllers.mobileEnemyNum() == 0 && controllers.debrisNum() != 0) {
-				try {combat.attackDebris();}
-				catch (Exception e1) {e1.printStackTrace();}
-			}
 			
 //			broadcast();
 
@@ -147,8 +149,11 @@ public class SoldierAI extends AI {
 
 			if (nextLoc == null && attackRoundCounter > 5 && leaderMessageRoundCounter > 3) {
 				leaderID = -1;
-				try {navigate();}
-				catch (Exception e) {}
+				if (Clock.getRoundNum() < 1000 || Clock.getRoundNum() - birthRound > 100) {
+					try {navigate();}
+					catch (Exception e) {}
+					
+				}
 			}
 			senseBorder();
 			yield();
