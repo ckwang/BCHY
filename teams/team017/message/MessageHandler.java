@@ -122,4 +122,8 @@ public class MessageHandler {
 	public void clearOutQueue() {
 		outQueue.clear();
 	}
+	
+	public int getOutQueueSize() {
+		return outQueue.size();
+	}
 }

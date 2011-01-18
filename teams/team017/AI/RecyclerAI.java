@@ -8,6 +8,7 @@ import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
+import team017.message.TurnOffMessage;
 import team017.util.Util;
 import battlecode.common.*;
 
@@ -140,12 +141,20 @@ public class RecyclerAI extends BuildingAI {
 				processMessages();
 				
 				double fluxRate = getEffectiveFluxRate();
+
 				
+				// Turn off recyclers and factories of cluster size 1				
+				if (Clock.getRoundNum() - birthRoundNum > 100 && buildingLocs.clusterSize == 1 && buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() > 0) {
+					msgHandler.queueMessage(new TurnOffMessage(buildingLocs.factoryLocation));
+					while (msgHandler.getOutQueueSize() > 0)
+						yield();
+					controllers.myRC.turnOff();
+				}
+					
 				
 				
 				if (controllers.myRC.getTeamResources() > resourceThresholds && fluxRate > fluxThresholds ) {
 						constructUnitAtRatio();
-
 				}
 				
 				// turn off when the mine is depleted
