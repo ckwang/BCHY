@@ -144,7 +144,13 @@ public class GridMap {
 		}
 		
 		startDir = homeLoc.directionTo(enemyLoc);
-		if (startDir.isDiagonal()) {
+		if (homeLoc.equals(enemyLoc)) {
+			startDir = controllers.myRC.getDirection();
+			int max = (Clock.getRoundNum() + controllers.myRC.getRobot().getID()) % 8;
+			for (int i = 0; i < max; i++) {
+				startDir = startDir.rotateRight();
+			}
+		} else if (startDir.isDiagonal()) {
 			startDir = startDir.rotateLeft();
 			int max = (Clock.getRoundNum() + controllers.myRC.getRobot().getID()) % 3;
 			for (int i = 0; i < max; i++) {
