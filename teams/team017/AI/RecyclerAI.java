@@ -19,15 +19,17 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 
-	int [] unitRatios = {1, 3, 1, 0, 0};
+	int [] unitRatios = {1, 0, 0, 0, 0};
 	int [] cumulatedRatios = new int[5];
 	int total;
+	
 	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.APOCALYPSE, UnitType.BATTLE_FORTRESS};
-	double thresholds = 0.3;
+	double fluxThresholds = 0.3;
+	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	
-	private enum spawningState { EARLY, MIDDLE, LATE };
+	private enum spawningState { INIT, EARLY, MIDDLE, LATE };
 	
-	spawningState mySpawningState = spawningState.EARLY;
+	spawningState mySpawningState = spawningState.INIT;
 	
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
@@ -38,7 +40,6 @@ public class RecyclerAI extends BuildingAI {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	@Override
@@ -116,10 +117,8 @@ public class RecyclerAI extends BuildingAI {
 				
 				
 				
-				if (controllers.myRC.getTeamResources() > 200 && fluxRate > 0.3 ) {
+				if (controllers.myRC.getTeamResources() > resourceThresholds && fluxRate > fluxThresholds ) {
 						constructUnitAtRatio();
-//						if (fluxRate > 0.6 && buildingLocs.factoryLocation != null)
-//							msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.factoryLocation, UnitType.MEDIUM_COMMANDER));
 
 				}
 				
@@ -503,25 +502,32 @@ public class RecyclerAI extends BuildingAI {
 		
 //		Build more constructors if flux is insufficient
 		if (getEffectiveFluxRate() < 0.5 && Clock.getRoundNum() < 2000) {
-			unitRatios[0] = 5;
+			unitRatios[0] = 3;
 			updateRatios();
 		} else {
 			unitRatios[0] = 1;
 			updateRatios();
 		}
 		
-		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){
+		if (mySpawningState == spawningState.INIT && unitConstructed > 2){
+			mySpawningState = spawningState.EARLY;
+			unitRatios[0] = 1;
+			unitRatios[2] = 1;
+			updateRatios();
+			
+		}
+		else if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 500 && Clock.getRoundNum() < 1500 ){
 			mySpawningState = spawningState.MIDDLE;
 			unitRatios[0] = 2;
-			unitRatios[1] = 2;
+			unitRatios[1] = 0;
 			unitRatios[2] = 0;
 			unitRatios[3] = 2;
 			unitRatios[4] = 1;
-
 			updateRatios();
-		} else if (mySpawningState == spawningState.MIDDLE && Clock.getRoundNum() > 1500) {
+		} 
+		else if (mySpawningState == spawningState.MIDDLE && Clock.getRoundNum() > 1500) {
 			mySpawningState = spawningState.LATE;
-			unitRatios[0] = 1;
+			unitRatios[0] = 2;
 			unitRatios[1] = 0;
 			unitRatios[2] = 0;
 			unitRatios[3] = 3;
