@@ -31,9 +31,11 @@ public class ConstructorAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	
-	private boolean attacked = false;
+	private int attackedRound = 0;;
+	
 	private double prevHp = 0;
 	private CombatSystem combat;
+	private int roundSinceLastBuilt;
 
 //	Mine[] minelist;
 	MapLocation nearestMine = null;
@@ -58,37 +60,39 @@ public class ConstructorAI extends AI {
 				processMessages();
 
 				buildRecyclers();
-				int after = Clock.getBytecodeNum();
-//				controllers.myRC.setIndicatorString(2, (after - before) + "");
-				while (evaluateDanger());
-//					continue;
-				if (attacked && controllers.enemyNum() == 0) {
-					
-					Direction mydir = controllers.myRC.getDirection();
-					if (!controllers.motor.isActive()
-							&& controllers.motor.canMove(mydir.opposite())) {
-						try {
-							controllers.motor.moveBackward();
-							yield();
-						} catch (GameActionException e) {
-						}
-					}
-//					try {
-//						if (Clock.getRoundNum() % 2 == 0)
-//							controllers.motor.setDirection(mydir.rotateLeft().rotateLeft());
-//						else
-//							controllers.motor.setDirection(mydir.rotateRight().rotateRight());
+				
+//				while (evaluateDanger());
+//
+//				
+//				if (attacked && controllers.enemyNum() == 0) {
+//					
+//					Direction mydir = controllers.myRC.getDirection();
+//					if (!controllers.motor.isActive()
+//							&& controllers.motor.canMove(mydir.opposite())) {
+//						try {
+//							controllers.motor.moveBackward();
+//							yield();
+//						} catch (GameActionException e) {
+//						}
 //					}
-//					catch (Exception e) {}
-					continue;
-				}
-					
-				navigate();
+////					try {
+////						if (Clock.getRoundNum() % 2 == 0)
+////							controllers.motor.setDirection(mydir.rotateLeft().rotateLeft());
+////						else
+////							controllers.motor.setDirection(mydir.rotateRight().rotateRight());
+////					}
+////					catch (Exception e) {}
+//					continue;
+//				}
+
+				if (roundSinceLastBuilt > 10)
+					navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
 				if (Clock.getRoundNum() % 15 == 0) {
 					msgHandler.queueMessage(new BorderMessage(borders,homeLocation));
 				}
+
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
@@ -134,11 +138,15 @@ public class ConstructorAI extends AI {
 	
 	public void yield() {
 		super.yield();
+		roundSinceLastBuilt++;
 		controllers.senseAll();
 		updateLocationSets();
 		navigator.updateMap();
 		senseBorder();
-		attacked = controllers.myRC.getHitpoints() < prevHp;
+		
+		if (controllers.myRC.getHitpoints() < prevHp) {
+			attackedRound = Clock.getRoundNum();
+		}
 		prevHp = controllers.myRC.getHitpoints();
 //		controllers.myRC.setIndicatorString(2, "" + attacked + ": "+ prevHp);
 	}
@@ -205,10 +213,8 @@ public class ConstructorAI extends AI {
 
 	private void checkEmptyRecyclers() throws GameActionException {
 		for (MapLocation recyclerLoc : recyclerLocations) {
-			if (controllers.myRC.getLocation().distanceSquaredTo(recyclerLoc) <= 9
-					&& !builtLocations.contains(recyclerLoc)) {
-				msgHandler.queueMessage(new BuildingLocationInquiryMessage(
-						recyclerLoc));
+			if (controllers.myRC.getLocation().distanceSquaredTo(recyclerLoc) <= 9 && !builtLocations.contains(recyclerLoc)) {
+				msgHandler.queueMessage(new BuildingLocationInquiryMessage(recyclerLoc));
 				break;
 			}
 		}
@@ -254,8 +260,7 @@ public class ConstructorAI extends AI {
 		return false;
 	}
 
-	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type)
-			throws GameActionException {
+	private boolean buildBuildingAtLoc(MapLocation buildLoc, UnitType type) throws GameActionException {
 		// if already standing on the building site
 		if (controllers.myRC.getLocation().equals(buildLoc)) {
 			while (controllers.motor.isActive())
@@ -264,8 +269,7 @@ public class ConstructorAI extends AI {
 			// move forward or backward if possible
 			if (controllers.motor.canMove(controllers.myRC.getDirection())) {
 				controllers.motor.moveForward();
-			} else if (controllers.motor.canMove(controllers.myRC
-					.getDirection().opposite())) {
+			} else if (controllers.motor.canMove(controllers.myRC.getDirection().opposite())) {
 				controllers.motor.moveBackward();
 			} else {
 				return false;
@@ -276,8 +280,12 @@ public class ConstructorAI extends AI {
 		// move to the adjacent of the building site
 		navigator.setDestination(buildLoc);
 		while (!controllers.myRC.getLocation().isAdjacentTo(buildLoc)) {
+//			controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation() + "," + buildLoc);
 			if (!controllers.motor.isActive()) {
-				Direction nextDir = navigator.getNextDir(2);
+				Direction nextDir = navigator.getNextDir(0);
+
+//				controllers.myRC.setIndicatorString(2, nextDir.toString());
+				
 				if (nextDir == Direction.OMNI)
 					break;
 				if (controllers.myRC.getDirection() == nextDir) {
@@ -292,8 +300,7 @@ public class ConstructorAI extends AI {
 		}
 
 		// face the building site
-		Direction buildDir = controllers.myRC.getLocation().directionTo(
-				buildLoc);
+		Direction buildDir = controllers.myRC.getLocation().directionTo(buildLoc);
 		if (controllers.myRC.getDirection() != buildDir) {
 			while (controllers.motor.isActive())
 				yield();
@@ -304,17 +311,14 @@ public class ConstructorAI extends AI {
 
 		// if everything looks okay, construct
 		while (!buildingSystem.constructUnit(buildLoc, type)) {
-			if (controllers.sensor.senseObjectAtLocation(buildLoc,
-					type.chassis.level) != null)
+			if (controllers.sensor.senseObjectAtLocation(buildLoc,type.chassis.level) != null)
 				return false;
 			yield();
 		}
 		msgHandler.clearOutQueue();
-		msgHandler
-				.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
+		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
 		if (type == UnitType.RECYCLER) {
-			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation,
-					gridMap));
+			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation,gridMap));
 		} else {
 			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
 		}
@@ -322,8 +326,13 @@ public class ConstructorAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
+		
+		
 		Direction nextDir = Direction.OMNI;
-		if (nearestMine != null) {
+		if (Clock.getRoundNum() - attackedRound <= 50) {
+			navigator.setDestination(homeLocation);
+			nextDir = navigator.getNextDir(9);
+		} else if (nearestMine != null) {
 			navigator.setDestination(nearestMine);
 			nextDir = navigator.getNextDir(2);
 		} else {
@@ -365,7 +374,11 @@ public class ConstructorAI extends AI {
 			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
 
 				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
-
+				
+//				controllers.myRC.setIndicatorString(0, "Type" +handler.getUnitType() + " " +  Clock.getRoundNum());
+//				controllers.myRC.setIndicatorString(1, "current location:" + controllers.myRC.getLocation());
+//				controllers.myRC.setIndicatorString(2, "build loc:" + handler.getBuildableLocation());
+				
 				// see if the message is intended for it
 				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
 					break;
@@ -380,6 +393,8 @@ public class ConstructorAI extends AI {
 				} else if (handler.getBuildableLocation() != null) {
 					MapLocation buildLoc = handler.getBuildableLocation();
 					if (buildBuildingAtLoc(buildLoc, type)) {
+						roundSinceLastBuilt = 0;
+						msgHandler.queueMessage(new BuildingLocationInquiryMessage(handler.getSourceLocation()));
 						yield();
 					}
 				}

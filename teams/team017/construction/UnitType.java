@@ -38,7 +38,7 @@ public enum UnitType {
 	ARMORY(Chassis.BUILDING, ComponentType.ARMORY),
 	FACTORY (Chassis.BUILDING, ComponentType.FACTORY),
 	RAILGUN_TOWER (Chassis.BUILDING, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.MEDIC, ComponentType.RAILGUN, ComponentType.RAILGUN),
-	TOWER (Chassis.BUILDING, ComponentType.ANTENNA, ComponentType.RADAR, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SMG, ComponentType.SMG);
+	TOWER (Chassis.BUILDING, ComponentType.ANTENNA, ComponentType.RADAR, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SMG, ComponentType.SMG, ComponentType.SHIELD, ComponentType.SHIELD, ComponentType.SMG, ComponentType.SMG);
 		
 	public final Chassis chassis;
 	public final ComponentType[] recyclerComs;
