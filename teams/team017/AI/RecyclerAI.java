@@ -234,9 +234,9 @@ public class RecyclerAI extends BuildingAI {
 				break;
 			}
 			case BUILDING_REQUEST:{
-				controllers.myRC.setIndicatorString(0, "Building Request Got" + Clock.getRoundNum());
-				controllers.myRC.setIndicatorString(1, "Building Request Got" + Clock.getRoundNum());
-				controllers.myRC.setIndicatorString(2, "Building Request Got" + Clock.getRoundNum());
+//				controllers.myRC.setIndicatorString(0, "Building Request Got" + Clock.getRoundNum());
+//				controllers.myRC.setIndicatorString(1, "Building Request Got" + Clock.getRoundNum());
+//				controllers.myRC.setIndicatorString(2, "Building Request Got" + Clock.getRoundNum());
 				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
 					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
@@ -375,7 +375,7 @@ public class RecyclerAI extends BuildingAI {
 			}
 			
 			case CONSTRUCTION_COMPLETE: {
-				controllers.myRC.setIndicatorString(0, "Complete msg got" + Clock.getRoundNum());
+//				controllers.myRC.setIndicatorString(0, "Complete msg got" + Clock.getRoundNum());
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation buildingLocation = handler.getBuildingLocation();
 				Direction builderDir = currentLoc.directionTo(buildingLocation);
@@ -475,7 +475,7 @@ public class RecyclerAI extends BuildingAI {
 		int index;
 		int seed = ((int) (getEffectiveFluxRate()*100) + Clock.getRoundNum()) % total; 
 
-		controllers.myRC.setIndicatorString(0, seed+"");
+//		controllers.myRC.setIndicatorString(0, seed+"");
 		
 		// Find the production index
 		for (index = 0; seed >= cumulatedRatios[index]; ++index);
