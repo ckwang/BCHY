@@ -130,7 +130,7 @@ public class Navigator {
 				return Direction.OMNI;
 			}
 			else {
-//				controllers.myRC.setIndicatorString(1, "BUGGING TO: " + modifiedDes.toString());
+				
 				previousDir = Bug(controllers.myRC.getLocation(), modifiedDes, tolerance);
 				return previousDir;
 			}
@@ -168,6 +168,7 @@ public class Navigator {
 		}
 		
 		modifiedDes = t;
+		
 		
 		Direction desDir = s.directionTo(t);
 		MapLocation nextLoc;
@@ -479,10 +480,12 @@ public class Navigator {
 	
 	public void updateMap(){
 		for (RobotInfo info: controllers.allyImmobile) {
-			myMap.setBlocked(info.location, true);
+			if(info.chassis == Chassis.BUILDING)
+				myMap.setBlocked(info.location, true);
 		}
 		for (RobotInfo info: controllers.enemyImmobile) {
-			myMap.setBlocked(info.location, true);
+			if(info.chassis == Chassis.BUILDING)
+				myMap.setBlocked(info.location, true);
 		}
 		for (RobotInfo info: controllers.debris) {
 			myMap.setBlocked(info.location, true);

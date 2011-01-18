@@ -19,7 +19,7 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 
-	int [] unitRatios = {1, 3, 1, 0, 0};
+	int [] unitRatios = {1, 0, 0, 0, 0};
 	int [] cumulatedRatios = new int[5];
 	int total;
 	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.GRIZZLY, UnitType.RADARGUN, UnitType.APOCALYPSE, UnitType.BATTLE_FORTRESS};
@@ -271,15 +271,22 @@ public class RecyclerAI extends BuildingAI {
 						break;
 
 					//	Build a tower at the initial base
-					if (birthRoundNum < 300) {
+					if (birthRoundNum < 200) {
 						if (buildingLocs.towerLocations.size() == 0) {
-							loc = buildingLocs.consecutiveEmpties(1);
+							loc = buildingLocs.consecutiveEmpties(3);
 							if (loc != null) {
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
 								inquiryIdleRound = 5;
 								break;
 							}
+						} else if (buildingLocs.factoryLocation == null && buildingLocs.towerLocations.size() > 0) {
+							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.FACTORY));
+							inquiryIdleRound = 3;
 						}
+//						else if (buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() == 0) {
+//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+//							inquiryIdleRound = 5;
+//						}
 					} else {
 						if (buildingLocs.factoryLocation == null) {
 							loc = buildingLocs.consecutiveEmpties(3);
@@ -368,6 +375,7 @@ public class RecyclerAI extends BuildingAI {
 			}
 			
 			case CONSTRUCTION_COMPLETE: {
+				controllers.myRC.setIndicatorString(0, "Complete msg got" + Clock.getRoundNum());
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation buildingLocation = handler.getBuildingLocation();
 				Direction builderDir = currentLoc.directionTo(buildingLocation);
@@ -378,9 +386,17 @@ public class RecyclerAI extends BuildingAI {
 				
 				// see if the target is adjacent
 				if (buildingLocation.isAdjacentTo(currentLoc)) {
-					// UnitType.TOWER
-					if (handler.getBuildingType() == UnitType.TOWER) {
+					// UnitType.FACTORY
+					if (handler.getBuildingType() == UnitType.FACTORY) {
 						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
+						if (birthRoundNum > 200)
+							msgHandler.queueMessage (new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+						yield();
+						
+					// UnitType.TOWER
+					} else if (handler.getBuildingType() == UnitType.TOWER) {
+						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.FACTORY));
 						while(!buildingSystem.constructComponent(buildingLocation, UnitType.TOWER)) {
 							GameObject obj = controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND);
 							if (obj == null || obj.getTeam() != controllers.myRC.getTeam()) {
@@ -510,6 +526,11 @@ public class RecyclerAI extends BuildingAI {
 			updateRatios();
 		}
 		
+		if (Clock.getRoundNum() > 200 && Clock.getRoundNum() < 300) {
+			unitRatios[1] = 3;
+			unitRatios[2] = 1;
+			updateRatios();
+		}
 		if (mySpawningState == spawningState.EARLY && Clock.getRoundNum() > 300 && Clock.getRoundNum() < 1500 ){
 			mySpawningState = spawningState.MIDDLE;
 			unitRatios[0] = 2;
