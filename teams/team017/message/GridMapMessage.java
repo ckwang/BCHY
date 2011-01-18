@@ -55,12 +55,6 @@ public class GridMapMessage extends GenericMessage {
 		return homeLocation;
 	}
 	
-	public GridMap getGridMap(Controllers controllers) {
-		GridMap gridMap = new GridMap(controllers, homeLocation, borders, internalRecords);
-		
-		return gridMap;
-	}
-	
 	public int[] getInternalRecords() {
 		return internalRecords;
 	}

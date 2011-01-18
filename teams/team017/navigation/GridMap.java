@@ -3,6 +3,7 @@ package team017.navigation;
 import team017.util.Controllers;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
+import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.TerrainTile;
 
@@ -27,6 +28,9 @@ public class GridMap {
 	
 	private Grid currentScoutGrid;
 	private int assignedRound;
+	
+	private Direction startDir;
+	private boolean rightward;
 	
 	private class Grid {
 		public int gridX;
@@ -55,8 +59,7 @@ public class GridMap {
 		}
 		
 		public Grid[] getNeighbors(int d) {
-			Direction currentDir = controllers.myRC.getDirection();
-			boolean rightward = Clock.getRoundNum() % 2 == 0 ? true : false;
+			Direction currentDir = startDir;
 			
 			Grid[] neighbors = new Grid[8];
 			for (int i = 0; i < 8; i++) {
@@ -75,15 +78,12 @@ public class GridMap {
 		currentScoutGrid = new Grid(origin);
 		
 		internalRecords = new int[(GRID_NUM * GRID_NUM) / 32 + 1];
-	}
-	
-	public GridMap(Controllers controllers, MapLocation origin, int[] borders, int[] internalRecords) {
-		this.controllers = controllers;
-		this.origin = origin;
-		this.internalRecords = internalRecords;
-		
-		setBorders(borders);
-		updateScoutLocation(controllers.myRC.getLocation());
+		rightward = (Clock.getRoundNum() + controllers.myRC.getRobot().getID()) % 2 == 0 ? true : false;
+		startDir = controllers.myRC.getDirection();
+		int max = (Clock.getRoundNum() + controllers.myRC.getRobot().getID()) % 8;
+		for (int i = 0; i < max; i++) {
+			startDir = startDir.rotateRight();
+		}
 	}
 	
 	private boolean isScouted(Grid grid) {
@@ -93,7 +93,9 @@ public class GridMap {
 		
 		boolean scouted = (internalRecords[int_num] & (1 << int_offset)) != 0; 
 		if (!scouted) {
-			if (controllers.myRC.senseTerrainTile(grid.toMapLocation()) != null) {
+			MapLocation gridLoc = grid.toMapLocation();
+			if (controllers.myRC.senseTerrainTile(gridLoc) != null &&
+					controllers.myRC.senseTerrainTile(gridLoc.add(2, 2)) != null) {
 				setScouted(grid);
 				return true;
 			}
@@ -132,7 +134,7 @@ public class GridMap {
 		currentScoutGrid = new Grid(loc);
 	}
 	
-	public void setBorders(int[] borders) {
+	public void setBorders(int[] borders, MapLocation homeLoc, MapLocation enemyLoc) {
 		for (int i = 0; i < 4; i++) {
 			if (borders[i] == -1) {
 				gridBorders[i] = (i == 1 || i == 2) ? TOTAL_LENGTH * 2: 0;
@@ -140,9 +142,28 @@ public class GridMap {
 				gridBorders[i] = (borders[i] - ((i % 2 == 0) ? origin.y : origin.x) + TOTAL_LENGTH) / GRID_SIZE;
 			}
 		}
+		
+		startDir = homeLoc.directionTo(enemyLoc);
+		if (startDir.isDiagonal()) {
+			startDir = startDir.rotateLeft();
+			int max = (Clock.getRoundNum() + controllers.myRC.getRobot().getID()) % 3;
+			for (int i = 0; i < max; i++) {
+				startDir = startDir.rotateRight();
+			}
+		} else {
+			startDir = startDir.rotateLeft().rotateLeft();
+			int max = (Clock.getRoundNum() + controllers.myRC.getRobot().getID()) % 5;
+			for (int i = 0; i < max; i++) {
+				startDir = startDir.rotateRight();
+			}
+		}
+
+		
 	}
 	
 	public MapLocation getScoutLocation() {
+		controllers.myRC.setIndicatorString(0, startDir.toString());
+		
 		// if the scout location is too old or shown to be void
 		if (Clock.getRoundNum() - assignedRound > 150 || controllers.myRC.senseTerrainTile(currentScoutGrid.toMapLocation()) == TerrainTile.VOID) {
 			setCurrentAsScouted();
@@ -153,21 +174,45 @@ public class GridMap {
 		if (controllers.myRC.getLocation().distanceSquaredTo(currentScoutGrid.toMapLocation()) <= 4) {
 			setCurrentAsScouted();
 			updateScoutLocation();
+			while(controllers.motor.isActive())
+				controllers.myRC.yield();
+			
+			Direction currentDir = controllers.myRC.getDirection();
+			for (int i = 0; i < 4; i++) {
+				currentDir = currentDir.rotateRight().rotateRight();
+				try {
+					controllers.motor.setDirection(currentDir);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				controllers.myRC.yield();
+			}
 		}
 		
 		return currentScoutGrid.toMapLocation();
 	}
 	
-	public void merge(GridMap gridMap) {
-		for (int i = 0; i < internalRecords.length; i++) {
-			internalRecords[i] |= gridMap.internalRecords[i];
+	public void merge(int[] borders, int[] internalRecords) {
+		
+		int newGridBorders[] = new int[4];
+		for (int i = 0; i < 4; i++) {
+			if (borders[i] == -1) {
+				newGridBorders[i] = (i == 1 || i == 2) ? TOTAL_LENGTH * 2: 0;
+			} else {
+				newGridBorders[i] = (borders[i] - ((i % 2 == 0) ? origin.y : origin.x) + TOTAL_LENGTH) / GRID_SIZE;
+			}
 		}
 		
 		for (int i = 0; i < 4; i++) {
 			if ( (i == 1 || i == 2) ?
-					(gridMap.gridBorders[i] < gridBorders[i]) :
-					(gridMap.gridBorders[i] > gridBorders[i]) )
-				gridBorders[i] = gridMap.gridBorders[i];
+					(newGridBorders[i] < gridBorders[i]) :
+					(newGridBorders[i] > gridBorders[i]) )
+				gridBorders[i] = newGridBorders[i];
+		}
+		
+		for (int i = 0; i < internalRecords.length; i++) {
+			internalRecords[i] |= internalRecords[i];
 		}
 	}
 	
@@ -178,7 +223,7 @@ public class GridMap {
 	
 	public void updateScoutLocation() {
 		int roundNum = Clock.getRoundNum();
-		int randomness = roundNum ;
+		int randomness = (roundNum + controllers.myRC.getRobot().getID()) % 3 + 7;
 		
 		for (int i = 1; i <= 5; i++) {
 			Grid[] neighbors = currentScoutGrid.getNeighbors(i);

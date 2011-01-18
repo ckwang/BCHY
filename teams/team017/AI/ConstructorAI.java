@@ -88,7 +88,8 @@ public class ConstructorAI extends AI {
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
 				if (Clock.getRoundNum() % 15 == 0) {
-					msgHandler.queueMessage(new BorderMessage(borders,homeLocation));
+//					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				}
 				yield();
 			} catch (Exception e) {
@@ -411,7 +412,7 @@ public class ConstructorAI extends AI {
 
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.setBorders(borders);
+				gridMap.setBorders(borders, homeLocation, enemyBaseLoc[0]);
 				break;
 			}
 			case GRID_MAP_MESSAGE: {
@@ -429,7 +430,7 @@ public class ConstructorAI extends AI {
 
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.merge(handler.getGridMap(controllers));
+				gridMap.merge(handler.getBorders(), handler.getInternalRecords());
 
 				break;
 			}

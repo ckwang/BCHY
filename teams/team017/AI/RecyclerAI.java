@@ -210,7 +210,7 @@ public class RecyclerAI extends BuildingAI {
 				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.setBorders(borders);
+				gridMap.setBorders(borders, homeLocation, enemyBaseLoc[0]);
 				break;
 			}
 			case GRID_MAP_MESSAGE: {
@@ -228,7 +228,7 @@ public class RecyclerAI extends BuildingAI {
 				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.merge(handler.getGridMap(controllers));
+				gridMap.merge(handler.getBorders(), handler.getInternalRecords());
 //				gridMap.printGridMap();
 				
 				break;
