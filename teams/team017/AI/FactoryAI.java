@@ -24,8 +24,10 @@ public class FactoryAI extends BuildingAI {
 
 	@Override
 	public void proceed() {
-		while (controllers.motor.isActive())
+		while (controllers.motor.isActive() || controllers.comm == null)
 			yield();
+		msgHandler.queueMessage(new ConstructionCompleteMessage(controllers.myRC.getLocation(), UnitType.FACTORY));
+
 		while (true) {
 			try {
 
@@ -95,7 +97,7 @@ public class FactoryAI extends BuildingAI {
 				MapLocation buildingLocation = handler.getBuildingLocation();
 //				Direction builderDir = currentLoc.directionTo(buildingLocation);
 				
-				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
+				if (handler.getBuildingLocation().distanceSquaredTo(currentLoc) < 5) {
 
 					buildingLocs.setLocations(handler.getBuildingType(), handler.getBuildingLocation());
 					if (handler.getBuildingType() == UnitType.RAILGUN_TOWER) {
