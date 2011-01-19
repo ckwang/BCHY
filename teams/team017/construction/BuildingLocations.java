@@ -41,6 +41,7 @@ public class BuildingLocations {
 //	public boolean[] emptyDirections = {true, true, true, true, true, true, true, true};
 	
 	public boolean[] emptyLocations = {true, true, true, true, true, true, true, true};
+	public int emptySize;
 	
 	public int clusterSize;
 	
@@ -349,6 +350,7 @@ public class BuildingLocations {
 //	}
 	
 	public void updateEmptyLocations() {
+		emptySize = 0;
 		for (int i = 0; i < 8; ++i) {
 			MapLocation loc = locationMapping[i];
 			if (controllers.myRC.senseTerrainTile(loc) != TerrainTile.LAND) {
@@ -357,12 +359,19 @@ public class BuildingLocations {
 				try {
 					Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
 					if (objectOnGround != null) {
-						if (controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis == Chassis.BUILDING)
+						Chassis chassis = controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis;
+						if ( chassis == Chassis.BUILDING || chassis == Chassis.DEBRIS ) {
 							emptyLocations[i] = false;
+						} else {
+							emptyLocations[i] = true;
+							emptySize++;
+						}
 					} else if (controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null) {
 						emptyLocations[i] = false;
+
 					} else {
 						emptyLocations[i] = true;
+						emptySize++;
 					}
 					
 				} catch (GameActionException e) {
