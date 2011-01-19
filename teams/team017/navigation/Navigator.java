@@ -13,7 +13,7 @@ import battlecode.common.*;
 public class Navigator {
 	private Controllers controllers;
 
-	private Map myMap;
+	private InfoMap myMap;
 	private int mapResetCounter = 100;
 	
 	private MapLocation destination;
@@ -71,7 +71,7 @@ public class Navigator {
 		iscw = true;
 		istracing = false;
 		computing = false;
-		myMap = new Map( cs.myRC.getLocation() );
+		myMap = new InfoMap( cs.myRC.getLocation() );
 		comparator = new costComparator();
 		queue = new PriorityQueue<EnhancedMapLocation>(50, comparator);
 	}
@@ -478,7 +478,7 @@ public class Navigator {
 	public void updateMap(){
 		
 		if (mapResetCounter < 0){
-			myMap = new Map( controllers.myRC.getLocation() );
+			myMap = new InfoMap( controllers.myRC.getLocation() );
 			mapResetCounter = 100;
 		}
 		mapResetCounter--;

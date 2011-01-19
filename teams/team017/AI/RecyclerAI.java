@@ -28,7 +28,7 @@ public class RecyclerAI extends BuildingAI {
 	double fluxThresholds = 0.3;
 	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	
-	private enum spawningState { COLLECTING, ATTACKING, BALANCE };
+	private enum spawningState { COLLECTING, ATTACKING, BALANCE,LATE };
 	
 	spawningState mySpawningState = spawningState.COLLECTING;
 	
@@ -36,7 +36,17 @@ public class RecyclerAI extends BuildingAI {
 		super(rc);		
 		birthRoundNum = Clock.getRoundNum();
 		double fluxRate = getEffectiveFluxRate();
-		if ( fluxRate > 2.0 ){
+		if (Clock.getRoundNum() > 1000){
+		
+			mySpawningState = spawningState.LATE;
+			unitRatios[0] = 0;
+			unitRatios[1] = 1;
+			unitRatios[2] = 1;
+			unitRatios[3] = 0;
+			unitRatios[4] = 0;
+
+		} else if ( fluxRate > 2.0 ){
+
 			mySpawningState = spawningState.ATTACKING;
 			unitRatios[0] = 1;
 			unitRatios[1] = 1;
@@ -578,7 +588,18 @@ public class RecyclerAI extends BuildingAI {
 //		Build more constructors if flux is insufficient
 		double fluxRate = getEffectiveFluxRate();
 		
-		if ( fluxRate > 2.0 && Clock.getRoundNum() > 300){
+		if (Clock.getRoundNum() > 1000){
+			mySpawningState = spawningState.LATE;
+			unitRatios[0] = 0;
+			unitRatios[1] = 1;
+			unitRatios[2] = 1;
+			unitRatios[3] = 0;
+			unitRatios[4] = 0;
+
+		}
+
+
+		else if ( fluxRate > 2.0 && Clock.getRoundNum() > 300){
 			mySpawningState = spawningState.ATTACKING;
 			unitRatios[0] = 1;
 			unitRatios[1] = 1;

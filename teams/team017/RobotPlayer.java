@@ -32,7 +32,11 @@ public class RobotPlayer implements Runnable {
 				break;
 			
 			case FLYING:
-				new AirAI(myRC).proceed();
+				if (Util.containsComponent(myRC.components(), ComponentType.TELESCOPE)) {
+					new ScoutAI(myRC).proceed();
+				} else {
+					new AirAI(myRC).proceed();
+				}
 				break;
 			
 			case LIGHT:
