@@ -20,11 +20,8 @@ public class TowerAI extends AI {
 	private MapLocation myloc;
 	private int maxRange = 0;
 //	private boolean attacked = false;
-	private double prevHp = 0;
+//	private double prevHp = 0;
 	
-	private List<RobotInfo> enemies1 = new ArrayList<RobotInfo>();
-	private List<RobotInfo> enemies2 = new ArrayList<RobotInfo>();
-
 	public TowerAI(RobotController rc) {
 		super(rc);
 		combat = new CombatSystem(controllers);
@@ -107,23 +104,27 @@ public class TowerAI extends AI {
 	
 	public boolean attack(RobotInfo target) {
 		Direction edir = myloc.directionTo(target.location);
-		controllers.myRC.setIndicatorString(0, target.robot.getID() + "");
+//		controllers.myRC.setIndicatorString(0, target.robot.getID() + "");
 		if (!combat.w.withinRange(target.location)) {
-			while (!combat.setDirection(edir))
+			while (!combat.setDirection(edir)) {
+				combat.shoot(target);
 				yield();
-			controllers.myRC.setIndicatorString(1, "cannot hit");
+			}
 		}
 		int i;
-		for (i = 0; i < 3 && !combat.shoot(target); ++i) {
-			controllers.myRC.setIndicatorString(1, "i: "+i);
+		for (i = 0; i < 4 && !combat.shoot(target);) {
+//			controllers.myRC.setIndicatorString(1, "i: "+i);
 			try {
 				target = controllers.sensor.senseRobotInfo(target.robot);
 			} catch (GameActionException e) {
 				++i;
+				edir = myloc.directionTo(target.location);
+				combat.setDirection(edir);
 				continue;
 			}
 			yield();
 		}
+//		controllers.myRC.setIndicatorString(0, "");
 		if (i == 3)
 			return false;
 		return true;
