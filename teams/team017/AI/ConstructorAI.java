@@ -186,9 +186,7 @@ public class ConstructorAI extends AI {
 
 	private void updateLocationSets() {
 		controllers.senseAll();
-		MapLocation mineloc;
-		for (MineInfo minfo : controllers.mines) {
-			mineloc = minfo.mine.getLocation();
+		for (MapLocation mineloc : controllers.mines) {
 			try {
 				GameObject object = controllers.sensor.senseObjectAtLocation(mineloc, RobotLevel.ON_GROUND);
 				if (object != null) {
@@ -318,7 +316,6 @@ public class ConstructorAI extends AI {
 		}
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
-		controllers.myRC.setIndicatorString(1, "ConstructionComplete!!!" + Clock.getRoundNum());
 		if (type == UnitType.RECYCLER) {
 			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation,gridMap));
 		} else {
