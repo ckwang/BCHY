@@ -318,7 +318,6 @@ public class ConstructorAI extends AI {
 		}
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
-		controllers.myRC.setIndicatorString(1, "ConstructionComplete!!!" + Clock.getRoundNum());
 		if (type == UnitType.RECYCLER) {
 			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation,gridMap));
 		} else {
