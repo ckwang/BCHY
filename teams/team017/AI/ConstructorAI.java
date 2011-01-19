@@ -25,7 +25,7 @@ import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
 
-public class ConstructorAI extends AI {
+public class ConstructorAI extends GroundAI {
 
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
@@ -105,7 +105,6 @@ public class ConstructorAI extends AI {
 	public boolean evaluateDanger() {
 		controllers.senseAll();
 		MapLocation myloc = controllers.myRC.getLocation();
-		Direction mydir = controllers.myRC.getDirection();
 		if (controllers.mobileEnemyNum() > controllers.allyMobile.size() + 2) {
 			MapLocation enemyCenter = Util.aveLocation(controllers.enemyMobile);
 			Direction edir = myloc.directionTo(enemyCenter);
@@ -327,39 +326,24 @@ public class ConstructorAI extends AI {
 	private void navigate() throws GameActionException {
 		
 		
-		Direction nextDir = Direction.OMNI;
 		if (Clock.getRoundNum() - attackedRound <= 50) {
-			navigator.setDestination(homeLocation);
-			nextDir = navigator.getNextDir(9);
+			navigateToDestination(homeLocation, 9);
 		} else if (nearestMine != null) {
-			navigator.setDestination(nearestMine);
-			nextDir = navigator.getNextDir(2);
-		} else {
-			navigator.setDestination(gridMap.getScoutLocation());
-			nextDir = navigator.getNextDir(4);
-		}
-
-		// controllers.myRC.setIndicatorString(2, controllers.myRC.getLocation()
-		// + "," + gridMap.getScoutLocation());
-
-		if (nextDir != Direction.OMNI) {
-			if (!controllers.motor.isActive()) {
-				if (controllers.myRC.getDirection() == nextDir) {
-					if (controllers.motor.canMove(nextDir)) {
-						controllers.motor.moveForward();
-
-						MapLocation currentLoc = controllers.myRC.getLocation();
-						if (!gridMap.isScouted(currentLoc)) {
-							gridMap.setScoutLocation(currentLoc);
-						}
-					}
-				} else {
-					controllers.motor.setDirection(nextDir);
-				}
+			navigateToDestination(nearestMine, 2);
+		} else if (enemyBaseLoc[0] != null) {
+			if(navigateToDestination(enemyBaseLoc[0], 9)){
+				enemyBaseLoc[0] = null;
+			}
+		} else if (enemyBaseLoc[1] != null) {
+			if(navigateToDestination(enemyBaseLoc[1], 9)){
+				enemyBaseLoc[1] = null;
+			}
+		} else if (enemyBaseLoc[2] != null){
+			if(navigateToDestination(enemyBaseLoc[2], 9)){
+				enemyBaseLoc[2] = null;
 			}
 		} else {
-			if (!controllers.motor.isActive())
-				roachNavigate();
+			roachNavigate();
 		}
 	}
 
@@ -416,7 +400,8 @@ public class ConstructorAI extends AI {
 
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.setBorders(borders, homeLocation, enemyBaseLoc[0]);
+				if (enemyBaseLoc[0] != null)
+					gridMap.setBorders(borders, homeLocation, enemyBaseLoc[0]);
 				break;
 			}
 			case GRID_MAP_MESSAGE: {
