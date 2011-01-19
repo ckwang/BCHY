@@ -19,7 +19,7 @@ public class TowerAI extends AI {
 	private CombatSystem combat;
 	private MapLocation myloc;
 	private int maxRange = 0;
-	private boolean attacked = false;
+//	private boolean attacked = false;
 	private double prevHp = 0;
 	
 	private List<RobotInfo> enemies1 = new ArrayList<RobotInfo>();
@@ -92,8 +92,8 @@ public class TowerAI extends AI {
 
 	public void yield() {
 		super.yield();
-		attacked = controllers.myRC.getHitpoints() < prevHp;
-		prevHp = controllers.myRC.getHitpoints();
+//		attacked = controllers.myRC.getHitpoints() < prevHp;
+//		prevHp = controllers.myRC.getHitpoints();
 		controllers.updateComponents();
 		for (WeaponController w: controllers.weapons) {
 			combat.w = controllers.weapons.get(0);
