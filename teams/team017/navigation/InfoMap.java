@@ -2,14 +2,14 @@ package team017.navigation;
 
 import battlecode.common.MapLocation;
 
-public class Map {
+public class InfoMap {
 	private static final int SIZE = 70;
 	
 	private MapLocation origin;
 
 	int[] internalRecords;
 		
-	public Map(MapLocation origin) {
+	public InfoMap(MapLocation origin) {
 		this.origin = origin;
 		
 		internalRecords = new int[(SIZE * SIZE * 4) / 32 + 1];
@@ -43,4 +43,6 @@ public class Map {
 			internalRecords[int_num] &= ~(1 << int_offset);
 		}
 	}
+	
+	
 }
