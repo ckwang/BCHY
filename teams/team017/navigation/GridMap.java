@@ -168,7 +168,7 @@ public class GridMap {
 	}
 	
 	public MapLocation getScoutLocation() {
-		controllers.myRC.setIndicatorString(0, startDir.toString());
+//		controllers.myRC.setIndicatorString(0, startDir.toString());
 		
 		// if the scout location is too old or shown to be void
 		if (Clock.getRoundNum() - assignedRound > 150 || controllers.myRC.senseTerrainTile(currentScoutGrid.toMapLocation()) == TerrainTile.VOID) {
@@ -177,7 +177,7 @@ public class GridMap {
 		}
 		
 		// if we're standing at the spot
-		if (controllers.myRC.getLocation().distanceSquaredTo(currentScoutGrid.toMapLocation()) <= 4) {
+		if ( isScouted(currentScoutGrid.toMapLocation()) ) {
 			setCurrentAsScouted();
 			updateScoutLocation();
 			while(controllers.motor.isActive())
