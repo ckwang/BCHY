@@ -18,6 +18,7 @@ public enum UnitType {
 	HAMMER_TANK (Chassis.LIGHT, ComponentType.HAMMER,ComponentType.HAMMER, ComponentType.PLATING, ComponentType.SIGHT),//weak!!!
 
 // Armory + Recycler
+	JUMPING_CONSTRUCTOR (Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.JUMP, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SHIELD),
 	FLYING_CONSTRUCTOR (Chassis.FLYING, ComponentType.CONSTRUCTOR, ComponentType.SIGHT),
 	NETWORK_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.NETWORK, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
 //	Factory + Recycler + Armory

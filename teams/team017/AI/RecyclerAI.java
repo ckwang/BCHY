@@ -100,7 +100,7 @@ public class RecyclerAI extends BuildingAI {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				
+//				controllers.myRC.setIndicatorString(0, controllers.myRC.getDirection().toString());
 				controllers.myRC.turnOff();
 			} else {
 				
@@ -117,12 +117,16 @@ public class RecyclerAI extends BuildingAI {
 					e1.printStackTrace();
 				}
 			}
-			
 		}
+		
+		
+		
 		
 		while (true) {
 			try {
 			
+				checkAdjacentRecyclers();
+				
 				processMessages();
 				
 				double fluxRate = getEffectiveFluxRate();
@@ -160,47 +164,27 @@ public class RecyclerAI extends BuildingAI {
 		try {
 			// install an antenna to the adjacent constructor
 			RobotInfo info = senseAdjacentChassis(Chassis.LIGHT);
-			if (info != null
-					&& controllers.myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost
-					&& !Util.containsComponent(info.components,ComponentType.ANTENNA)) {
+			if (info != null && controllers.myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost && !Util.containsComponent(info.components,ComponentType.ANTENNA)) {
 				controllers.builder.build(ComponentType.ANTENNA, info.location, RobotLevel.ON_GROUND);
 			}
-			controllers.myRC.turnOff();
-			while(controllers.builder.isActive())
-				yield();
+			Direction dir = Direction.NORTH;
+			for (int i = 0; i < buildingLocs.emptySize; i++) {
+				dir = dir.rotateRight();
+			}
+			while (controllers.motor.isActive())
+				controllers.myRC.yield();
+			
+			try {
+				controllers.motor.setDirection(dir);
+				controllers.myRC.yield();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
-			// Turn off 1 of the initial recyclers
-			RobotInfo otherRecycler = senseAdjacentChassis(Chassis.BUILDING);
-			if(otherRecycler != null && Util.containsComponent(otherRecycler.components, ComponentType.ANTENNA)){
-				
-//				// Build 1 PLATING & 2 SHIELDs on itself
-//				while (controllers.myRC.getTeamResources() < 9)
-//					yield();
-//				controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-//				yield();
-//				while (controllers.myRC.getTeamResources() < 11)
-//					yield();
-//				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-//				yield();
-//				while (controllers.myRC.getTeamResources() < 11)
-//					yield();
-//				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-//				yield();				
-				controllers.myRC.turnOff();
-			}
-			else{
-				controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-				yield();
-//				// Build 1 PLATING & 1 SHIELD on itself
-//				while (controllers.myRC.getTeamResources() < 9)
-//					yield();
-//				controllers.builder.build(ComponentType.PLATING, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-//				yield();
-//				while (controllers.myRC.getTeamResources() < 11)
-//					yield();
-//				controllers.builder.build(ComponentType.SHIELD, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
-//				yield();				
-			}
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getDirection().toString());
+
+			controllers.myRC.turnOff();
+
 		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
@@ -480,6 +464,49 @@ public class RecyclerAI extends BuildingAI {
 		}
 		return null;
 	}
+	
+	private void checkAdjacentRecyclers() throws GameActionException {
+		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
+		MapLocation maxEmptyLocation = currentLoc;
+		int maxEmptyNum = buildingLocs.emptySize;
+		RobotInfo maxRobotInfo = null;
+		
+		for (Robot r : robots) {
+			if (r.getTeam() == controllers.myRC.getTeam()) {
+				RobotInfo info = controllers.sensor.senseRobotInfo(r);
+				if (info.chassis == Chassis.BUILDING && !info.on) {
+					for (ComponentType com : info.components) {
+						if (com == ComponentType.RECYCLER) {
+							Direction dir = info.direction;
+							if (buildingLocs.indexMapping(dir) > maxEmptyNum) {
+								maxEmptyNum = buildingLocs.indexMapping(dir);
+								maxEmptyLocation = info.location;
+								maxRobotInfo = info;
+							}
+						} 
+					}
+				}
+			}
+		}
+		if (maxEmptyLocation != currentLoc) {
+			// Check if the recycler has an antenna
+			boolean hasAntenna = false;
+			for (ComponentType com : maxRobotInfo.components) {
+				if (com == ComponentType.ANTENNA)
+					hasAntenna = true;
+			}
+			
+			controllers.myRC.setIndicatorString(0, hasAntenna + "");
+			// If not, build one on it
+			if (!hasAntenna) {
+				if (controllers.myRC.getTeamResources() > 10)
+					controllers.builder.build(ComponentType.ANTENNA, maxEmptyLocation, RobotLevel.ON_GROUND);
+			}
+			controllers.myRC.turnOn(maxEmptyLocation, RobotLevel.ON_GROUND);
+			controllers.myRC.turnOff();
+		}
+	}
+	
 	
 	private void updateRatios(){
 		total = 0;
