@@ -7,6 +7,7 @@ import team017.util.Controllers;
 import team017.util.Util;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
+import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -24,14 +25,25 @@ public class CombatSystem {
 	public MapLocation myloc;
 	public Direction mydir;
 	
+	public int minRange = 100;
+	public int maxRange = 0;
+	public int optRange;
+	
 	public Direction nextDir = Direction.NONE;
-	RobotInfo lastAttacked = null;
-	boolean killed;
+//	RobotInfo lastAttacked = null;
+//	boolean killed;
 	
 	public CombatSystem(Controllers c) {
 		controllers = c;
 		myloc = controllers.myRC.getLocation();
 		mydir = controllers.myRC.getDirection();
+		for (WeaponController w: controllers.weapons) {
+			ComponentType type = w.type();
+			if (type.range > maxRange)
+				maxRange = type.range;
+			else if (type.range < minRange)
+				minRange = type.range;
+		}
 		if (c.weapons.size() > 0)
 			w = controllers.weapons.get(0);
 	}
@@ -346,10 +358,18 @@ public class CombatSystem {
 			if (medic == null || medic.isActive())
 				return;
 			List<RobotInfo> allies = new ArrayList<RobotInfo>();
-			allies.add(controllers.sensor.senseRobotInfo(controllers.myRC
-					.getRobot()));
-			allies.addAll(controllers.allyMobile);
-			allies.addAll(controllers.allyImmobile);
+			RobotInfo myinfo = controllers.sensor.senseRobotInfo(controllers.myRC
+					.getRobot());
+			if (myinfo.hitpoints < myinfo.maxHp)
+				allies.add(myinfo);
+			for (RobotInfo r: controllers.allyMobile) {
+				if (r.hitpoints < r.maxHp && medic.withinRange(r.location))
+					allies.add(r);
+			}
+			for (RobotInfo r: controllers.allyImmobile) {
+				if (r.hitpoints < r.maxHp && medic.withinRange(r.location))
+					allies.add(r);
+			}
 			Util.sortHp(allies);
 			for (RobotInfo r : allies) {
 				if (medic.withinRange(r.location)) {
@@ -364,7 +384,7 @@ public class CombatSystem {
 	
 	public boolean shoot(RobotInfo r) {
 		double hp = r.hitpoints;
-		for (WeaponController w : controllers.weapons) {
+		for (WeaponController w: controllers.weapons) {
 			if (!w.isActive() && w.withinRange(r.location)) {
 				try {
 					w.attackSquare(r.location, r.robot.getRobotLevel());
@@ -587,6 +607,26 @@ public class CombatSystem {
 			}
 		}
 		return false;
+	}
+	
+	public boolean setDirection(Direction dir) {
+		updatePosition();
+		if (controllers.myRC.getDirection() == dir)
+			return true;
+		if (!controllers.motor.isActive()) {
+			try {
+				controllers.motor.setDirection(dir);
+				return true;
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	public void updateWeapon() {
+		
 	}
 	
 	public void updatePosition() {

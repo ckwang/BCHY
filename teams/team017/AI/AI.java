@@ -1,27 +1,17 @@
 package team017.AI;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import team017.construction.Builder;
 import team017.message.MessageHandler;
 import team017.navigation.GridMap;
 import team017.navigation.Navigator;
 import team017.util.Controllers;
-import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
-import battlecode.common.Mine;
-import battlecode.common.Robot;
 import battlecode.common.RobotController;
-import battlecode.common.RobotLevel;
-import battlecode.common.Team;
 import battlecode.common.TerrainTile;
 
 public abstract class AI {
@@ -43,9 +33,7 @@ public abstract class AI {
 //	protected Set<MapLocation> allMines;
 
 	public AI(RobotController rc) {
-		controllers = new Controllers();
-		
-		controllers.myRC = rc;
+		controllers = new Controllers(rc);
 		homeLocation = rc.getLocation();
 		controllers.updateComponents();
 		
@@ -218,7 +206,6 @@ public abstract class AI {
 		// navigate();
 		if (controllers.motor.isActive())
 			return;
-		
 		if (controllers.motor.canMove(controllers.myRC.getDirection())) {
 			controllers.motor.moveForward();
 		} else {

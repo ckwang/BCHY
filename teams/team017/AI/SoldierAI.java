@@ -188,6 +188,7 @@ public class SoldierAI extends AI {
 		navigator.updateMap();
 		combat.heal();
 		senseBorder();
+		controllers.updateInfo();
 		processMessages();
 		controllers.myRC.setIndicatorString(0, controllers.mobileEnemyNum() + "");
 		controllers.myRC.setIndicatorString(1, controllers.immobileEnemyNum() + "");

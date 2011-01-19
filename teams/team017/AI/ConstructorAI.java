@@ -105,7 +105,6 @@ public class ConstructorAI extends AI {
 	public boolean evaluateDanger() {
 		controllers.senseAll();
 		MapLocation myloc = controllers.myRC.getLocation();
-		Direction mydir = controllers.myRC.getDirection();
 		if (controllers.mobileEnemyNum() > controllers.allyMobile.size() + 2) {
 			MapLocation enemyCenter = Util.aveLocation(controllers.enemyMobile);
 			Direction edir = myloc.directionTo(enemyCenter);

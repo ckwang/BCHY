@@ -22,6 +22,7 @@ public class Util {
 	public final static int CONSTRUCTOR_CODE = 1 << 3;
 	public final static int[] builderCodes = {Util.RECYCLER_CODE, Util.ARMORY_CODE, Util.FACTORY_CODE};
 
+	public static List<Integer> tmplist = new ArrayList<Integer>(); 
 
 	
 	public static Direction[] dirs = { Direction.NORTH, Direction.NORTH_EAST,
@@ -106,27 +107,6 @@ public class Util {
 			return false;
 		}
 	}
-
-	public static void sortHp(List<Double> hps, List<Robot> robots) {
-		int j;
-		double tmp;
-		Robot r;
-		if (hps.size() != robots.size() || hps.size() == 0)
-			return;
-		if (hps.size() == 0)
-			return;
-		for (int i = 1; i < robots.size(); ++i) {
-			tmp = hps.get(i);
-			r = robots.get(i);
-			j = i;
-			for (; j > 0 && tmp < hps.get(j-1); j--) {
-				hps.set(j, hps.get(j-1));
-				robots.set(j, robots.get(j-1));
-			}
-			hps.set(j, tmp);
-			robots.set(j, r);
-		}
-	}
 	
 	public static void sortHp(List<RobotInfo> robots) {
 		int j;
@@ -159,19 +139,17 @@ public class Util {
 	public static void sortLocation(List<RobotInfo> robots, MapLocation myloc) {
 		int j, dis;
 		RobotInfo r;
-		if (robots.size() == 0)
-			return;
-		List<Integer> dist = new ArrayList<Integer>(robots.size());
-		dist.add(myloc.distanceSquaredTo(robots.get(0).location));
+		tmplist.clear();
+		tmplist.add(myloc.distanceSquaredTo(robots.get(0).location));
 		for (int i = 1; i < robots.size(); ++i) {
 			r = robots.get(i);
 			dis = myloc.distanceSquaredTo(r.location);
-			dist.add(dis);
-			for (j = i; j > 0 && dis < dist.get(j-1); --j) {
-				dist.set(j, dist.get(j-1));
+			tmplist.add(dis);
+			for (j = i; j > 0 && dis < tmplist.get(j-1); --j) {
+				tmplist.set(j, tmplist.get(j-1));
 				robots.set(j, robots.get(j-1));
 			}
-			dist.set(j, dis);
+			tmplist.set(j, dis);
 			robots.set(j, r);
 		}
 	}
