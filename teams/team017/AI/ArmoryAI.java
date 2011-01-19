@@ -38,8 +38,6 @@ public class ArmoryAI extends BuildingAI{
 		
 		while (true) {
 			try {
-//				controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation().toString());
-//				controllers.myRC.setIndicatorString(1, "F:" + buildingLocs.factoryLocation + ",R:" + buildingLocs.recyclerLocation);
 				processMessages();
 				
 				yield();
@@ -67,7 +65,6 @@ public class ArmoryAI extends BuildingAI{
 				break;
 			}
 			case CONSTRUCTION_COMPLETE: {
-//				controllers.myRC.setIndicatorString(2, "Complete:" + Clock.getRoundNum());
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation currentLoc = controllers.myRC.getLocation();
 				if (handler.getBuildingLocation().distanceSquaredTo(currentLoc) < 5) {
@@ -77,7 +74,6 @@ public class ArmoryAI extends BuildingAI{
 			}
 			
 			case CONSTRUCT_UNIT_MESSAGE: {
-				controllers.myRC.setIndicatorString(0, "ConstructMessageGot" + Clock.getRoundNum());
 				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
 				if (controllers.myRC.getLocation() == handler.getBuilderLocation()) {
 					UnitType type = handler.getType();

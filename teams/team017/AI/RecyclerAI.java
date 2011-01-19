@@ -506,7 +506,6 @@ public class RecyclerAI extends BuildingAI {
 					hasAntenna = true;
 			}
 			
-			controllers.myRC.setIndicatorString(0, hasAntenna + "");
 			// If not, build one on it
 			if (!hasAntenna) {
 				if (controllers.myRC.getTeamResources() > 10)
@@ -541,8 +540,6 @@ public class RecyclerAI extends BuildingAI {
 		
 		ComponentType chassisBuilder = type.getChassisBuilder();
 		
-		controllers.myRC.setIndicatorString(0, "Type:" + type + Clock.getRoundNum());
-		controllers.myRC.setIndicatorString(1, "ChassisBuilder:" + chassisBuilder + Clock.getRoundNum());
 
 		
 		if (chassisBuilder == ComponentType.RECYCLER) {
@@ -564,8 +561,6 @@ public class RecyclerAI extends BuildingAI {
 			}
 		} else {
 			if (buildingLocs.getLocations(chassisBuilder) != null) {
-				controllers.myRC.setIndicatorString(2, "ConstructMessageSent" + Clock.getRoundNum());
-
 				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), type));
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 			}
