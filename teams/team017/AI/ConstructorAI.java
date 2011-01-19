@@ -401,7 +401,7 @@ public class ConstructorAI extends GroundAI {
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
 				if (enemyBaseLoc[0] != null)
-					gridMap.setBorders(borders, homeLocation, enemyBaseLoc[0]);
+					gridMap.setBorders(borders);
 				break;
 			}
 			case GRID_MAP_MESSAGE: {

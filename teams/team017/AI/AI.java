@@ -53,7 +53,7 @@ public abstract class AI {
 		msgHandler = new MessageHandler(controllers);
 		buildingSystem = new Builder(controllers, msgHandler);
 		
-		gridMap = new GridMap(controllers, homeLocation);
+		gridMap = new GridMap(homeLocation);
 		
 //		enemyMines = new HashSet<EnhancedMineInfo>();
 //		alliedMines = new HashSet<EnhancedMineInfo>();
@@ -153,7 +153,7 @@ public abstract class AI {
 			
 			if (hasChanged) {
 				computeEnemyBaseLocation();
-				gridMap.setBorders(borders, homeLocation, enemyBaseLoc[0]);
+				gridMap.setBorders(borders);
 				gridMap.updateScoutLocation(controllers.myRC.getLocation());
 			}
 			
