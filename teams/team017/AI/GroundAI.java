@@ -50,31 +50,14 @@ abstract public class GroundAI extends AI {
 	}
 	
 	public boolean jumpingNavigateToDestination(MapLocation des, int tolerance){
-		navigator.setDestination(des);
-		Direction nextDir = navigator.getNextDir(tolerance);
-		
-		if (nextDir == Direction.OMNI)
-			return true;
-		
-		if (controllers.motor.isActive())
-			return false;
-		
-		try{
-			if (controllers.myRC.getDirection() == nextDir) {
-				if (controllers.motor.canMove(nextDir)) {
-					controllers.motor.moveForward();
-				}
-			} else {
-				controllers.motor.setDirection(nextDir);
-			}
-		} 
-		catch (GameActionException e){
-			e.printStackTrace();
-			return false;
+		if ( !controllers.jump.isActive() ){
+			
+		}
+		else if( !controllers.motor.isActive() ){
+			
 		}
 		
 		return false;
-		
 	}
 
 }
