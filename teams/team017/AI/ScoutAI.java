@@ -31,6 +31,9 @@ public class ScoutAI extends AI {
 	}
 	
 	private void watch() {
+		while (controllers.motor.isActive())
+			yield();
+		
 		for (int i = 0; i < 7; i++) {
 			try {
 				mineLocations.addAll(controllers.mines);
