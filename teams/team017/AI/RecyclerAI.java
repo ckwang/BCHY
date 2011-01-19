@@ -8,6 +8,7 @@ import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
+import team017.message.ScoutingInquiryMessage;
 import team017.message.TurnOffMessage;
 import team017.util.Util;
 import battlecode.common.*;
@@ -461,6 +462,13 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 				break;
+			}
+			case SCOUTING_INQUIRY_MESSAGE: {
+				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
+				
+				if (handler.getRecyclerID() == controllers.myRC.getRobot().getID()) {
+					gridMap.getScoutLocation();
+				}
 			}
 
 			}

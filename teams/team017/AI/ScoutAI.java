@@ -4,17 +4,24 @@ import java.util.HashSet;
 import java.util.Set;
 
 import team017.message.MineLocationsMessage;
+import team017.message.ScoutingInquiryMessage;
+import team017.message.ScoutingResponseMessage;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+import battlecode.common.Message;
 import battlecode.common.RobotController;
 
 public class ScoutAI extends AI {
 
+	private int id;
+	
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
+	private MapLocation scoutingLocation;
 	
 	public ScoutAI(RobotController rc) {
 		super(rc);
+		id = rc.getRobot().getID();
 	}
 	
 	@Override
@@ -26,11 +33,20 @@ public class ScoutAI extends AI {
 
 	@Override
 	public void proceed() {
+		
 		while (true) {
-			watch();
 			
-			// report mine locations
-			msgHandler.queueMessage(new MineLocationsMessage(mineLocations));
+			try {processMessages();} catch (Exception e) {e.printStackTrace();}
+			
+			// ask for a scouting location if there is none
+			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 9) {
+				msgHandler.queueMessage(new ScoutingInquiryMessage(id));
+			}
+			
+			navigate();
+			
+//			// report mine locations
+//			msgHandler.queueMessage(new MineLocationsMessage(mineLocations));
 		}
 	}
 	
@@ -52,9 +68,31 @@ public class ScoutAI extends AI {
 
 	@Override
 	protected void processMessages() throws GameActionException {
+		while (msgHandler.hasMessage()) {
+			Message msg = msgHandler.nextMessage();
+			switch (msgHandler.getMessageType(msg)) {
+			
+			case SCOUTING_RESPONSE_MESSAGE: {
+				ScoutingResponseMessage handler = new ScoutingResponseMessage(msg);
+				
+				if (handler.getTelescoperID() == id) {
+					scoutingLocation = handler.getScoutLocation();
+				}
+				break;
+			}
+				
+			}
+		}
+		
 	}
 	
 	private void navigate() {
+		if (scoutingLocation == null) {
+			
+		} else {
+			
+		}
+		watch();
 		
 	}
 	
