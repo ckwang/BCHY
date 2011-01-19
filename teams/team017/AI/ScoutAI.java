@@ -3,7 +3,8 @@ package team017.AI;
 import java.util.HashSet;
 import java.util.Set;
 
-import battlecode.common.Direction;
+import team017.message.MineLocationsMessage;
+
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -27,6 +28,9 @@ public class ScoutAI extends AI {
 	public void proceed() {
 		while (true) {
 			watch();
+			
+			// report mine locations
+			msgHandler.queueMessage(new MineLocationsMessage(mineLocations));
 		}
 	}
 	
