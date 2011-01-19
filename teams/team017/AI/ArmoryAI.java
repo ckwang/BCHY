@@ -2,7 +2,9 @@ package team017.AI;
 
 import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
+import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.util.Util;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -29,95 +31,16 @@ public class ArmoryAI extends BuildingAI{
 
 	@Override
 	public void proceed() {
+		while (controllers.motor.isActive() || controllers.comm == null)
+			yield();
+		msgHandler.queueMessage(new ConstructionCompleteMessage(controllers.myRC.getLocation(), UnitType.ARMORY));
 
+		
 		while (true) {
 			try {
 				processMessages();
 				
-				double fluxRate = getEffectiveFluxRate();
-				if (buildIdleRound == 0 && controllers.myRC.getTeamResources() > 150 && fluxRate > 0.4) {
-					if (buildingLocs.recyclerLocation != null) {
-						MapLocation recyclerLoc = buildingLocs.recyclerLocation; 
-						SensorController sensor = controllers.sensor;
-						MapLocation[] buildLocs = {buildingLocs.rotateRight(recyclerLoc), buildingLocs.rotateLeft(recyclerLoc), buildingLocs.rotateRight(buildingLocs.rotateRight(recyclerLoc)), buildingLocs.rotateLeft(buildingLocs.rotateLeft(recyclerLoc))};
-						/*
-						 * Case 1: (recyclerDir is Diagonal)
-						 * - x R
-						 * - A x
-						 * - - -
-						 * 
-						 * Case 2:
-						 * x R x
-						 * x A x
-						 * - - -
-						 */
-						
-//						if (currentLoc.directionTo(recyclerLoc).isDiagonal()) {
-//							for (int i = 0; i < 2; ++i) {
-//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingLocs)) {
-//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
-//											break;
-//										yield();
-//									}
-//									buildIdleRound = 300;
-//									break;
-//								}
-//							}
-//						} else {
-//							for (int i = 0; i < 4; ++i) {
-//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) == null) {
-//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.FLYING_CONSTRUCTOR, buildingLocs)) {
-//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.IN_AIR) != null)
-//											break;
-//										yield();
-//									}
-//									buildIdleRound = 300;
-//									break;
-//								}
-//							}
-//						}
-//						
-						
-					}
-					
-					
-					
-//					while (!buildingSystem.constructUnit(buildLoc, type, buildingDirs) {
-//						yield();
-//					}
-//				}
-//				 if (fluxRate > 0.6 && Clock.getRoundNum() < 1000 && controllers.myRC.getTeamResources() > 120) {
-//						Direction recyclerDir = buildingDirs.recyclerDirection; 
-//						SensorController sensor = controllers.sensor;
-//						MapLocation[] buildLocs = {currentLoc.add(recyclerDir.rotateLeft()), currentLoc.add(recyclerDir.rotateRight()), currentLoc.add(recyclerDir.rotateLeft().rotateLeft()), currentLoc.add(recyclerDir.rotateRight().rotateRight())};
-//						if (recyclerDir.isDiagonal()) {
-//							for (int i = 0; i < 2; ++i) {
-//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) == null) {
-//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.NETWORK_COMMANDER, buildingDirs)) {
-//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) != null)
-//											break;
-//										yield();
-//									}
-//									break;
-//								}
-//							}
-//						} else {
-//							for (int i = 0; i < 4; ++i) {
-//								if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) == null) {
-//									while (!buildingSystem.constructUnit(buildLocs[i], UnitType.NETWORK_COMMANDER, buildingDirs)) {
-//										if (sensor.senseObjectAtLocation(buildLocs[i], RobotLevel.ON_GROUND) != null)
-//											break;
-//										yield();
-//									}
-//									break;
-//								}
-//							}
-//						}
-//					}
-				
 				yield();
-				}
 				} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
@@ -144,8 +67,19 @@ public class ArmoryAI extends BuildingAI{
 			case CONSTRUCTION_COMPLETE: {
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation currentLoc = controllers.myRC.getLocation();
-				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
+				if (handler.getBuildingLocation().distanceSquaredTo(currentLoc) < 5) {
 					buildingLocs.setLocations(handler.getBuildingType(), handler.getBuildingLocation());
+				}
+				break;
+			}
+			
+			case CONSTRUCT_UNIT_MESSAGE: {
+				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
+				if (controllers.myRC.getLocation() == handler.getBuilderLocation()) {
+					UnitType type = handler.getType();
+					MapLocation buildLoc = buildingLocs.constructableLocation(Util.ARMORY_CODE, type.requiredBuilders);
+					if (buildLoc != null)
+						buildingSystem.constructUnit(buildLoc,type, buildingLocs);
 				}
 				break;
 			}

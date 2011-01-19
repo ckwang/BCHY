@@ -4,6 +4,7 @@ import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.TurnOffMessage;
 import team017.util.Util;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
@@ -23,37 +24,14 @@ public class FactoryAI extends BuildingAI {
 
 	@Override
 	public void proceed() {
-		while (controllers.motor.isActive())
+		while (controllers.motor.isActive() || controllers.comm == null)
 			yield();
+		msgHandler.queueMessage(new ConstructionCompleteMessage(controllers.myRC.getLocation(), UnitType.FACTORY));
+
 		while (true) {
 			try {
 
 				processMessages();
-//			controllers.myRC.setIndicatorString(2, getEffectiveFluxRate() + "");
-//			if(controllers.myRC.getTeamResources() > UnitType.APOCALYPSE.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.APOCALYPSE.chassis.upkeep * 1.5){
-//				if(buildingDirs.recyclerDirection != null){
-//					MapLocation buildLoc = buildingDirs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
-//					buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingDirs);
-//				}
-//			}
-//			if(buildingLocs.recyclerLocation != null){
-
-//				if(Clock.getRoundNum() < 1000 && controllers.myRC.getTeamResources() > UnitType.MEDIUM_CONSTRUCTOR.totalCost * 1.1 && getEffectiveFluxRate() > UnitType.MEDIUM_COMMANDER.chassis.upkeep * 1.5){
-//					MapLocation buildLoc = buildingDirs.constructableLocation(ComponentType.FACTORY, UnitType.MEDIUM_COMMANDER.requiredBuilders);
-//					buildingSystem.constructUnit(buildLoc, UnitType.MEDIUM_COMMANDER, buildingDirs);
-//				} else 
-//				
-				
-				
-				
-//				if (Clock.getRoundNum() > 1000 && controllers.myRC.getTeamResources() > 180 && getEffectiveFluxRate() > 1.2) {
-//				MapLocation buildLoc = buildingLocs.constructableLocation(ComponentType.FACTORY, UnitType.APOCALYPSE.requiredBuilders);
-//				buildingSystem.constructUnit(buildLoc, UnitType.APOCALYPSE, buildingLocs);
-//			
-//				}
-//			}
-//				if (fluxRate > 0 && controllers.myRC.getTeamResources() > 120)
-//					buildingSystem.constructUnit(UnitType.TANK_KILLER);
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
@@ -94,7 +72,7 @@ public class FactoryAI extends BuildingAI {
 				MapLocation buildingLocation = handler.getBuildingLocation();
 //				Direction builderDir = currentLoc.directionTo(buildingLocation);
 				
-				if (handler.getBuildingLocation().isAdjacentTo(currentLoc)) {
+				if (handler.getBuildingLocation().distanceSquaredTo(currentLoc) < 5) {
 
 					buildingLocs.setLocations(handler.getBuildingType(), handler.getBuildingLocation());
 					if (handler.getBuildingType() == UnitType.RAILGUN_TOWER) {
@@ -123,6 +101,14 @@ public class FactoryAI extends BuildingAI {
 				}
 				break;
 			}
+			
+			case TURN_OFF_MESSAGE: {
+				TurnOffMessage handler = new TurnOffMessage(msg);
+				if (controllers.myRC.getLocation() == handler.getBuildingLoc())
+					controllers.myRC.turnOff();
+				break;
+			}
+			
 		}
 	}
 	}

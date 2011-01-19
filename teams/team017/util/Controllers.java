@@ -40,7 +40,7 @@ public class Controllers {
 	public List<RobotInfo> enemyMobile = new LinkedList<RobotInfo>();
 	public List<RobotInfo> enemyImmobile = new LinkedList<RobotInfo>();
 	public List<RobotInfo> debris = new LinkedList<RobotInfo>();
-	public List<MineInfo> mines = new ArrayList<MineInfo>();
+	public List<MapLocation> mines = new ArrayList<MapLocation>();
 	
 	public Direction dir;
 	public MapLocation loc;
@@ -102,15 +102,9 @@ public class Controllers {
 		if (roundNum == lastUpdateMine)
 			return;
 		mines.clear();
-		MineInfo minfo;
 		Mine[] minearray = sensor.senseNearbyGameObjects(Mine.class);
 		for (Mine m: minearray) {
-			try {
-				minfo = sensor.senseMineInfo(m);
-				mines.add(minfo);
-			} catch (GameActionException e) {
-				continue;
-			}
+			mines.add(m.getLocation());
 		}
 		lastUpdateMine = roundNum;
 	}
@@ -164,18 +158,12 @@ public class Controllers {
 		if (roundNum == lastUpdateRobot && roundNum == lastUpdateMine)
 			return;
 		reset(true);
-		MineInfo minfo;
 		RobotInfo rinfo;
 		Boolean mobile;
 		GameObject[] objects = sensor.senseNearbyGameObjects(GameObject.class);
 		for (GameObject o: objects) {
 			if (o instanceof Mine) {
-				try {
-					minfo = sensor.senseMineInfo((Mine)o);
-					mines.add(minfo);
-				} catch (GameActionException e) {
-					e.printStackTrace();
-				}
+				mines.add(((Mine) o).getLocation());
 				continue;
 			}
 			try {

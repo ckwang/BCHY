@@ -28,19 +28,14 @@ public class BuildingLocations {
 	public List<MapLocation> towerLocations = new ArrayList<MapLocation>();
 	public List<MapLocation> railgunTowerLocations = new ArrayList<MapLocation>();
 	
-//	public Direction recyclerDirection;
-//	public Direction armoryDirection;
-//	public Direction factoryDirection;
-//	public Direction towerDirection;
-//	public Direction railgunTowerDirection;
 	/*
 	 * 7 0 1
 	 * 6 * 2
 	 * 5 4 3
 	 */
-//	public boolean[] emptyDirections = {true, true, true, true, true, true, true, true};
 	
 	public boolean[] emptyLocations = {true, true, true, true, true, true, true, true};
+	public int emptySize;
 	
 	public int clusterSize;
 	
@@ -53,15 +48,8 @@ public class BuildingLocations {
 	
 	private static final MapLocation[] locationMapping = new MapLocation[8];
 	
-//	private static int indexMapping (MapLocation loc) {
-//		switch (loc) {
-//		case currentLoc.add(Direction.NORTH):
-//			return 0;
-//		}
-//	}
 	
-	
-	private static int indexMapping(Direction dir) {
+	public static int indexMapping(Direction dir) {
 		switch(dir){
 		case NORTH:
 			return 0;
@@ -90,9 +78,7 @@ public class BuildingLocations {
 		for (int i = 0; i < 8; i++)
 			locationMapping[i] = currentLoc.add(directionMapping[i]);
 		updateEmptyLocations();
-//		updateEmptyDirections();
 		updateBuildingLocs();
-//		updateBuildingDirs();
 	}
 	
 	public MapLocation getLocations (ComponentType type) {
@@ -143,38 +129,6 @@ public class BuildingLocations {
 		}
 	}
 	
-//	public Direction getDirections(ComponentType type){
-//		if (type == null)
-//			return towerDirection;
-//		switch(type){
-//		case RECYCLER:
-//			return recyclerDirection;
-//		case ARMORY:
-//			return armoryDirection;
-//		case FACTORY:
-//			return factoryDirection;
-//		default:
-//			return null;
-//		}
-//	}
-//	
-//	public Direction getDirections(UnitType type){
-//		switch(type){
-//		case RECYCLER:
-//			return recyclerDirection;
-//		case ARMORY:
-//			return armoryDirection;
-//		case FACTORY:
-//			return factoryDirection;
-//		case TOWER:
-//			return towerDirection;
-//		case RAILGUN_TOWER:
-//			return railgunTowerDirection;
-//		default:
-//			return null;
-//		}
-//	}
-	
 	public void setLocations (UnitType type, MapLocation loc) {
 		switch (type) {
 		case RECYCLER:
@@ -209,37 +163,6 @@ public class BuildingLocations {
 		}
 	}
 
-//	public void setDirections(ComponentType type, Direction dir) {
-//		switch(type){
-//		case RECYCLER:
-//			recyclerDirection = dir;
-//			break;
-//		case ARMORY:
-//			armoryDirection = dir;
-//			break;
-//		case FACTORY:
-//			factoryDirection = dir;
-//			break;
-//		}
-//	}
-//	
-//	public void setDirections(UnitType type, Direction dir) {
-//		switch(type){
-//		case RECYCLER:
-//			recyclerDirection = dir;
-//			break;
-//		case ARMORY:
-//			armoryDirection = dir;
-//			break;
-//		case FACTORY:
-//			factoryDirection = dir;
-//			break;
-//		case TOWER:
-//			towerDirection = dir;
-//			break;
-//		}
-//	}
-	
 	/*
 	 * Might want to build in somewhere near enemy base; Haven't been added yet
 	 */
@@ -256,19 +179,6 @@ public class BuildingLocations {
 		return null;
 	}
 	
-//	public Direction consecutiveEmpties(int length) {
-//		updateEmptyDirections();
-//		
-//		int n = 0;
-//		
-//		for (int i = 0; i < 7 + length; ++i) {
-//			n = emptyDirections[i%8] ? n + 1 : 0;
-//			if (n == length)	return directionMapping[(i+8-(length-1))%8];
-//		}
-//		
-//		return Direction.NONE;
-//	}
-	
 	public boolean isComplete(int thisBuilderCode, int requiredBuilders) {
 
 		for (int c: Util.builderCodes) {
@@ -277,14 +187,6 @@ public class BuildingLocations {
 		}
 		return true;
 	}
-	
-//	public boolean isComplete(ComponentType thisBuilder, ComponentType[] builders) {
-//		for (ComponentType b : builders) {
-//			if (getDirections(b) == null && b != thisBuilder)	return false;
-//		}
-//		
-//		return true;
-//	}
 	
 	public void updateBuildingLocs() {
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
@@ -314,41 +216,8 @@ public class BuildingLocations {
 		}
 	}
 	
-//	public void updateBuildingDirs() {
-//		clusterSize = 0;
-//		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-//		Mine[] mines = controllers.sensor.senseNearbyGameObjects(Mine.class);
-//		
-//		for (Mine m: mines) {
-//			clusterSize++;
-//		}
-//		
-//		for (Robot r : robots) {
-//			if (r.getTeam() == controllers.myRC.getTeam()) {
-//				try {
-//					RobotInfo info = controllers.sensor.senseRobotInfo(r);
-//					MapLocation currentLoc = controllers.myRC.getLocation();
-//					
-//					if (info.location.isAdjacentTo(currentLoc) && info.on && info.chassis == Chassis.BUILDING) {
-//						for (ComponentType com : info.components) {
-//
-//							if (com.componentClass == ComponentClass.BUILDER) {
-//								setDirections(com, currentLoc.directionTo(info.location));
-////								if (com == ComponentType.RECYCLER)
-////									clusterSize++;
-//							} else if (com == ComponentType.BLASTER) {
-//								setDirections(UnitType.TOWER, currentLoc.directionTo(info.location));
-//							}
-//						}
-//					}
-//				} catch (GameActionException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}
-//	}
-	
 	public void updateEmptyLocations() {
+		emptySize = 0;
 		for (int i = 0; i < 8; ++i) {
 			MapLocation loc = locationMapping[i];
 			if (controllers.myRC.senseTerrainTile(loc) != TerrainTile.LAND) {
@@ -357,12 +226,19 @@ public class BuildingLocations {
 				try {
 					Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
 					if (objectOnGround != null) {
-						if (controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis == Chassis.BUILDING)
+						Chassis chassis = controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis;
+						if ( chassis == Chassis.BUILDING || chassis == Chassis.DEBRIS ) {
 							emptyLocations[i] = false;
+						} else {
+							emptyLocations[i] = true;
+							emptySize++;
+						}
 					} else if (controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null) {
 						emptyLocations[i] = false;
+
 					} else {
 						emptyLocations[i] = true;
+						emptySize++;
 					}
 					
 				} catch (GameActionException e) {
@@ -373,48 +249,6 @@ public class BuildingLocations {
 		}
 	}
 	
-//	public void updateEmptyDirections() {
-//		
-//		MapLocation currentLoc = controllers.myRC.getLocation();
-//		
-//		Direction dir = Direction.NORTH;
-//		for (int i = 0; i < 8; ++i) {
-//			MapLocation loc = currentLoc.add(dir);
-//			if (controllers.myRC.senseTerrainTile(loc) != TerrainTile.LAND) {
-//				emptyDirections[i] = false;
-//			} else {
-//				try {
-//					Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
-//					if (objectOnGround != null) {
-//						if (controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis == Chassis.BUILDING)
-//							emptyDirections[i] = false;
-//					} else if (controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null) {
-//						emptyDirections[i] = false;
-//					} else {
-//						emptyDirections[i] = true;
-//					}
-//					
-//				} catch (GameActionException e) {
-//					e.printStackTrace();
-//					emptyDirections[i] = false;
-//				}
-//			}
-//			
-//			dir = dir.rotateRight();
-//		}
-//		
-//		
-////		String indicator = "";
-////		for (int i = 0; i < 8; ++i) {
-////			indicator += emptyDirections[i] + ",";
-////		}
-////		controllers.myRC.setIndicatorString(1, indicator);
-//	}
-	
-	
-//	public boolean checkDirEmpty(Direction dir){
-//		return emptyDirections[indexMapping(dir)];
-//	}
 
 	public MapLocation constructableLocation (int thisBuilderCode, int requiredBuilders) {
 		updateEmptyLocations();
@@ -504,31 +338,3 @@ public class BuildingLocations {
 		return currentLoc.add(dir);
 	}
 }
-	
-//	public MapLocation constructableLocation(ComponentType thisBuilder, ComponentType[] requiredBuilders) {
-//		updateEmptyDirections();
-//		MapLocation currentLoc = controllers.myRC.getLocation();
-//		
-//		MapLocation[] builderLocs = new MapLocation[requiredBuilders.length - 1];
-//		int i = 0;
-//		for (ComponentType c : requiredBuilders) {
-//			if (thisBuilder != c)
-//				builderLocs[i++] = currentLoc.add(getDirections(c));
-//		}
-//		
-//		outer:
-//		for (i = 0; i < 8; ++i) {
-//			if (emptyDirections[i] == true) {
-//				MapLocation buildingLoc = currentLoc.add(directionMapping[i]);
-//				for (MapLocation builderLoc : builderLocs) {
-//					if (!buildingLoc.isAdjacentTo(builderLoc))
-//						continue outer;
-//				}
-//				return buildingLoc;
-//			}
-//			
-//		}
-//		return null;
-//	}
-	
-

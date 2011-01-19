@@ -18,9 +18,11 @@ public enum UnitType {
 	HAMMER_TANK (Chassis.LIGHT, ComponentType.HAMMER,ComponentType.HAMMER, ComponentType.PLATING, ComponentType.SIGHT),//weak!!!
 
 // Armory + Recycler
+	JUMPING_CONSTRUCTOR (Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.JUMP, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SHIELD),
 	FLYING_CONSTRUCTOR (Chassis.FLYING, ComponentType.CONSTRUCTOR, ComponentType.SIGHT),
 	NETWORK_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.NETWORK, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
 //	Factory + Recycler + Armory
+	TELESCOPER (Chassis.FLYING, ComponentType.TELESCOPE, ComponentType.ANTENNA),
 	HEAVY_CONSTRUCTOR(Chassis.HEAVY, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.DISH, ComponentType.REGEN),
 
 // Factory
@@ -30,7 +32,7 @@ public enum UnitType {
 	MEDIUM_CONSTRUCTOR(Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING),
 	MEDIUM_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.DISH, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
 	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.RADAR, ComponentType.MEDIC, ComponentType.SHIELD, ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG),
-	APOCALYPSE(Chassis.HEAVY, ComponentType.REGEN, ComponentType.HARDENED, ComponentType.SMG, ComponentType.SMG, ComponentType.SMG, ComponentType.RAILGUN, ComponentType.RADAR),
+	APOCALYPSE(Chassis.HEAVY, ComponentType.REGEN, ComponentType.HARDENED, ComponentType.SHIELD, ComponentType.SMG, ComponentType.SMG, ComponentType.RAILGUN, ComponentType.RADAR),
 	CHRONO_APOCALYPSE(Chassis.HEAVY, ComponentType.RAILGUN, ComponentType.RAILGUN, ComponentType.JUMP, ComponentType.RADAR, ComponentType.SHIELD, ComponentType.PLATING),
 
 // Buildings
