@@ -153,7 +153,7 @@ public class RecyclerAI extends BuildingAI {
 				}
 				
 				// turn off when the mine is depleted
-				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingLocs.clusterSize == 1)
+				if (myMine != null && controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingLocs.clusterSize == 1)
 					controllers.myRC.turnOff();
 
 				yield();
@@ -269,8 +269,10 @@ public class RecyclerAI extends BuildingAI {
 						break;
 
 					//	Build a tower at the initial base
-					if (birthRoundNum < 200) {
+					if (birthRoundNum < 200 || myMine == null) {
+						
 						for (int i = 4; i > 0; i--) {
+//							controllers.myRC.setIndicatorString(0, i + "");
 							loc = buildingLocs.consecutiveEmpties(i);
 							if (loc != null) {
 								switch(i) {
@@ -298,8 +300,10 @@ public class RecyclerAI extends BuildingAI {
 								case 2:
 									// Initially has 2 empties only
 									if (buildingLocs.factoryLocation == null) {
-										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
+										msgHandler.clearOutQueue();
 										msgHandler.queueMessage(new NotEnoughSpaceMessage());
+										msgHandler.process();
+										controllers.myRC.turnOff();
 										inquiryIdleRound = 5;
 									} else {
 										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
@@ -307,6 +311,7 @@ public class RecyclerAI extends BuildingAI {
 									}
 									break;
 								}
+							break;
 							}
 						}
 						
@@ -488,8 +493,8 @@ public class RecyclerAI extends BuildingAI {
 			}
 		}
 		
-		controllers.myRC.setIndicatorString(0, "My Location:" + controllers.myRC.getLocation() + "Empty:" + buildingLocs.emptySize);
-		controllers.myRC.setIndicatorString(1, "Max Location:" + maxEmptyLocation + "Empty:" + maxEmptyNum);
+//		controllers.myRC.setIndicatorString(0, "My Location:" + controllers.myRC.getLocation() + "Empty:" + buildingLocs.emptySize);
+//		controllers.myRC.setIndicatorString(1, "Max Location:" + maxEmptyLocation + "Empty:" + maxEmptyNum);
 
 		if (maxEmptyLocation != currentLoc) {
 			// Check if the recycler has an antenna
