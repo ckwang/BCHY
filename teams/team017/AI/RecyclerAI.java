@@ -1,5 +1,8 @@
 package team017.AI;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
+
 import team017.construction.UnitType;
 import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
@@ -20,13 +23,16 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 
-	int [] unitRatios = {1, 1, 0, 1, 0};
+	int [] unitRatios = {1, 0, 0, 0, 1};
 	int [] cumulatedRatios = new int[5];
 	int total;
 	
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.BATTLE_FORTRESS};
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.CHRONO_APOCALYPSE};
 	double fluxThresholds = 0.3;
 	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
+	
+	private Queue<UnitType> constructingQueue;
+	private UnitType unitUnderConstruction;
 	
 	private enum spawningState { COLLECTING, ATTACKING, BALANCE,LATE };
 	
@@ -35,42 +41,12 @@ public class RecyclerAI extends BuildingAI {
 	public RecyclerAI(RobotController rc) {
 		super(rc);		
 		birthRoundNum = Clock.getRoundNum();
-		double fluxRate = getEffectiveFluxRate();
-		if (Clock.getRoundNum() > 1000){
-		
-			mySpawningState = spawningState.LATE;
-			unitRatios[0] = 0;
-			unitRatios[1] = 1;
-			unitRatios[2] = 1;
-			unitRatios[3] = 0;
-			unitRatios[4] = 0;
-
-		} else if ( fluxRate > 2.0 ){
-
-			mySpawningState = spawningState.ATTACKING;
-			unitRatios[0] = 1;
-			unitRatios[1] = 1;
-			unitRatios[2] = 1;
-			unitRatios[3] = 0;
-			unitRatios[4] = 0;
-		}
-		else if ( fluxRate > 1.0 ){
-			mySpawningState = spawningState.BALANCE;
-			unitRatios[0] = 1;
-			unitRatios[1] = 1;
-			unitRatios[2] = 1;
-			unitRatios[3] = 0;
-			unitRatios[4] = 0;
-		}
-		else {
-			mySpawningState = spawningState.COLLECTING;
-			unitRatios[0] = 1;
-			unitRatios[1] = 1;
-			unitRatios[2] = 1;
-			unitRatios[3] = 0;
-			unitRatios[4] = 0;
-		}
-		
+		constructingQueue = new ArrayDeque<UnitType>(5);
+		constructingQueue.add(UnitType.TELESCOPER);
+		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 		updateRatios();
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
@@ -93,6 +69,11 @@ public class RecyclerAI extends BuildingAI {
 		if (Clock.getRoundNum() <= 5)
 			init();
 		else{
+			
+			if (unitConstructed > 3 && unitRatios[0]!= 0){
+				unitRatios[0] = 0;
+				updateRatios();
+			}
 			
 			// turn off if there is already a recycler nearby
 			if (buildingLocs.recyclerLocation != null) {
@@ -153,7 +134,7 @@ public class RecyclerAI extends BuildingAI {
 				
 				
 				if (controllers.myRC.getTeamResources() > resourceThresholds && fluxRate > fluxThresholds ) {
-						constructUnitAtRatio();
+					constructUnit();
 				}
 				
 				// turn off when the mine is depleted
@@ -248,16 +229,20 @@ public class RecyclerAI extends BuildingAI {
 				break;
 			}
 			case BUILDING_REQUEST:{
-//				controllers.myRC.setIndicatorString(0, "Building Request Got" + Clock.getRoundNum());
-//				controllers.myRC.setIndicatorString(1, "Building Request Got" + Clock.getRoundNum());
-//				controllers.myRC.setIndicatorString(2, "Building Request Got" + Clock.getRoundNum());
+
 				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+					
 					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
 						if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
 							break;
 						yield();
-					}	
+					}
+					
+					if (handler.getUnitType() == unitUnderConstruction){
+						unitUnderConstruction = null;
+					}
+					
 				}
 				break;
 				
@@ -535,6 +520,40 @@ public class RecyclerAI extends BuildingAI {
 		}
 	}
 	
+	private void constructUnit() {
+		if ( constructingQueue.size() == 0 )
+			return;
+		else if ( unitUnderConstruction == null )
+			unitUnderConstruction = constructingQueue.poll();
+		
+		ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
+		
+		if (chassisBuilder == ComponentType.RECYCLER) {
+			//Cannot be built by recycler itself
+			if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
+				if (buildingSystem.constructUnit(unitUnderConstruction)) {
+					++unitConstructed;
+					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+				}
+			} else {
+				MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
+				if (buildLoc != null) {
+					if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
+						++unitConstructed;
+						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+						
+					}
+				}
+			}
+		} else {
+			if (buildingLocs.getLocations(chassisBuilder) != null) {
+				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), unitUnderConstruction));
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+			}
+		}
+		
+	}
+	
 	private void constructUnitAtRatio() {
 
 		int index;
@@ -586,43 +605,43 @@ public class RecyclerAI extends BuildingAI {
 		
 		
 //		Build more constructors if flux is insufficient
-		double fluxRate = getEffectiveFluxRate();
-		
-		if (Clock.getRoundNum() > 1000){
-			mySpawningState = spawningState.LATE;
-			unitRatios[0] = 0;
-			unitRatios[1] = 1;
-			unitRatios[2] = 1;
-			unitRatios[3] = 0;
-			unitRatios[4] = 0;
-
-		}
-
-
-		else if ( fluxRate > 2.0 && Clock.getRoundNum() > 300){
-			mySpawningState = spawningState.ATTACKING;
-			unitRatios[0] = 1;
-			unitRatios[1] = 1;
-			unitRatios[2] = 1;
-			unitRatios[3] = 0;
-			unitRatios[4] = 0;
-		}
-		else if ( fluxRate > 1.0 && Clock.getRoundNum() > 200 ){
-			mySpawningState = spawningState.BALANCE;
-			unitRatios[0] = 1;
-			unitRatios[1] = 1;
-			unitRatios[2] = 1;
-			unitRatios[3] = 0;
-			unitRatios[4] = 0;
-		}
-		else {
-			mySpawningState = spawningState.COLLECTING;
-			unitRatios[0] = 1;
-			unitRatios[1] = 1;
-			unitRatios[2] = 1;
-			unitRatios[3] = 0;
-			unitRatios[4] = 0;
-		}
-		updateRatios();
+//		double fluxRate = getEffectiveFluxRate();
+//		
+//		if (Clock.getRoundNum() > 1000){
+//			mySpawningState = spawningState.LATE;
+//			unitRatios[0] = 0;
+//			unitRatios[1] = 1;
+//			unitRatios[2] = 1;
+//			unitRatios[3] = 0;
+//			unitRatios[4] = 0;
+//
+//		}
+//
+//
+//		else if ( fluxRate > 2.0 && Clock.getRoundNum() > 300){
+//			mySpawningState = spawningState.ATTACKING;
+//			unitRatios[0] = 1;
+//			unitRatios[1] = 1;
+//			unitRatios[2] = 1;
+//			unitRatios[3] = 0;
+//			unitRatios[4] = 0;
+//		}
+//		else if ( fluxRate > 1.0 && Clock.getRoundNum() > 200 ){
+//			mySpawningState = spawningState.BALANCE;
+//			unitRatios[0] = 1;
+//			unitRatios[1] = 1;
+//			unitRatios[2] = 1;
+//			unitRatios[3] = 0;
+//			unitRatios[4] = 0;
+//		}
+//		else {
+//			mySpawningState = spawningState.COLLECTING;
+//			unitRatios[0] = 1;
+//			unitRatios[1] = 1;
+//			unitRatios[2] = 1;
+//			unitRatios[3] = 0;
+//			unitRatios[4] = 0;
+//		}
+//		updateRatios();
 	}
 }

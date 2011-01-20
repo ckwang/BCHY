@@ -19,17 +19,12 @@ import battlecode.common.RobotInfo;
 import battlecode.common.SensorController;
 import battlecode.common.WeaponController;
 
-public class SoldierAI extends AI {
+public class SoldierAI extends GroundAI {
 
 	private CombatSystem combat;
 	private RobotController rc = controllers.myRC;
-	private MovementController motor = controllers.motor;
-	private SensorController sensor = controllers.sensor;
-	private List<WeaponController> weapons = controllers.weapons;
-	private JumpController jump = controllers.jump;
 
 	private MapLocation leaderLoc = null;
-	private MapLocation destionation;
 
 	private double prevHp = 0;
 	private boolean attacked = false;
@@ -54,9 +49,6 @@ public class SoldierAI extends AI {
 	public void proceed() {
 		birthRound = Clock.getRoundNum();
 		proceed: while (true) {
-			// controllers.senseNearby();
-//			enemyNum = controllers.mobileEnemyNum();
-			// MapLocation nextLoc = combat.attack();
 			
 			if (controllers.mobileEnemyNum() > 0) {
 				attackMobile();
@@ -69,100 +61,7 @@ public class SoldierAI extends AI {
 				flee();
 				continue proceed;
 			}
-
-			// if (nextLoc != null && !controllers.motor.isActive()) {
-			// try {
-			// if (!combat.withinRadius){
-			// // Navigate to the enemy if it's not within the radius
-			// navigator.setDestination(nextLoc);
-			// Direction nextDir = navigator.getNextDir(0);
-			// if (rc.getDirection() == nextDir) {
-			// if (controllers.motor.canMove(controllers.myRC.getDirection()))
-			// controllers.motor.moveForward();
-			// } else if (nextDir == Direction.OMNI) {
-			// if
-			// (controllers.motor.canMove(controllers.myRC.getDirection().opposite()))
-			// controllers.motor.moveBackward();
-			// } else {
-			// controllers.motor.setDirection(nextDir);
-			// }
-			// }
-			//					
-			// // Face the enemy if it's within the radius but not within range
-			// else {
-			// Direction nextDir =
-			// controllers.myRC.getLocation().directionTo(nextLoc);
-			// if (nextDir != Direction.OMNI)
-			// controllers.motor.setDirection(nextDir);
-			// }
-			//
-			// } catch (Exception e) {
-			// e.printStackTrace();
-			// }
-			// }
-
-//			if (nextLoc == null && attackRoundCounter > 5 && leaderMessageRoundCounter > 3) {
-//				leaderID = -1;
-//				if (Clock.getRoundNum() < 1000 || Clock.getRoundNum() - birthRound > 100) {
-//					try {navigate();}
-//					catch (Exception e) {}
-//				}
-//			}
-//			senseBorder();
-			// yield();
-
-			// if (enemyNum > 0)
-			// attackRoundCounter = 0;
-			// else
-			// attackRoundCounter++;
-			// try {
-			// if (leaderMessageRoundCounter < 4) {
-			// if (!motor.isActive()) {
-			// MapLocation estimatedLeaderLoc = leaderLoc.add(
-			// followDir, leaderMessageRoundCounter);
-			// // Move in the same direction as the leader if being
-			// // near enough to the leader
-			// if (rc.getLocation().distanceSquaredTo(
-			// estimatedLeaderLoc) <= 9) {
-			// if (motor.canMove(followDir)) {
-			// if (rc.getDirection() == followDir) {
-			// motor.moveForward();
-			// } else {
-			// motor.setDirection(followDir);
-			// }
-			// // Move to the front of the leader if cant move
-			// // in the same direction
-			// } else {
-			// navigator.setDestination(leaderLoc.add(followDir, 3));
-			// Direction nextDir = navigator.getNextDir(2);
-			// if (rc.getDirection() == nextDir)
-			// motor.moveForward();
-			// else
-			// motor.setDirection(nextDir);
-			// }
-			// }
-			// }
-			// leaderMessageRoundCounter++;
-			// } else {
-			// hasLeader = false;
-			// }
-			// }
-			// catch (Exception e) {}
-			//
-			// if (attackRoundCounter > 5 && leaderMessageRoundCounter > 3) {
-			// leaderID = -1;
-			// try {navigate();}
-			// catch (Exception e) {}
-			// }
-
-//			if (controllers.mobileEnemyNum() == 0
-//					&& controllers.debrisNum() != 0) {
-//				try {
-//					combat.attackDebris();
-//				} catch (Exception e1) {
-//					e1.printStackTrace();
-//				}
-//			}
+			
 			if (Clock.getRoundNum() < 1000 || Clock.getRoundNum() - birthRound > 100) {
 				try {
 					navigate();
@@ -170,17 +69,14 @@ public class SoldierAI extends AI {
 				}
 				catch (Exception e) {}
 			}
-//			processMessages();
-// 			broadcast();
-//			senseBorder();
-//			yield();
+
+			yield();
 
 		}
 	}
 
 	public void yield() {
-//		int before = Clock.getBytecodesLeft();
-//		previousDir = controllers.myRC.getDirection();
+		
 		super.yield();
 		attacked = controllers.myRC.getHitpoints() < prevHp;
 		prevHp = controllers.myRC.getHitpoints();
@@ -190,14 +86,14 @@ public class SoldierAI extends AI {
 		senseBorder();
 		controllers.updateInfo();
 		processMessages();
-		controllers.myRC.setIndicatorString(0, controllers.mobileEnemyNum() + "");
-		controllers.myRC.setIndicatorString(1, controllers.immobileEnemyNum() + "");
-		if (controllers.mobileEnemyNum() > 0)
-			controllers.myRC.setIndicatorString(2, controllers.enemyMobile.get(0).robot.getID() + "");
-		else
-			controllers.myRC.setIndicatorString(2, "");	
-//		 int after = Clock.getBytecodesLeft();
-//		 System.out.println("yield: " + String.valueOf(before-after));
+//		controllers.myRC.setIndicatorString(0, controllers.mobileEnemyNum() + "");
+//		controllers.myRC.setIndicatorString(1, controllers.immobileEnemyNum() + "");
+//		if (controllers.mobileEnemyNum() > 0)
+//			controllers.myRC.setIndicatorString(2, controllers.enemyMobile.get(0).robot.getID() + "");
+//		else
+//			controllers.myRC.setIndicatorString(2, "");
+		
+		
 	}
 	
 	//return has target
@@ -215,7 +111,7 @@ public class SoldierAI extends AI {
 			try {
 				target = controllers.sensor.senseRobotInfo(target.robot);
 			} catch (GameActionException e) {
-//					combat.moveForward();
+					combat.moveForward();
 				yield();
 				continue;
 			}
@@ -399,75 +295,30 @@ public class SoldierAI extends AI {
 				}
 				break;
 
-			// case ENEMY_INFORMATION_MESSAGE:
-			// if (enemyNum == 0) {
-			// EnemyInformationMessage ehandler = new EnemyInformationMessage(
-			// msg);
-			// if (Clock.getRoundNum() - ehandler.getRoundNum() <= 1) {
-			// for (UnitInfo e : ehandler.getInfos()) {
-			// controllers.enemyMobile.remove(e);
-			// controllers.enemyMobile.add(e);
-			// }
-			// }
-			// }
-			// break;
 			}
 		}
 	}
 
 	private void navigate() throws GameActionException {
-		Direction nextDir = Direction.OMNI;
 		if (enemyBaseLoc[0] != null) {
-			navigator.setDestination(enemyBaseLoc[0]);
-			nextDir = navigator.getNextDir(9);
-			if (nextDir == Direction.OMNI) {
+			controllers.myRC.setIndicatorString(0, "currentLoc: " + controllers.myRC.getLocation() + 
+					   ", enemyBaseLoc[0]: " + enemyBaseLoc[0]);
+			if ( navigateToDestination(enemyBaseLoc[0], 9) )
 				enemyBaseLoc[0] = null;
-				navigator.setDestination(enemyBaseLoc[1]);
-				nextDir = navigator.getNextDir(9);
-			}
-			// controllers.myRC.setIndicatorString(0,
-			// controllers.myRC.getLocation() + ", e0: " + enemyBaseLoc[0]);
 		} else if (enemyBaseLoc[1] != null) {
-			navigator.setDestination(enemyBaseLoc[1]);
-			nextDir = navigator.getNextDir(9);
-			if (nextDir == Direction.OMNI) {
+			controllers.myRC.setIndicatorString(0, "currentLoc: " + controllers.myRC.getLocation() + 
+					   ", enemyBaseLoc[1]: " + enemyBaseLoc[1]);
+			if ( navigateToDestination(enemyBaseLoc[1], 9) )
 				enemyBaseLoc[1] = null;
-				navigator.setDestination(enemyBaseLoc[2]);
-				nextDir = navigator.getNextDir(9);
-			}
-			// controllers.myRC.setIndicatorString(0,
-			// controllers.myRC.getLocation() + ", e1: " + enemyBaseLoc[1]);
 		} else if (enemyBaseLoc[2] != null) {
-			navigator.setDestination(enemyBaseLoc[2]);
-			nextDir = navigator.getNextDir(9);
-			if (nextDir == Direction.OMNI) {
+			controllers.myRC.setIndicatorString(0, "currentLoc: " + controllers.myRC.getLocation() + 
+					   ", enemyBaseLoc[2]: " + enemyBaseLoc[2]);
+			if ( navigateToDestination(enemyBaseLoc[2], 9) )
 				enemyBaseLoc[2] = null;
-			}
-			// controllers.myRC.setIndicatorString(0,
-			// controllers.myRC.getLocation() + ", e2: " + enemyBaseLoc[2]);
 		} else {
-			navigator.setDestination(gridMap.getScoutLocation());
-			nextDir = navigator.getNextDir(4);
+			navigateToDestination(homeLocation.add(Direction.NORTH, 60), 9);
+			controllers.myRC.setIndicatorString(0, "currentLoc: " + controllers.myRC.getLocation());
 		}
-		if (nextDir != Direction.OMNI) {
-			if (!controllers.motor.isActive()) {
-				if (controllers.myRC.getDirection() == nextDir) {
-					if (controllers.motor.canMove(nextDir)) {
-						controllers.motor.moveForward();
-
-						MapLocation currentLoc = controllers.myRC.getLocation();
-						if (!gridMap.isScouted(currentLoc)) {
-							gridMap.setScouted(currentLoc);
-							gridMap.updateScoutLocation(currentLoc);
-						}
-					}
-				} else {
-					controllers.motor.setDirection(nextDir);
-				}
-			}
-		} else {
-			if (!controllers.motor.isActive())
-				roachNavigate();
-		}
+		
 	}
 }
