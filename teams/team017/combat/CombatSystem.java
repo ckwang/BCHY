@@ -16,6 +16,7 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 import battlecode.common.WeaponController;
 
+//Assume has all weapons at the start
 public class CombatSystem {
 
 	private Controllers controllers;
@@ -125,68 +126,6 @@ public class CombatSystem {
 		}
 	}
 
-	// public MapLocation mass() {
-	// Robot r;
-	// MapLocation buildingLoc = null;
-	// for (WeaponController w : controllers.weapons) {
-	// if (w.isActive())
-	// continue;
-	// while (immobileEnemies.size() > 0) {
-	// r = immobileEnemies.get(0);
-	// try {
-	// RobotInfo info = controllers.sensor.senseRobotInfo(r);
-	// if (info.hitpoints <= 0) {
-	// immobileEnemies.remove(0);
-	// continue;
-	// }
-	// MapLocation loc = controllers.sensor
-	// .senseLocationOf(r);
-	// int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
-	// if (dist > maxRange) {
-	// immobileEnemies.remove(0);
-	// continue;
-	// }
-	// w.attackSquare(loc, r.getRobotLevel());
-	// if (info.hitpoints < aveDamage) {
-	// immobileEnemies.remove(0);
-	// buildingLoc = loc;
-	// break;
-	// }
-	// } catch (GameActionException e) {
-	// immobileEnemies.remove(0);
-	// continue;
-	// }
-	// }
-	// }
-	// return buildingLoc;
-	// }
-
-	// public void massacre() {
-	// // if (immobileEnemies.size() == 0)
-	// // return;
-	// int i = 0, dist;
-	// for (WeaponController w : controllers.weapons) {
-	// if (w.isActive())
-	// continue;
-	// try {
-	// MapLocation loc =
-	// controllers.sensor.senseLocationOf(immobileEnemies.get(i));
-	// dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
-	// if (dist > maxRange) {
-	// ++i;
-	// if (i >= immobileEnemies.size())
-	// return;
-	// continue;
-	// }
-	// w.attackSquare(loc, immobileEnemies.get(i).getRobotLevel());
-	// } catch (GameActionException e) {
-	// ++i;
-	// if (i >= immobileEnemies.size())
-	// return;
-	// }
-	// }
-	// }
-
 	/*
 	 * return true of moved, false if just set direction or motor active assume
 	 * enemy in front (sensor range 180 degree)
@@ -200,11 +139,6 @@ public class CombatSystem {
 			controllers.motor.moveBackward();
 			return true;
 		}
-		// else if (Util.isFacing(mydir.opposite(), edir) &&
-		// controllers.motor.canMove(mydir)) {
-		// controllers.motor.moveForward();
-		// return true;
-		// }
 		else {
 			Direction toTurn = null;
 			Direction left = edir.rotateLeft();
@@ -222,137 +156,6 @@ public class CombatSystem {
 			return false;
 		}
 	}
-
-	// public void attack() {
-	// Robot r;
-	// for (WeaponController w : controllers.weapons) {
-	// if (w.isActive())
-	// continue;
-	// while (enemies.size() > 0) {
-	// r = enemies.get(0);
-	// try {
-	// RobotInfo info = controllers.sensor.senseRobotInfo(r);
-	// if (info.hitpoints <= 0) {
-	// enemies.remove(0);
-	// continue;
-	// }
-	// MapLocation loc = controllers.sensor
-	// .senseLocationOf(r);
-	// int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
-	// if (dist > maxRange) {
-	// enemies.remove(0);
-	// continue;
-	// }
-	// w.attackSquare(loc, r.getRobotLevel());
-	// if (info.hitpoints < aveDamage) {
-	// enemies.remove(0);
-	// break;
-	// }
-	// } catch (GameActionException e) {
-	// enemies.remove(0);
-	// continue;
-	// }
-	// }
-	// }
-	// }
-
-	// public boolean attack() {
-	// if (target1 == null) {
-	// // destroyDeadEnemy();
-	// return false;
-	// }
-	// boolean attacked = false;
-	// for (WeaponController w : controllers.weapons) {
-	// if (w.isActive())
-	// continue;
-	// try {
-	// RobotInfo info = controllers.sensor.senseRobotInfo(target1);
-	// if (info.hitpoints < 0) {
-	// // if (target2 == null)
-	// // return false;
-	// // target1 = target2;
-	// // target2 = null;
-	// }
-	// MapLocation weakest = controllers.sensor
-	// .senseLocationOf(target1);
-	// int dist = controllers.myRC.getLocation().distanceSquaredTo(weakest);
-	// if (dist > maxRange) {
-	// return false;
-	// }
-	// w.attackSquare(weakest, target1.getRobotLevel());
-	// attacked = true;
-	// } catch (GameActionException e) {
-	// if (target2 == null)
-	// return false;
-	// target1 = target2;
-	// target2 = null;
-	// }
-	// }
-	// return false;
-	// }
-
-	// public void senseNearby() {
-	// reset();
-	// Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
-	// double leasthp1 = Chassis.HEAVY.maxHp;
-	// double leasthp2 = Chassis.HEAVY.maxHp;
-	// List<Double> hps = new ArrayList<Double>();
-	// for (Robot r : robots) {
-	// try {
-	// RobotInfo info = controllers.sensor.senseRobotInfo(r);
-	// if (r.getTeam() == controllers.myRC.getTeam()) {
-	// ComponentType[] components = info.components;
-	// if (Util.hasWeapon(components)) {
-	// allies.add(r);
-	// MapLocation loc = controllers.sensor.senseLocationOf(r);
-	// alocs.add(loc);
-	// }
-	// } else if ((r.getTeam() != Team.NEUTRAL)) {
-	// if (!info.on || info.chassis == Chassis.BUILDING) {
-	// immobileEnemies.add(r);
-	// continue;
-	// }
-	// MapLocation loc = controllers.sensor.senseLocationOf(r);
-	// int dist = controllers.myRC.getLocation().distanceSquaredTo(loc);
-	// hps.add(info.hitpoints);
-	//					
-	// totalEnemiesHp += info.hitpoints;
-	// if (info.hitpoints < leasthp1) {
-	// leasthp2 = leasthp1;
-	// target2 = target1;
-	// target1 = r;
-	// leasthp1 = info.hitpoints;
-	// } else if (info.hitpoints < leasthp2) {
-	// target2 = r;
-	// leasthp2 = info.hitpoints;
-	// } else {
-	// enemies.add(r);
-	// elocs.add(loc);
-	// }
-	// if (target1 != null) {
-	// enemies.add(target1);
-	// if (target2 != null)
-	// enemies.add(target2);
-	// }
-	// }
-	// } catch (GameActionException e) {
-	// continue;
-	// }
-	// }
-	// }
-
-	// public void reset() {
-	// debrisLoc.clear();
-	// enemyInfosSet.clear();
-	// allies.clear();
-	// enemies.clear();
-	// immobileEnemies.clear();
-	// elocs.clear();
-	// alocs.clear();
-	// totalEnemiesHp = 0;
-	// target1 = null;
-	// target2 = null;
-	// }
 
 	public void heal() {
 		try {
@@ -402,187 +205,104 @@ public class CombatSystem {
 		return false;
 	}
 	
-	//return to move forward
-	public boolean attackTarget(RobotInfo r) {
-		if (shoot(r))
-			return true;
-		updatePosition();
+	public boolean trackTarget(RobotInfo r) {
+		MapLocation myloc = controllers.myRC.getLocation();
+		Direction mydir = controllers.myRC.getDirection();
 		Direction edir = myloc.directionTo(r.location);
 		if (edir == Direction.OMNI || edir == Direction.NONE) {
 			System.out.println("attack self");
 		}
 		int dis = myloc.distanceSquaredTo(r.location);
-		if (dis >= primary.type().range*0.9 && Util.isFacing(mydir, edir)) {
-			if (controllers.myRC.getHitpoints() < 3.5)
-				moveForward();
+		if (dis > 0.9 * optRange) {
+			moveForward();
+			return false;
 		}
 		//enemy facing, retreat back
-		if (dis < primary.type().range*0.9 && Util.isFacing(mydir, edir.opposite())) {
-			if (controllers.myRC.getHitpoints() < 3.5)
+		if (Util.isFacing(r.direction, edir.opposite())) {
+//			if (controllers.myRC.getHitpoints() < 3.5)
 				moveBackward();
+				return true;
 		}
-//		if (Util.isFacing(r.direction, edir.opposite())) {
-//			moveBackward();
-//			return false;
-//		}
 		//behind enemy, chase forward
-		if (Util.isFacing(r.direction, edir)) {
-			if (dis > primary.type().range*0.6 && mydir == edir) {
+		else if (Util.isFacing(r.direction, edir)) {
+			if (Util.isFacing(mydir, edir) && dis > 0.85*minRange) {
 				moveForward();
 			}
 			return false;
 		}
 		else {
-			try {
-				if (!controllers.motor.isActive())
-					controllers.motor.setDirection(edir);
-			} catch (GameActionException e) {
-				e.printStackTrace();
+			if (mydir != edir) {
+				setDirection(edir);
+				return true;
 			}
-			return false;
-		}
-	}
-	
-	public boolean canAttack(RobotInfo r) {
-//		WeaponController w;
-//		if (controllers.weapons.size() > 0)
-//			w = controllers.weapons.get(0);
-//		else
-//			return null;
-		updatePosition();
-		Direction edir = myloc.directionTo(r.location);
-		if (primary.withinRange(r.location))
-			return true;
-		if (mydir == edir) {
-			moveForward();
-		}
-		else if (!controllers.motor.isActive()) {
-			try {controllers.motor.setDirection(edir);} 
-			catch (GameActionException e) {}
 		}
 		return false;
+		
+	}
+	
+	//return true if need yield
+	public boolean approachTarget(RobotInfo r) {
+//		updatePosition();
+		if (controllers.motor.isActive())
+			return true;
+		MapLocation myloc = controllers.myRC.getLocation();
+		Direction mydir = controllers.myRC.getDirection();
+		Direction edir = myloc.directionTo(r.location);
+		if (mydir == edir && controllers.motor.canMove(mydir)) {
+			try {controllers.motor.moveForward();} 
+			catch (Exception e) {return false;}
+		}
+		if (myloc.distanceSquaredTo(r.location) >= maxRange) {
+			if (mydir == edir.rotateLeft() || mydir == edir.rotateRight()) {
+				try {controllers.motor.moveForward();} 
+				catch (Exception e) {return false;}
+			}
+		}
+		else {
+			try {controllers.motor.setDirection(edir);} 
+			catch (GameActionException e) {return false;}
+		}
+		return true;
 	}
 	
 	public RobotInfo getImmobile() {
-		RobotInfo target = null;
-//		WeaponController w;
-//		if (controllers.weapons.size() > 0)
-//			w = controllers.weapons.get(0);
-//		else
-//			return null;
 		for (RobotInfo r: controllers.enemyImmobile) {
 			if (primary.withinRange(r.location)) {
-				target = r;
-				break;
+				return r;
 			}
 		}
-		if (target == null) {
-			for (RobotInfo r: controllers.enemyImmobile) {
-				int d = myloc.distanceSquaredTo(r.location);
-				if (d < primary.type().range) {
-					target = r;
-					break;
-				}
+		int d;
+		for (RobotInfo r: controllers.enemyImmobile) {
+			d = controllers.myRC.getLocation().distanceSquaredTo(r.location);
+			if (d < maxRange) {
+				return r;
 			}
 		}
-		return target;
+		return null;
 	}
 	
-	public RobotInfo getTarget() {
-		RobotInfo target = null;
-//		WeaponController w;
-//		if (controllers.weapons.size() > 0)
-//			w = controllers.weapons.get(0);
-//		else
-//			return null;
+	public RobotInfo getMobile() {
+		Util.sortHp(controllers.enemyMobile);
 		for (RobotInfo r: controllers.enemyMobile) {
 			if (primary.withinRange(r.location)) {
+				return r;
+			}
+		}
+		int dis = maxRange;
+		RobotInfo target = null;
+		for (RobotInfo r: controllers.enemyMobile) {
+			int d = myloc.distanceSquaredTo(r.location);
+			if (d <= dis) {
 				target = r;
+				dis = d;
 				break;
 			}
 		}
-		if (target == null) {
-			for (RobotInfo r: controllers.enemyMobile) {
-				int d = myloc.distanceSquaredTo(r.location);
-				if (d < primary.type().range) {
-					target = r;
-					break;
-				}
-			}
-		}
-		return target;
+		if (target != null)
+			return target;
+		return controllers.enemyMobile.get(0);
 	}
 
-//	public MapLocation attack() {
-//		try {
-//			RobotController rc = controllers.myRC;
-//			MapLocation currentLoc = rc.getLocation();
-//			boolean attacked = false;
-//
-//			List<RobotInfo> enemies = new LinkedList<RobotInfo>();
-//			Util.sortHp(controllers.enemyMobile);
-//			enemies.addAll(controllers.enemyMobile);
-//			enemies.addAll(controllers.enemyImmobile);
-//
-//			if (enemies.size() == 0)
-//				return null;
-//
-//			int listPointer = 0;
-//			RobotInfo enemy = enemies.get(0);
-//			double hp = enemy.hitpoints;
-//			for (WeaponController w : controllers.weapons) {
-//				if (!w.isActive() && w.withinRange(enemy.location)) {
-//					w.attackSquare(enemy.location, enemy.robot.getRobotLevel());
-//					if (hp <= w.type().attackPower) {
-//						listPointer++;
-//						if (listPointer == enemies.size()) {
-//							break;
-//						} else {
-//							enemy = enemies.get(listPointer);
-//							hp = enemy.hitpoints;
-//						}
-//					}
-//					hp -= w.type().attackPower;
-//					attacked = true;
-//				}
-//			}
-//			if (attacked) {
-//				if (enemy.direction == null) {
-//					return enemy.location;
-//				} else if (Util.isFacing(enemy.direction, rc.getDirection()
-//						.opposite())) {
-//					return currentLoc;
-//				}
-//			} else {
-//				return enemy.location;
-//			}
-//			return attacked ? rc.getLocation() : enemy.location;
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		return null;
-//	}
-
-	public void attackDebris() throws GameActionException {
-		int listPointer = 0;
-		MapLocation loc = controllers.debris.get(listPointer).location;
-
-		for (WeaponController w : controllers.weapons) {
-			if (!w.isActive()) {
-				if (w.withinRange(loc)) {
-					w.attackSquare(loc, RobotLevel.ON_GROUND);
-				} else {
-					listPointer++;
-					if (listPointer == controllers.debris.size()) {
-						break;
-					} else {
-						loc = controllers.debris.get(listPointer).location;
-					}
-				}
-			}
-		}
-	}
-	
 	public boolean moveForward() {
 		updatePosition();
 		if (!controllers.motor.isActive() && controllers.motor.canMove(mydir)) {

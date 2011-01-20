@@ -87,8 +87,8 @@ public class ConstructorAI extends GroundAI {
 				
 				
 
-//				if (roundSinceLastBuilt > 10)
-//					navigate();
+				if (roundSinceLastBuilt > 50)
+					navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
 //				if (Clock.getRoundNum() % 15 == 0) {
@@ -316,6 +316,8 @@ public class ConstructorAI extends GroundAI {
 				return false;
 			yield();
 		}
+		
+		roundSinceLastBuilt = 0;
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
 		if (type == UnitType.RECYCLER || type == UnitType.FACTORY) {

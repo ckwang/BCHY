@@ -286,7 +286,7 @@ public class RecyclerAI extends BuildingAI {
 						}
 					} else {
 						if (buildingLocs.factoryLocation == null) {
-							loc = buildingLocs.consecutiveEmpties(3);
+							loc = buildingLocs.consecutiveEmpties(2);
 							if (loc != null)
 								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
 							inquiryIdleRound = 3;
