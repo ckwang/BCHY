@@ -16,7 +16,6 @@ import battlecode.common.GameObject;
 import battlecode.common.JumpController;
 import battlecode.common.MapLocation;
 import battlecode.common.Mine;
-import battlecode.common.MineInfo;
 import battlecode.common.MovementController;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;

@@ -93,10 +93,10 @@ public class ConstructorAI extends GroundAI {
 					navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
-				if (Clock.getRoundNum() % 15 == 0) {
-//					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-				}
+//				if (Clock.getRoundNum() % 15 == 0) {
+////					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+//					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+//				}
 
 				
 				yield();
@@ -322,7 +322,7 @@ public class ConstructorAI extends GroundAI {
 		roundSinceLastBuilt = 0;
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
-		if (type == UnitType.RECYCLER) {
+		if (type == UnitType.RECYCLER || type == UnitType.FACTORY) {
 			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation,gridMap));
 		} else {
 			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
@@ -512,7 +512,7 @@ public class ConstructorAI extends GroundAI {
 
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.merge(handler.getBorders(), handler.getInternalRecords());
+				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 
 				break;
 			}
