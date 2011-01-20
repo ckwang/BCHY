@@ -5,6 +5,7 @@ import java.util.Set;
 
 import team017.message.BorderMessage;
 import team017.message.GridMapMessage;
+import team017.message.MineLocationsMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
 import battlecode.common.Direction;
@@ -50,8 +51,10 @@ public class ScoutAI extends AI {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 			// ask for a scouting location if there is none
-			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 9) {
+			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 16) {
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+				yield();
+				msgHandler.queueMessage(new MineLocationsMessage(mineLocations));
 				yield();
 				msgHandler.queueMessage(new ScoutingInquiryMessage());
 				yield();
@@ -150,8 +153,9 @@ public class ScoutAI extends AI {
 			goTo(scoutingLocation);
 			gridMap.setScouted(controllers.myRC.getLocation());
 			scoutingLocation = null;
+			
+			watch();
 		}
-//		watch();
 		
 	}
 	

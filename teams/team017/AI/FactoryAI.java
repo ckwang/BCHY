@@ -9,6 +9,7 @@ import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
+import team017.message.MineLocationsMessage;
 import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
@@ -159,9 +160,9 @@ public class FactoryAI extends BuildingAI {
 				computeEnemyBaseLocation();
 				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 				gridMap.updateScoutLocation(homeLocation);
-				gridMap.printGridMap();
-				controllers.myRC.setIndicatorString(1, homeLocation + "," + gridMap.getScoutLocation() + gridMap.getOriginGrid() + gridMap.getScoutGrid());
-				controllers.myRC.setIndicatorString(2, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
+//				gridMap.printGridMap();
+//				controllers.myRC.setIndicatorString(1, homeLocation + "," + gridMap.getScoutLocation() + gridMap.getOriginGrid() + gridMap.getScoutGrid());
+//				controllers.myRC.setIndicatorString(2, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
 				
 				break;
 			}
@@ -177,6 +178,15 @@ public class FactoryAI extends BuildingAI {
 				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
 				
 				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), gridMap.getScoutLocation()));
+				break;
+			}
+			
+			case MINE_LOCATIONS_MESSAGE: {
+				MineLocationsMessage handler = new MineLocationsMessage(msg);
+				
+				mineLocations.addAll(handler.getMineLocations());
+//				controllers.myRC.setIndicatorString(1, mineLocations.toString());
+				
 				break;
 			}
 			
