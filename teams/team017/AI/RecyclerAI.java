@@ -345,16 +345,23 @@ public class RecyclerAI extends BuildingAI {
 				 * When a new building is constructed, we would like to build an antenna on it.
 				 */
 				
-				// see if the target is adjacent
-				if (buildingLocation.isAdjacentTo(currentLoc)) {
-					// UnitType.FACTORY
+				// see if the target is near enough
+				if (buildingLocation.distanceSquaredTo(currentLoc) < 5) {
+					// UnitType.ARMORY
 					if (handler.getBuildingType() == UnitType.ARMORY) {
 						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
+//						Tell armory where the factory is
+						if (buildingLocs.factoryLocation != null)
+							msgHandler.queueMessage(new ConstructionCompleteMessage(buildingLocs.factoryLocation, UnitType.FACTORY));
+
 //						msgHandler.queueMessage (new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateRight(buildingLocs.armoryLocation, 2), UnitType.FACTORY));
 						yield();
 						// UnitType.FACTORY	
 					} else if (handler.getBuildingType() == UnitType.FACTORY) {
 						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
+						if (buildingLocs.armoryLocation != null)
+							msgHandler.queueMessage(new ConstructionCompleteMessage(buildingLocs.armoryLocation, UnitType.ARMORY));
+
 						if (birthRoundNum > 200)
 							msgHandler.queueMessage (new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
 						else
