@@ -8,6 +8,7 @@ import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
+import team017.message.ScoutingInquiryMessage;
 import team017.message.TurnOffMessage;
 import team017.util.Util;
 import battlecode.common.*;
@@ -30,7 +31,7 @@ public class RecyclerAI extends BuildingAI {
 	double fluxThresholds = 0.3;
 	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	
-	private enum spawningState { COLLECTING, ATTACKING, BALANCE };
+	private enum spawningState { COLLECTING, ATTACKING, BALANCE,LATE };
 	
 	spawningState mySpawningState = spawningState.COLLECTING;
 	
@@ -38,7 +39,17 @@ public class RecyclerAI extends BuildingAI {
 		super(rc);		
 		birthRoundNum = Clock.getRoundNum();
 		double fluxRate = getEffectiveFluxRate();
-		if ( fluxRate > 2.0 ){
+		if (Clock.getRoundNum() > 1000){
+		
+			mySpawningState = spawningState.LATE;
+			unitRatios[0] = 0;
+			unitRatios[1] = 1;
+			unitRatios[2] = 1;
+			unitRatios[3] = 0;
+			unitRatios[4] = 0;
+
+		} else if ( fluxRate > 2.0 ){
+
 			mySpawningState = spawningState.ATTACKING;
 			unitRatios[0] = 0;
 			unitRatios[1] = 1;
@@ -200,7 +211,8 @@ public class RecyclerAI extends BuildingAI {
 				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.setBorders(borders, homeLocation, enemyBaseLoc[0]);
+				if (enemyBaseLoc[0] != null)
+					gridMap.setBorders(borders);
 				break;
 			}
 			case GRID_MAP_MESSAGE: {
@@ -355,6 +367,13 @@ public class RecyclerAI extends BuildingAI {
 				}
 				break;
 			}
+			case SCOUTING_INQUIRY_MESSAGE: {
+				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
+				
+				if (handler.getRecyclerID() == controllers.myRC.getRobot().getID()) {
+					gridMap.getScoutLocation();
+				}
+			}
 
 			}
 		}
@@ -494,7 +513,18 @@ public class RecyclerAI extends BuildingAI {
 //		Build more constructors if flux is insufficient
 		double fluxRate = getEffectiveFluxRate();
 		
-		if ( fluxRate > 2.0 && Clock.getRoundNum() > 300){
+		if (Clock.getRoundNum() > 1000){
+			mySpawningState = spawningState.LATE;
+			unitRatios[0] = 0;
+			unitRatios[1] = 1;
+			unitRatios[2] = 1;
+			unitRatios[3] = 0;
+			unitRatios[4] = 0;
+
+		}
+
+
+		else if ( fluxRate > 2.0 && Clock.getRoundNum() > 300){
 			mySpawningState = spawningState.ATTACKING;
 			unitRatios[0] = 0;
 			unitRatios[1] = 1;

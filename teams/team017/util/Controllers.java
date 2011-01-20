@@ -10,9 +10,11 @@ import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentController;
 import battlecode.common.ComponentType;
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameObject;
 import battlecode.common.JumpController;
+import battlecode.common.MapLocation;
 import battlecode.common.Mine;
 import battlecode.common.MineInfo;
 import battlecode.common.MovementController;
@@ -38,13 +40,25 @@ public class Controllers {
 	public List<RobotInfo> enemyMobile = new LinkedList<RobotInfo>();
 	public List<RobotInfo> enemyImmobile = new LinkedList<RobotInfo>();
 	public List<RobotInfo> debris = new LinkedList<RobotInfo>();
-	public List<MineInfo> mines = new ArrayList<MineInfo>();
+	public List<MapLocation> mines = new ArrayList<MapLocation>();
 	
+//	public Direction dir;
+//	public MapLocation loc;
+//	public double hp;
+//	public final Robot self;
+//	public final Chassis chassis;
+//	public final double maxhp;
+	
+	public int lastUpdateInfo = -1;
 	public int lastUpdateRobot = -1;
 	public int lastUpdateMine = -1;
 	
-	public Controllers() {
+	public Controllers(RobotController rc) {
 		weapons = new ArrayList<WeaponController>();
+		myRC = rc;
+//		self = myRC.getRobot();
+//		chassis = myRC.getChassis();
+//		maxhp = myRC.getHitpoints();
 	}
 	
 	public void reset(boolean mine) {
@@ -61,6 +75,12 @@ public class Controllers {
 		if (lastUpdateRobot < Clock.getRoundNum())
 			senseAll();
 		return enemyMobile.size() + enemyImmobile.size();
+	}
+	
+	public int debrisNum() {
+		if (lastUpdateRobot < Clock.getRoundNum())
+			senseAll();
+		return debris.size();
 	}
 	
 	public int mobileEnemyNum() {
@@ -82,15 +102,9 @@ public class Controllers {
 		if (roundNum == lastUpdateMine)
 			return;
 		mines.clear();
-		MineInfo minfo;
 		Mine[] minearray = sensor.senseNearbyGameObjects(Mine.class);
 		for (Mine m: minearray) {
-			try {
-				minfo = sensor.senseMineInfo(m);
-				mines.add(minfo);
-			} catch (GameActionException e) {
-				continue;
-			}
+			mines.add(m.getLocation());
 		}
 		lastUpdateMine = roundNum;
 	}
@@ -144,18 +158,12 @@ public class Controllers {
 		if (roundNum == lastUpdateRobot && roundNum == lastUpdateMine)
 			return;
 		reset(true);
-		MineInfo minfo;
 		RobotInfo rinfo;
 		Boolean mobile;
 		GameObject[] objects = sensor.senseNearbyGameObjects(GameObject.class);
 		for (GameObject o: objects) {
 			if (o instanceof Mine) {
-				try {
-					minfo = sensor.senseMineInfo((Mine)o);
-					mines.add(minfo);
-				} catch (GameActionException e) {
-					e.printStackTrace();
-				}
+				mines.add(((Mine) o).getLocation());
 				continue;
 			}
 			try {
@@ -195,6 +203,19 @@ public class Controllers {
 				&& (info.chassis != Chassis.DUMMY)
 				&& (info.chassis != Chassis.DEBRIS);
 	}
+	
+//	public void updateInfo() {
+//		int before = Clock.getBytecodesLeft();
+//		int roundNum = Clock.getRoundNum();
+//		if (roundNum == lastUpdateInfo)
+//			return;
+//		dir = myRC.getDirection();
+//		loc = myRC.getLocation();
+//		hp = myRC.getHitpoints();
+//		int after = Clock.getBytecodesLeft();
+//		if ((before-after) > 0)
+//			System.out.println("used bytecode: " + (before - after));
+//	}
 	
 	public void updateComponents() {
 		ComponentController[] components = myRC.newComponents();

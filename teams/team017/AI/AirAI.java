@@ -11,7 +11,7 @@ import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.FollowMeMessage;
-import team017.message.ScoutingMessage;
+import team017.message.ScoutingResponseMessage;
 import team017.navigation.GridMap;
 
 import battlecode.common.Chassis;

@@ -13,7 +13,7 @@ import battlecode.common.*;
 public class Navigator {
 	private Controllers controllers;
 
-	private Map myMap;
+	private InfoMap myMap;
 	private int mapResetCounter = 100;
 	
 	private MapLocation destination;
@@ -71,7 +71,7 @@ public class Navigator {
 		iscw = true;
 		istracing = false;
 		computing = false;
-		myMap = new Map( cs.myRC.getLocation() );
+		myMap = new InfoMap( cs.myRC.getLocation() );
 		comparator = new costComparator();
 		queue = new PriorityQueue<EnhancedMapLocation>(50, comparator);
 	}
@@ -99,7 +99,7 @@ public class Navigator {
 		return destination;
 	}
 
-	public Direction getNextDir(int tolerance) throws GameActionException {
+	public Direction getNextDir(int tolerance) {
 //		updateMap();
 //		 return same direction at same location (given same destination)
 		if ( controllers.myRC.getLocation().equals(previousRobLoc) ){
@@ -110,24 +110,23 @@ public class Navigator {
 				istracing = false;
 				
 			}
-//			controllers.myRC.setIndicatorString(1, "PRECOMPUTE");
+			controllers.myRC.setIndicatorString(1, "PRECOMPUTE");
 			return previousDir;
 		}
 		// navigation has been interrupted before
-		else if (previousRobLoc != null && 
-				   !previousRobLoc.isAdjacentTo(controllers.myRC.getLocation() )){
-//			controllers.myRC.setIndicatorString(1, "RESET");
+		else if (previousRobLoc != null && !previousRobLoc.isAdjacentTo(controllers.myRC.getLocation() )){
 			reset();
+			controllers.myRC.setIndicatorString(1, "RESET");
 			return Direction.OMNI; 
 		}
 //		 using (BUG/ TangentBug) algorithm to find direction to destination
 		else{
+			controllers.myRC.setIndicatorString(1, "BUG");
 			previousRobLoc = controllers.myRC.getLocation();
-//			controllers.myRC.setIndicatorString(1, "BUGGING");
 			if (destination == null){
-//				controllers.myRC.setIndicatorString(1, "NULL");
 				reset();
 				previousDir = Direction.OMNI;
+				controllers.myRC.setIndicatorString(1, "NULL");
 				return Direction.OMNI;
 			}
 			else {
@@ -136,15 +135,12 @@ public class Navigator {
 				return previousDir;
 			}
 			
-//			debug_tangentBug(controllers.myRC.getLocation(), modifiedDes, tolerance);
-//			return previousDir;
 		}
 		
 		
 	}
 
-	public Direction Bug(MapLocation s, MapLocation t, int tolerance)
-			throws GameActionException {
+	public Direction Bug(MapLocation s, MapLocation t, int tolerance) {
 		
 		// arrive the destination
 		if (s.distanceSquaredTo(t) <= tolerance) {
@@ -180,7 +176,7 @@ public class Navigator {
 			nextLoc = traceNext(s, startTracingDir, iscw);
 			nextDir = s.directionTo(nextLoc);
 			
-//			controllers.myRC.setIndicatorString(1, "TRACING to des:"+modifiedDes.toString()+" next: "+nextLoc.toString() );
+			controllers.myRC.setIndicatorString(1, "TRACING to des:"+modifiedDes.toString()+" next: "+nextLoc.toString() );
 			
 			// The way is open
 			if ( isOpen(s, faceDir, nextDir, desDir, iscw) && isTraversable(s.add(desDir) ) ){
@@ -193,11 +189,11 @@ public class Navigator {
 		} else {
 //			controllers.myRC.setIndicatorString(1, "NT "+modifiedDes.toString());
 			if ( isTraversable(s.add(desDir)) ) {
-//				controllers.myRC.setIndicatorString(1, "RECKONING to "+modifiedDes.toString());
+				controllers.myRC.setIndicatorString(1, "RECKONING to "+modifiedDes.toString());
 				return desDir;
 			}
 			else {
-//				controllers.myRC.setIndicatorString(1, "TRACE to "+modifiedDes.toString());
+				controllers.myRC.setIndicatorString(1, "TRACE to "+modifiedDes.toString());
 				
 				istracing = true;
 				
@@ -482,7 +478,7 @@ public class Navigator {
 	public void updateMap(){
 		
 		if (mapResetCounter < 0){
-			myMap = new Map( controllers.myRC.getLocation() );
+			myMap = new InfoMap( controllers.myRC.getLocation() );
 			mapResetCounter = 100;
 		}
 		mapResetCounter--;
