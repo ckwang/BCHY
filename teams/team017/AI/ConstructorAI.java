@@ -24,6 +24,8 @@ import battlecode.common.MineInfo;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
+import battlecode.common.SensorController;
+import battlecode.common.TerrainTile;
 
 public class ConstructorAI extends GroundAI {
 
@@ -351,16 +353,102 @@ public class ConstructorAI extends GroundAI {
 			roachNavigate();
 		}
 	}
-
+	
+	
+	private boolean checkFourConsecutiveEmpties () throws GameActionException {
+		SensorController sensor = controllers.sensor;
+		RobotController rc = controllers.myRC;
+		MapLocation currentLoc = rc.getLocation();
+		Direction dir = rc.getDirection();
+		if (dir.isDiagonal()) {
+			if (rc.senseTerrainTile(currentLoc.add(dir)) != TerrainTile.LAND || sensor.senseObjectAtLocation(currentLoc.add(dir), RobotLevel.ON_GROUND) != null)
+				return false;
+			/*
+			 * 2 3 4
+			 * 1 E 5
+			 * c 7 6
+			 * check if there's 4 consecutiveEmpties
+			 */
+			int consecutiveCounter = 0;
+			Direction oppDir = dir.opposite();
+			MapLocation emptyLoc = currentLoc.add(dir);
+			for (int i = 0; i < 7; i++) {
+				oppDir = oppDir.rotateRight();
+				if (rc.senseTerrainTile(emptyLoc.add(oppDir)) != TerrainTile.LAND || sensor.senseObjectAtLocation(emptyLoc.add(oppDir), RobotLevel.ON_GROUND) != null)
+					consecutiveCounter = 0;
+				else
+					consecutiveCounter++;
+				if (consecutiveCounter == 4)
+					return true;
+			}
+			return false;
+			
+		} else {
+			/*
+			 * check
+			 * 
+			 * E E E
+			 * - E -
+			 * - c -
+			 * 
+			 * then
+			 * 
+			 * E - -
+			 * - c -
+			 * 
+			 * or
+			 * 
+			 * - - E
+			 * - c -
+			 */
+			MapLocation [] locCheckList1 = {currentLoc.add(dir), currentLoc.add(dir,2), currentLoc.add(dir).add(dir.rotateLeft()),currentLoc.add(dir).add(dir.rotateRight())};
+			for (MapLocation loc: locCheckList1) {
+				if (rc.senseTerrainTile(loc) != TerrainTile.LAND || sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) != null)
+					return false;
+			}
+			MapLocation [] locCheckList2 = {currentLoc.add(dir.rotateLeft()),currentLoc.add(dir.rotateRight())};
+			for (MapLocation loc: locCheckList2) {
+				if (rc.senseTerrainTile(loc) == TerrainTile.LAND && sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND) == null)
+					return true;
+			}
+			return false;
+		}
+	}
+	
+	
 	@Override
 	protected void processMessages() throws GameActionException {
 		// Check messages
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
+			case NOT_ENOUGH_SPACE_MESSAGE: {
+				while (!checkFourConsecutiveEmpties()) {
+					navigate();
+					yield();
+				}
+				MapLocation buildLoc = controllers.myRC.getLocation().add(controllers.myRC.getDirection());
+//	Move forward twice
+				while(controllers.motor.isActive())
+					yield();
+				controllers.motor.moveForward();
+				while(controllers.motor.isActive())
+					yield();
+				controllers.motor.moveForward();
 
+				
+				while(controllers.builder.isActive())
+					yield();
+				while (!buildBuildingAtLoc(buildLoc, UnitType.RECYCLER))
+					yield();
+				for (int i = 0; i < 20; i++)
+					yield();
+				msgHandler.queueMessage(new BuildingLocationInquiryMessage(buildLoc));
+				roundSinceLastBuilt = 0;
+				break;
+			}
+			
 			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-
 				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
 				
 //				controllers.myRC.setIndicatorString(0, "Type" +handler.getUnitType() + " " +  Clock.getRoundNum());
