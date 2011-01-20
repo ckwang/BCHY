@@ -18,7 +18,9 @@ public class ScoutAI extends AI {
 
 	private int id;
 	
-	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
 	private MapLocation scoutingLocation;
 	
 	public ScoutAI(RobotController rc) {
@@ -54,7 +56,7 @@ public class ScoutAI extends AI {
 			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 16) {
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
-				msgHandler.queueMessage(new MineLocationsMessage(mineLocations));
+				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations));
 				yield();
 				msgHandler.queueMessage(new ScoutingInquiryMessage());
 				yield();
@@ -75,7 +77,10 @@ public class ScoutAI extends AI {
 		
 		for (int i = 0; i < 7; i++) {
 			try {
-				mineLocations.addAll(controllers.mines);
+				emptyMineLocations.addAll(controllers.emptyMines);
+				alliedMineLocations.addAll(controllers.allyMines);
+				enemyMineLocations.addAll(controllers.enemyMines);
+
 				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
 				yield();
 			} catch (GameActionException e) {

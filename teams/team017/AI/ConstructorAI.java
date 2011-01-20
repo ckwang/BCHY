@@ -188,7 +188,7 @@ public class ConstructorAI extends GroundAI {
 
 	private void updateLocationSets() {
 		controllers.senseAll();
-		for (MapLocation mineloc : controllers.mines) {
+		for (MapLocation mineloc : controllers.emptyMines) {
 			try {
 				GameObject object = controllers.sensor.senseObjectAtLocation(mineloc, RobotLevel.ON_GROUND);
 				if (object != null) {
