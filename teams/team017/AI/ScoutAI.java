@@ -3,10 +3,10 @@ package team017.AI;
 import java.util.HashSet;
 import java.util.Set;
 
-import team017.message.MineLocationsMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
-
+import battlecode.common.Clock;
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
@@ -15,6 +15,8 @@ import battlecode.common.RobotController;
 public class ScoutAI extends AI {
 
 	private int id;
+	private MapLocation myloc;
+	private Direction mydir;
 	
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private MapLocation scoutingLocation;
@@ -57,7 +59,6 @@ public class ScoutAI extends AI {
 		for (int i = 0; i < 7; i++) {
 			try {
 				mineLocations.addAll(controllers.mines);
-				
 				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
 				yield();
 			} catch (GameActionException e) {
@@ -89,11 +90,64 @@ public class ScoutAI extends AI {
 	private void navigate() {
 		if (scoutingLocation == null) {
 			
-		} else {
-			
+		} 
+		else {
+			while (!myloc.equals(scoutingLocation)) {
+				MapLocation myloc = controllers.myRC.getLocation();
+				Direction mydir = controllers.myRC.getDirection();
+				Direction todest = myloc.directionTo(scoutingLocation);
+				if (mydir != todest) {
+					while (!setDirection(todest))
+						yield();
+				}
+				while (controllers.motor.isActive())
+					yield();
+				if (!controllers.motor.canMove(todest)) {
+					while (!setDirection(todest.rotateLeft()))
+							yield();
+					while (controllers.motor.isActive())
+						yield();
+					if (moveForward())
+						continue;
+					while (!setDirection(todest.rotateRight()))
+						yield();
+					while (controllers.motor.isActive())
+						yield();
+					moveForward();
+				}
+				
+			}
 		}
 		watch();
 		
+	}
+	
+	public boolean moveForward() {
+		if (!controllers.motor.isActive() && controllers.motor.canMove(controllers.myRC.getDirection())) {
+			try {
+				controllers.motor.moveForward();
+				return true;
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	public boolean setDirection(Direction dir) {
+		if (controllers.myRC.getDirection() == dir)
+			return true;
+		if (!controllers.motor.isActive()) {
+			try {
+				controllers.motor.setDirection(dir);
+				return true;
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
 	}
 	
 }

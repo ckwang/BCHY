@@ -70,99 +70,9 @@ public class SoldierAI extends AI {
 				continue proceed;
 			}
 
-			// if (nextLoc != null && !controllers.motor.isActive()) {
-			// try {
-			// if (!combat.withinRadius){
-			// // Navigate to the enemy if it's not within the radius
-			// navigator.setDestination(nextLoc);
-			// Direction nextDir = navigator.getNextDir(0);
-			// if (rc.getDirection() == nextDir) {
-			// if (controllers.motor.canMove(controllers.myRC.getDirection()))
-			// controllers.motor.moveForward();
-			// } else if (nextDir == Direction.OMNI) {
-			// if
-			// (controllers.motor.canMove(controllers.myRC.getDirection().opposite()))
-			// controllers.motor.moveBackward();
-			// } else {
-			// controllers.motor.setDirection(nextDir);
-			// }
-			// }
-			//					
-			// // Face the enemy if it's within the radius but not within range
-			// else {
-			// Direction nextDir =
-			// controllers.myRC.getLocation().directionTo(nextLoc);
-			// if (nextDir != Direction.OMNI)
-			// controllers.motor.setDirection(nextDir);
-			// }
-			//
-			// } catch (Exception e) {
-			// e.printStackTrace();
-			// }
-			// }
-
-//			if (nextLoc == null && attackRoundCounter > 5 && leaderMessageRoundCounter > 3) {
-//				leaderID = -1;
-//				if (Clock.getRoundNum() < 1000 || Clock.getRoundNum() - birthRound > 100) {
-//					try {navigate();}
-//					catch (Exception e) {}
-//				}
-//			}
 //			senseBorder();
 			// yield();
 
-			// if (enemyNum > 0)
-			// attackRoundCounter = 0;
-			// else
-			// attackRoundCounter++;
-			// try {
-			// if (leaderMessageRoundCounter < 4) {
-			// if (!motor.isActive()) {
-			// MapLocation estimatedLeaderLoc = leaderLoc.add(
-			// followDir, leaderMessageRoundCounter);
-			// // Move in the same direction as the leader if being
-			// // near enough to the leader
-			// if (rc.getLocation().distanceSquaredTo(
-			// estimatedLeaderLoc) <= 9) {
-			// if (motor.canMove(followDir)) {
-			// if (rc.getDirection() == followDir) {
-			// motor.moveForward();
-			// } else {
-			// motor.setDirection(followDir);
-			// }
-			// // Move to the front of the leader if cant move
-			// // in the same direction
-			// } else {
-			// navigator.setDestination(leaderLoc.add(followDir, 3));
-			// Direction nextDir = navigator.getNextDir(2);
-			// if (rc.getDirection() == nextDir)
-			// motor.moveForward();
-			// else
-			// motor.setDirection(nextDir);
-			// }
-			// }
-			// }
-			// leaderMessageRoundCounter++;
-			// } else {
-			// hasLeader = false;
-			// }
-			// }
-			// catch (Exception e) {}
-			//
-			// if (attackRoundCounter > 5 && leaderMessageRoundCounter > 3) {
-			// leaderID = -1;
-			// try {navigate();}
-			// catch (Exception e) {}
-			// }
-
-//			if (controllers.mobileEnemyNum() == 0
-//					&& controllers.debrisNum() != 0) {
-//				try {
-//					combat.attackDebris();
-//				} catch (Exception e1) {
-//					e1.printStackTrace();
-//				}
-//			}
 			if (Clock.getRoundNum() < 1000 || Clock.getRoundNum() - birthRound > 100) {
 				try {
 					navigate();
@@ -173,7 +83,7 @@ public class SoldierAI extends AI {
 //			processMessages();
 // 			broadcast();
 //			senseBorder();
-//			yield();
+			yield();
 
 		}
 	}
@@ -188,7 +98,7 @@ public class SoldierAI extends AI {
 		navigator.updateMap();
 		combat.heal();
 		senseBorder();
-		controllers.updateInfo();
+//		controllers.updateInfo();
 		processMessages();
 		controllers.myRC.setIndicatorString(0, controllers.mobileEnemyNum() + "");
 		controllers.myRC.setIndicatorString(1, controllers.immobileEnemyNum() + "");

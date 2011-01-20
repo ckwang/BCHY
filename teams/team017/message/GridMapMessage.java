@@ -1,7 +1,6 @@
 package team017.message;
 
 import team017.navigation.GridMap;
-import team017.util.Controllers;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 
