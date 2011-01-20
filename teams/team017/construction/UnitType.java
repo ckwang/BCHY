@@ -37,8 +37,8 @@ public enum UnitType {
 
 // Buildings
 	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER),
-	ARMORY(Chassis.BUILDING, ComponentType.ARMORY),
-	FACTORY (Chassis.BUILDING, ComponentType.FACTORY),
+	ARMORY(Chassis.BUILDING, ComponentType.ARMORY, ComponentType.ANTENNA),
+	FACTORY (Chassis.BUILDING, ComponentType.FACTORY, ComponentType.ANTENNA),
 	RAILGUN_TOWER (Chassis.BUILDING, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.MEDIC, ComponentType.RAILGUN, ComponentType.RAILGUN),
 	TOWER (Chassis.BUILDING, ComponentType.ANTENNA, ComponentType.RADAR, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SMG, ComponentType.SMG, ComponentType.SHIELD, ComponentType.SHIELD, ComponentType.SMG, ComponentType.SMG);
 		

@@ -84,6 +84,8 @@ public class ConstructorAI extends GroundAI {
 ////					catch (Exception e) {}
 //					continue;
 //				}
+				
+				
 
 //				if (roundSinceLastBuilt > 10)
 //					navigate();
