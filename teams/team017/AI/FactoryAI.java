@@ -51,12 +51,16 @@ public class FactoryAI extends BuildingAI {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		for (int i = 0; i < 8; i++) {
+			watch();
+			yield();
+		}
 
 		while (true) {
 			try {
 
 				processMessages();
-				watch();
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");

@@ -45,7 +45,7 @@ public class Builder {
 				}
 				
 				// check if the unit can be built at the desired location
-				if (canConstruct(buildDir, type.chassis.level)) {
+				if (canConstruct(buildDir, type.chassis)) {
 					controllers.builder.build(type.chassis, buildLoc);
 					rc.yield();
 					
@@ -89,7 +89,7 @@ public class Builder {
 		try{
 			Chassis chassis = type.chassis;
 			if (rc.getTeamResources() > chassis.cost + 20) {
-				if (canConstruct(chassis.level)) {
+				if (canConstruct(chassis)) {
 					// build a chassis there
 					controllers.builder.build(chassis, buildLoc);
 					rc.yield();
@@ -147,15 +147,16 @@ public class Builder {
 		}
 	}
 	
-	public boolean canConstruct(Direction dir, RobotLevel level) throws GameActionException {
-		if (controllers.sensor.senseObjectAtLocation(rc.getLocation().add(dir), level) == null
-				&& rc.senseTerrainTile(rc.getLocation().add(dir)) == TerrainTile.LAND)
-			return true;
-		return false;
+	public boolean canConstruct(Direction dir, Chassis chassis) throws GameActionException {
+//		if (controllers.sensor.senseObjectAtLocation(rc.getLocation().add(dir), level) == null
+//				&& rc.senseTerrainTile(rc.getLocation().add(dir)) == TerrainTile.LAND)
+//			return true;
+//		return false;
+		return controllers.builder.canBuild(chassis, rc.getLocation().add(dir));
 	}
 	
-	public boolean canConstruct(RobotLevel level) throws GameActionException {
-		return canConstruct(rc.getDirection(), level);
+	public boolean canConstruct(Chassis chassis) throws GameActionException {
+		return canConstruct(rc.getDirection(), chassis);
 	}
 
 	private MapLocation turnToAvailableSquare(Chassis chassis)

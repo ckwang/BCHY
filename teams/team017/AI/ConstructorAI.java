@@ -94,6 +94,7 @@ public class ConstructorAI extends GroundAI {
 					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				}
 
+				
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
