@@ -51,7 +51,7 @@ public class ConstructorAI extends GroundAI {
 		if (Clock.getRoundNum() == 0) {
 			init();
 		}
-
+		
 		while (true) {
 			try {
 				while (controllers.builder.isActive())
@@ -85,8 +85,8 @@ public class ConstructorAI extends GroundAI {
 //					continue;
 //				}
 
-				if (roundSinceLastBuilt > 10)
-					navigate();
+//				if (roundSinceLastBuilt > 10)
+//					navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
 				if (Clock.getRoundNum() % 15 == 0) {
