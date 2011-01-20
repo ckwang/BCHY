@@ -42,12 +42,12 @@ public class Controllers {
 	public List<RobotInfo> debris = new LinkedList<RobotInfo>();
 	public List<MapLocation> mines = new ArrayList<MapLocation>();
 	
-	public Direction dir;
-	public MapLocation loc;
-	public double hp;
-	public final Robot self;
-	public final Chassis chassis;
-	public final double maxhp;
+//	public Direction dir;
+//	public MapLocation loc;
+//	public double hp;
+//	public final Robot self;
+//	public final Chassis chassis;
+//	public final double maxhp;
 	
 	public int lastUpdateInfo = -1;
 	public int lastUpdateRobot = -1;
@@ -56,9 +56,9 @@ public class Controllers {
 	public Controllers(RobotController rc) {
 		weapons = new ArrayList<WeaponController>();
 		myRC = rc;
-		self = myRC.getRobot();
-		chassis = myRC.getChassis();
-		maxhp = myRC.getHitpoints();
+//		self = myRC.getRobot();
+//		chassis = myRC.getChassis();
+//		maxhp = myRC.getHitpoints();
 	}
 	
 	public void reset(boolean mine) {
@@ -204,18 +204,18 @@ public class Controllers {
 				&& (info.chassis != Chassis.DEBRIS);
 	}
 	
-	public void updateInfo() {
+//	public void updateInfo() {
 //		int before = Clock.getBytecodesLeft();
-		int roundNum = Clock.getRoundNum();
-		if (roundNum == lastUpdateInfo)
-			return;
-		dir = myRC.getDirection();
-		loc = myRC.getLocation();
-		hp = myRC.getHitpoints();
+//		int roundNum = Clock.getRoundNum();
+//		if (roundNum == lastUpdateInfo)
+//			return;
+//		dir = myRC.getDirection();
+//		loc = myRC.getLocation();
+//		hp = myRC.getHitpoints();
 //		int after = Clock.getBytecodesLeft();
 //		if ((before-after) > 0)
 //			System.out.println("used bytecode: " + (before - after));
-	}
+//	}
 	
 	public void updateComponents() {
 		ComponentController[] components = myRC.newComponents();

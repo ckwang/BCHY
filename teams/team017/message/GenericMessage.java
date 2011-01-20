@@ -1,6 +1,7 @@
 package team017.message;
 
 import java.util.Arrays;
+
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 

@@ -1,7 +1,6 @@
 package team017.message;
 
 import team017.construction.UnitType;
-import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 

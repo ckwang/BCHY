@@ -19,7 +19,7 @@ import battlecode.common.WeaponController;
 public class CombatSystem {
 
 	private Controllers controllers;
-	public WeaponController w = null;
+	public WeaponController primary = null;
 
 	int lastUpdate = -1;
 	public MapLocation myloc;
@@ -44,8 +44,10 @@ public class CombatSystem {
 			else if (type.range < minRange)
 				minRange = type.range;
 		}
-		if (c.weapons.size() > 0)
-			w = controllers.weapons.get(0);
+		if (c.weapons.size() > 0) {
+			primary = controllers.weapons.get(0);
+			optRange = primary.type().range;
+		}
 	}
 
 	public boolean chase(Robot r) {
@@ -410,12 +412,12 @@ public class CombatSystem {
 			System.out.println("attack self");
 		}
 		int dis = myloc.distanceSquaredTo(r.location);
-		if (dis >= w.type().range*0.9 && Util.isFacing(mydir, edir)) {
+		if (dis >= primary.type().range*0.9 && Util.isFacing(mydir, edir)) {
 			if (controllers.myRC.getHitpoints() < 3.5)
 				moveForward();
 		}
 		//enemy facing, retreat back
-		if (dis < w.type().range*0.9 && Util.isFacing(mydir, edir.opposite())) {
+		if (dis < primary.type().range*0.9 && Util.isFacing(mydir, edir.opposite())) {
 			if (controllers.myRC.getHitpoints() < 3.5)
 				moveBackward();
 		}
@@ -425,7 +427,7 @@ public class CombatSystem {
 //		}
 		//behind enemy, chase forward
 		if (Util.isFacing(r.direction, edir)) {
-			if (dis > w.type().range*0.6 && mydir == edir) {
+			if (dis > primary.type().range*0.6 && mydir == edir) {
 				moveForward();
 			}
 			return false;
@@ -449,7 +451,7 @@ public class CombatSystem {
 //			return null;
 		updatePosition();
 		Direction edir = myloc.directionTo(r.location);
-		if (w.withinRange(r.location))
+		if (primary.withinRange(r.location))
 			return true;
 		if (mydir == edir) {
 			moveForward();
@@ -469,7 +471,7 @@ public class CombatSystem {
 //		else
 //			return null;
 		for (RobotInfo r: controllers.enemyImmobile) {
-			if (w.withinRange(r.location)) {
+			if (primary.withinRange(r.location)) {
 				target = r;
 				break;
 			}
@@ -477,7 +479,7 @@ public class CombatSystem {
 		if (target == null) {
 			for (RobotInfo r: controllers.enemyImmobile) {
 				int d = myloc.distanceSquaredTo(r.location);
-				if (d < w.type().range) {
+				if (d < primary.type().range) {
 					target = r;
 					break;
 				}
@@ -494,7 +496,7 @@ public class CombatSystem {
 //		else
 //			return null;
 		for (RobotInfo r: controllers.enemyMobile) {
-			if (w.withinRange(r.location)) {
+			if (primary.withinRange(r.location)) {
 				target = r;
 				break;
 			}
@@ -502,7 +504,7 @@ public class CombatSystem {
 		if (target == null) {
 			for (RobotInfo r: controllers.enemyMobile) {
 				int d = myloc.distanceSquaredTo(r.location);
-				if (d < w.type().range) {
+				if (d < primary.type().range) {
 					target = r;
 					break;
 				}
@@ -623,10 +625,6 @@ public class CombatSystem {
 			}
 		}
 		return false;
-	}
-	
-	public void updateWeapon() {
-		
 	}
 	
 	public void updatePosition() {
