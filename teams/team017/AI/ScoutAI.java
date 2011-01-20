@@ -43,7 +43,9 @@ public class ScoutAI extends AI {
 			
 		
 		while (true) {
-			controllers.myRC.setIndicatorString(1, controllers.myRC.getLocation() + "," + homeLocation);
+			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
+			controllers.myRC.setIndicatorString(1, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
+			controllers.myRC.setIndicatorString(2, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3] );
 			
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
@@ -52,6 +54,7 @@ public class ScoutAI extends AI {
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
 				msgHandler.queueMessage(new ScoutingInquiryMessage());
+				yield();
 			}
 			
 			navigate();

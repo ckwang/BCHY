@@ -161,6 +161,7 @@ public class FactoryAI extends BuildingAI {
 				gridMap.updateScoutLocation(homeLocation);
 				gridMap.printGridMap();
 				controllers.myRC.setIndicatorString(1, homeLocation + "," + gridMap.getScoutLocation() + gridMap.getOriginGrid() + gridMap.getScoutGrid());
+				controllers.myRC.setIndicatorString(2, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
 				
 				break;
 			}
