@@ -100,9 +100,12 @@ public class Builder {
 							rc.yield();
 						
 						// if the chassis is not there anymore
-						if (controllers.sensor.senseObjectAtLocation(buildLoc, RobotLevel.ON_GROUND) == null)
+						if (controllers.builder.canBuild(Chassis.BUILDING, buildLoc))
 							return false;
 						
+//						if (controllers.sensor.senseObjectAtLocation(buildLoc, RobotLevel.ON_GROUND) == null)
+//							return false;
+//						
 						controllers.builder.build(com, buildLoc, chassis.level);
 					}
 					rc.turnOn(buildLoc, chassis.level);

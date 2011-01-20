@@ -35,7 +35,7 @@ public class RobotPlayer implements Runnable {
 				if (Util.containsComponent(myRC.components(), ComponentType.TELESCOPE)) {
 					new ScoutAI(myRC).proceed();
 				} else {
-					new AirAI(myRC).proceed();
+					new AirConstructorAI(myRC).proceed();
 				}
 				break;
 			

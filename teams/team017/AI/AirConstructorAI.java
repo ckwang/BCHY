@@ -7,6 +7,8 @@ import java.util.Set;
 
 import team017.construction.UnitType;
 import team017.message.BorderMessage;
+import team017.message.BuildingLocationInquiryMessage;
+import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
@@ -14,6 +16,7 @@ import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
 import battlecode.common.Chassis;
+import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameObject;
@@ -23,7 +26,7 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
 
 
-public class AirAI extends AI {
+public class AirConstructorAI extends AI {
 
 
 	private int id;
@@ -31,10 +34,13 @@ public class AirAI extends AI {
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
+	private MapLocation currentLoc = controllers.myRC.getLocation();
+	private int roundSinceLastBuilt = 0;
 	
 	MapLocation nearestMine = null;
 	
-	public AirAI(RobotController rc) {
+	
+	public AirConstructorAI(RobotController rc) {
 		super(rc);
 		id = rc.getRobot().getID();
 	}
@@ -42,11 +48,13 @@ public class AirAI extends AI {
 	@Override
 	public void yield() {
 		super.yield();
+		currentLoc = controllers.myRC.getLocation();
+		roundSinceLastBuilt++;
 	}
 
 	@Override
 	public void proceed() {
-		
+
 		// ask for mine locations
 		while (controllers.comm.isActive())
 			yield();
@@ -56,9 +64,23 @@ public class AirAI extends AI {
 			
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
-			try {buildRecyclers();} catch (Exception e) {e.printStackTrace();}
+			try {
+				if (buildRecyclers()) {
+					msgHandler.queueMessage(new BuildingLocationInquiryMessage(nearestMine));
+					roundSinceLastBuilt = 0;
+					nearestMine = null;
+				} else {
+					msgHandler.queueMessage(new MineInquiryMessage());
+				}
+				
+			} catch (Exception e) {e.printStackTrace();}
 			
-			navigate();
+
+			if (roundSinceLastBuilt > 30)
+				navigate();
+			else if (Clock.getRoundNum() % 5 == 0)
+				msgHandler.queueMessage(new MineInquiryMessage());
+
 			
 			String s = "";
 			for (MapLocation loc : mineLocations) {
@@ -91,27 +113,65 @@ public class AirAI extends AI {
 				}
 				break;
 			}
+			
+			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
+
+				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
+				
+//				controllers.myRC.setIndicatorString(0, "Type" +handler.getUnitType() + " " +  Clock.getRoundNum());
+//				controllers.myRC.setIndicatorString(1, "current location:" + controllers.myRC.getLocation());
+//				controllers.myRC.setIndicatorString(2, "build loc:" + handler.getBuildableLocation());
+				
+				// see if the message is intended for it
+				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
+					break;
+
+				// if it is not built
+				if (builtLocations.contains(handler.getSourceLocation()))
+					break;
+
+				UnitType type = handler.getUnitType();
+				if (type == null) { // there is nothing to build
+					builtLocations.add(handler.getSourceLocation());
+				} else if (handler.getBuildableLocation() != null) {
+					MapLocation buildLoc = handler.getBuildableLocation();
+					if (buildBuildingAtLoc(buildLoc, type)) {
+						if (type == UnitType.FACTORY)
+							msgHandler.queueMessage(new MineInquiryMessage());
+						roundSinceLastBuilt = 0;
+						msgHandler.queueMessage(new BuildingLocationInquiryMessage(handler.getSourceLocation()));
+						yield();
+					}
+				}
+
+				break;
+			}
+			
 				
 			}
 		}
 		
 	}
 	
-	private boolean buildRecyclers() throws GameActionException {
+	private void findNearestMine () {
 		if (nearestMine == null)
 			nearestMine = new MapLocation(0, 0);
 
 		// find a eligible mine
-		MapLocation currentLoc = controllers.myRC.getLocation();
 		for (MapLocation mineLoc : mineLocations) {
 			if (recyclerLocations.contains(mineLoc))
 				continue;
 			
-			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc
-					.distanceSquaredTo(nearestMine))
+			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(nearestMine))
 				nearestMine = mineLoc;
 		}
 
+	}
+	
+	private boolean buildRecyclers() throws GameActionException {
+		
+		findNearestMine();
+		
 		if (nearestMine.x == 0) {
 			nearestMine = null;
 			return false;
@@ -120,7 +180,10 @@ public class AirAI extends AI {
 		// if there is a eligible site
 		if (currentLoc.distanceSquaredTo(nearestMine) <= 2) {
 			if (controllers.builder.canBuild(Chassis.BUILDING, nearestMine)) {
-				buildBuildingAtLoc(nearestMine, UnitType.RECYCLER);
+				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER))
+					controllers.myRC.setIndicatorString(2, "BuildRecycler");
+					recyclerLocations.add(nearestMine);
+					return true;
 			} else {
 				recyclerLocations.add(nearestMine);
 			}
