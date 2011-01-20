@@ -9,6 +9,7 @@ import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.message.ScoutingInquiryMessage;
+import team017.message.ScoutingResponseMessage;
 import team017.message.TurnOffMessage;
 import team017.util.Util;
 import battlecode.common.*;
@@ -25,7 +26,8 @@ public class RecyclerAI extends BuildingAI {
 	int [] cumulatedRatios = new int[5];
 	int total;
 	
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.BATTLE_FORTRESS};
+//	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.BATTLE_FORTRESS};
+	private UnitType [] types = { UnitType.FLYING_CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR};
 	double fluxThresholds = 0.3;
 	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	
@@ -244,6 +246,7 @@ public class RecyclerAI extends BuildingAI {
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
 				gridMap.merge(handler.getBorders(), handler.getInternalRecords());
+				gridMap.updateScoutLocation(homeLocation);
 //				gridMap.printGridMap();
 				
 				break;
@@ -467,8 +470,9 @@ public class RecyclerAI extends BuildingAI {
 				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
 				
 				if (handler.getRecyclerID() == controllers.myRC.getRobot().getID()) {
-					gridMap.getScoutLocation();
+					msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), gridMap.getScoutLocation()));
 				}
+				break;
 			}
 
 			}
