@@ -109,10 +109,10 @@ public class Util {
 	}
 	
 	public static void sortHp(List<RobotInfo> robots) {
+		if (robots.size() < 2)
+			return;
 		int j;
 		RobotInfo tmp;
-		if (robots.size() < 1)
-			return;
 		for (int i = 1; i < robots.size(); ++i) {
 			tmp = robots.get(i);
 			for (j = i; j > 0 && tmp.hitpoints < robots.get(j-1).hitpoints; --j) {
@@ -123,10 +123,10 @@ public class Util {
 	}
 	
 	public static void sortHpPercentage(List<RobotInfo> robots) {
+		if (robots.size() < 2)
+			return;
 		int j;
 		RobotInfo tmp;
-		if (robots.size() < 1)
-			return;
 		for (int i = 1; i < robots.size(); ++i) {
 			tmp = robots.get(i);
 			for (j = i; j > 0 && (tmp.hitpoints / tmp.maxHp) < (robots.get(j-1).hitpoints / robots.get(j-1).maxHp); --j) {
@@ -137,6 +137,8 @@ public class Util {
 	}
 	
 	public static void sortLocation(List<RobotInfo> robots, MapLocation myloc) {
+		if (robots.size() < 2)
+			return;
 		int j, dis;
 		RobotInfo r;
 		tmplist.clear();
@@ -155,10 +157,10 @@ public class Util {
 	}
 	
 	public static void sortLocation(List<Integer> dists, List<Robot> robots) {
+		if (dists.size() != robots.size() || dists.size() < 2)
+			return;
 		int j, tmp;
 		Robot r;
-		if (dists.size() != robots.size() || dists.size() == 0)
-			return;
 		for (int i = 1; i < robots.size(); ++i) {
 			tmp = dists.get(i);
 			r = robots.get(i);

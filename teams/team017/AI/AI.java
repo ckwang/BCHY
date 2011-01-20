@@ -41,7 +41,7 @@ public abstract class AI {
 		msgHandler = new MessageHandler(controllers);
 		buildingSystem = new Builder(controllers, msgHandler);
 		
-		gridMap = new GridMap(controllers, homeLocation);
+		gridMap = new GridMap(homeLocation);
 		
 //		enemyMines = new HashSet<EnhancedMineInfo>();
 //		alliedMines = new HashSet<EnhancedMineInfo>();
@@ -79,6 +79,7 @@ public abstract class AI {
 	
 	protected Direction senseBorder() {
 		Direction borderDirection = Direction.NONE;
+		int range = (int) Math.sqrt(controllers.sensor.type().range);
 		
 		try {
 			boolean hasChanged = false;
@@ -97,14 +98,14 @@ public abstract class AI {
 				MapLocation currentLoc = controllers.myRC.getLocation();
 
 				int i;
-				for (i = 3; i > 0; i--) {
+				for (i = range; i > 0; i--) {
 					if (controllers.myRC.senseTerrainTile(currentLoc.add(
 							addDirs[j], i)) != TerrainTile.OFF_MAP)
 						break;
 				}
 
-				// i == 3 means no OFF_MAP sensed
-				if (i != 3) {
+				// i == range means no OFF_MAP sensed
+				if (i != range) {
 					borderDirection = addDirs[j];
 					switch (addDirs[j]) {
 					case NORTH:
@@ -141,7 +142,7 @@ public abstract class AI {
 			
 			if (hasChanged) {
 				computeEnemyBaseLocation();
-				gridMap.setBorders(borders, homeLocation, enemyBaseLoc[0]);
+				gridMap.setBorders(borders);
 				gridMap.updateScoutLocation(controllers.myRC.getLocation());
 			}
 			

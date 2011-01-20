@@ -19,7 +19,7 @@ public enum UnitType {
 
 // Armory + Recycler
 	JUMPING_CONSTRUCTOR (Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.JUMP, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SHIELD),
-	FLYING_CONSTRUCTOR (Chassis.FLYING, ComponentType.CONSTRUCTOR, ComponentType.SIGHT),
+	FLYING_CONSTRUCTOR (Chassis.FLYING, ComponentType.CONSTRUCTOR, ComponentType.ANTENNA),
 	NETWORK_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.NETWORK, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
 //	Factory + Recycler + Armory
 	TELESCOPER (Chassis.FLYING, ComponentType.TELESCOPE, ComponentType.ANTENNA),
@@ -37,8 +37,8 @@ public enum UnitType {
 
 // Buildings
 	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER),
-	ARMORY(Chassis.BUILDING, ComponentType.ARMORY),
-	FACTORY (Chassis.BUILDING, ComponentType.FACTORY),
+	ARMORY(Chassis.BUILDING, ComponentType.ARMORY, ComponentType.ANTENNA),
+	FACTORY (Chassis.BUILDING, ComponentType.FACTORY, ComponentType.ANTENNA),
 	RAILGUN_TOWER (Chassis.BUILDING, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.MEDIC, ComponentType.RAILGUN, ComponentType.RAILGUN),
 	TOWER (Chassis.BUILDING, ComponentType.ANTENNA, ComponentType.RADAR, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.BLASTER, ComponentType.SMG, ComponentType.SMG, ComponentType.SHIELD, ComponentType.SHIELD, ComponentType.SMG, ComponentType.SMG);
 		

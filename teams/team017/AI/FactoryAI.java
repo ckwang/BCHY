@@ -1,9 +1,18 @@
 package team017.AI;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.GridMapMessage;
+import team017.message.MineInquiryMessage;
+import team017.message.MineLocationsMessage;
+import team017.message.MineResponseMessage;
+import team017.message.ScoutingInquiryMessage;
+import team017.message.ScoutingResponseMessage;
 import team017.message.TurnOffMessage;
 import team017.util.Util;
 import battlecode.common.Clock;
@@ -18,8 +27,16 @@ import battlecode.common.RobotLevel;
 
 public class FactoryAI extends BuildingAI {
 
+	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
+	
 	public FactoryAI(RobotController rc) {
 		super(rc);
+	}
+	
+	public void yield() {
+		super.yield();
+		controllers.senseMine();
+		senseBorder();
 	}
 
 	@Override
@@ -27,6 +44,20 @@ public class FactoryAI extends BuildingAI {
 		while (controllers.motor.isActive() || controllers.comm == null)
 			yield();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(controllers.myRC.getLocation(), UnitType.FACTORY));
+
+		// build a telescope on itself
+		while (controllers.builder.isActive())
+			yield();
+		try {
+			controllers.builder.build(ComponentType.TELESCOPE, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		for (int i = 0; i < 8; i++) {
+			watch();
+			yield();
+		}
 
 		while (true) {
 			try {
@@ -41,6 +72,16 @@ public class FactoryAI extends BuildingAI {
 
 	}
 
+	private void watch() {
+		try {
+			mineLocations.addAll(controllers.mines);
+			controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
+			controllers.myRC.setIndicatorString(0, mineLocations.size() + "");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	protected void processMessages() throws GameActionException {
 		while (msgHandler.hasMessage()) {
@@ -102,12 +143,59 @@ public class FactoryAI extends BuildingAI {
 				break;
 			}
 			
-			case TURN_OFF_MESSAGE: {
-				TurnOffMessage handler = new TurnOffMessage(msg);
-				if (controllers.myRC.getLocation() == handler.getBuildingLoc())
-					controllers.myRC.turnOff();
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1){
+						if (borders[i] != newBorders[i]){
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+				
+				homeLocation = handler.getHomeLocation();
+				computeEnemyBaseLocation();
+				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
+				gridMap.updateScoutLocation(homeLocation);
+//				gridMap.printGridMap();
+//				controllers.myRC.setIndicatorString(1, homeLocation + "," + gridMap.getScoutLocation() + gridMap.getOriginGrid() + gridMap.getScoutGrid());
+//				controllers.myRC.setIndicatorString(2, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
+				
 				break;
 			}
+			
+			case MINE_INQUIRY_MESSAGE: {
+				MineInquiryMessage handler = new MineInquiryMessage(msg);
+				
+				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), mineLocations));
+				break;
+			}
+			
+			case SCOUTING_INQUIRY_MESSAGE: {
+				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
+				
+				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), gridMap.getScoutLocation()));
+				break;
+			}
+			
+			case MINE_LOCATIONS_MESSAGE: {
+				MineLocationsMessage handler = new MineLocationsMessage(msg);
+				
+				mineLocations.addAll(handler.getMineLocations());
+//				controllers.myRC.setIndicatorString(1, mineLocations.toString());
+				
+				break;
+			}
+			
+//			case TURN_OFF_MESSAGE: {
+//				TurnOffMessage handler = new TurnOffMessage(msg);
+//				if (controllers.myRC.getLocation() == handler.getBuildingLoc())
+//					controllers.myRC.turnOff();
+//				break;
+//			}
 			
 		}
 	}

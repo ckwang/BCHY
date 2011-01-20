@@ -3,12 +3,10 @@ package team017.message;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import team017.util.Controllers;
 import battlecode.common.Clock;
-import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
-
-import team017.util.Controllers;
 
 public class MessageHandler {
 

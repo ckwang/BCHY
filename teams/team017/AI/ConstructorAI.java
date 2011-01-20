@@ -51,7 +51,7 @@ public class ConstructorAI extends GroundAI {
 		if (Clock.getRoundNum() == 0) {
 			init();
 		}
-
+		
 		while (true) {
 			try {
 				while (controllers.builder.isActive())
@@ -84,16 +84,19 @@ public class ConstructorAI extends GroundAI {
 ////					catch (Exception e) {}
 //					continue;
 //				}
+				
+				
 
-				if (roundSinceLastBuilt > 10)
+				if (roundSinceLastBuilt > 50)
 					navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
-				if (Clock.getRoundNum() % 15 == 0) {
-//					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-				}
+//				if (Clock.getRoundNum() % 15 == 0) {
+////					msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+//					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+//				}
 
+				
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
@@ -313,9 +316,11 @@ public class ConstructorAI extends GroundAI {
 				return false;
 			yield();
 		}
+		
+		roundSinceLastBuilt = 0;
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
-		if (type == UnitType.RECYCLER) {
+		if (type == UnitType.RECYCLER || type == UnitType.FACTORY) {
 			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation,gridMap));
 		} else {
 			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
@@ -401,7 +406,7 @@ public class ConstructorAI extends GroundAI {
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
 				if (enemyBaseLoc[0] != null)
-					gridMap.setBorders(borders, homeLocation, enemyBaseLoc[0]);
+					gridMap.setBorders(borders);
 				break;
 			}
 			case GRID_MAP_MESSAGE: {
@@ -419,7 +424,7 @@ public class ConstructorAI extends GroundAI {
 
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.merge(handler.getBorders(), handler.getInternalRecords());
+				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 
 				break;
 			}
