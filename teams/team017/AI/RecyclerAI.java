@@ -11,6 +11,7 @@ import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
+import team017.message.NotEnoughSpaceMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
 import team017.message.TurnOffMessage;
@@ -109,8 +110,8 @@ public class RecyclerAI extends BuildingAI {
 		while (true) {
 			try {
 
-
-				checkAdjacentRecyclers();
+				if (buildingLocs.towerLocations.size() == 0 && buildingLocs.factoryLocation == null && buildingLocs.armoryLocation == null)
+					checkAdjacentRecyclers();
 				
 				processMessages();
 				
@@ -132,7 +133,7 @@ public class RecyclerAI extends BuildingAI {
 				}
 				
 				// turn off when the mine is depleted
-				if (controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingLocs.clusterSize == 1)
+				if (myMine != null && controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingLocs.clusterSize == 1)
 					controllers.myRC.turnOff();
 
 				yield();
@@ -255,24 +256,70 @@ public class RecyclerAI extends BuildingAI {
 						break;
 
 					//	Build a tower at the initial base
-					if (birthRoundNum < 200) {
-						if (buildingLocs.towerLocations.size() == 0) {
-							for (int i = 4; i > 0; i--) {
-								loc = buildingLocs.consecutiveEmpties(i);
-								if (loc != null) {
-									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
-									inquiryIdleRound = 5;
+					if (birthRoundNum < 200 || myMine == null) {
+						
+						for (int i = 4; i > 0; i--) {
+//							controllers.myRC.setIndicatorString(0, i + "");
+							loc = buildingLocs.consecutiveEmpties(i);
+							if (loc != null) {
+								switch(i) {
+								case 4:
+									if (buildingLocs.towerLocations.size() == 0) {
+										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
+										inquiryIdleRound = 5;
+									} else if (buildingLocs.factoryLocation == null && buildingLocs.towerLocations.size() > 0) {
+										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.FACTORY));
+										inquiryIdleRound = 3;
+									} else if (buildingLocs.factoryLocation != null && buildingLocs.armoryLocation == null) {
+										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
+										inquiryIdleRound = 5;
+									}
+									break;
+								case 3:
+									if (buildingLocs.factoryLocation == null) {
+										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.FACTORY));
+										inquiryIdleRound = 3;
+									} else if (buildingLocs.factoryLocation != null && buildingLocs.armoryLocation == null) {
+										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
+										inquiryIdleRound = 5;
+									}
+									break;
+								case 2:
+									// Initially has 2 empties only
+									if (buildingLocs.towerLocations.size() == 0 && buildingLocs.factoryLocation == null) {
+										msgHandler.clearOutQueue();
+										msgHandler.queueMessage(new NotEnoughSpaceMessage());
+										msgHandler.process();
+										controllers.myRC.turnOff();
+										inquiryIdleRound = 5;
+									} else {
+										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
+										inquiryIdleRound = 5;
+									}
 									break;
 								}
+							break;
 							}
-						} else if (buildingLocs.armoryLocation == null && buildingLocs.towerLocations.size() > 0) {
-							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.ARMORY));
-							inquiryIdleRound = 3;
 						}
-						else if (buildingLocs.armoryLocation != null && buildingLocs.factoryLocation == null) {
-							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.armoryLocation, 2), UnitType.FACTORY));
-							inquiryIdleRound = 5;
-						}
+						
+						
+//						if (buildingLocs.towerLocations.size() == 0) {
+//							for (int i = 4; i > 0; i--) {
+//								loc = buildingLocs.consecutiveEmpties(i);
+//								if (loc != null) {
+//									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
+//									inquiryIdleRound = 5;
+//									break;
+//								}
+//							}
+//						} else if (buildingLocs.armoryLocation == null && buildingLocs.towerLocations.size() > 0) {
+//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.ARMORY));
+//							inquiryIdleRound = 3;
+//						}
+//						else if (buildingLocs.armoryLocation != null && buildingLocs.factoryLocation == null) {
+//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.armoryLocation, 2), UnitType.FACTORY));
+//							inquiryIdleRound = 5;
+//						}
 					} else {
 						if (buildingLocs.factoryLocation == null) {
 							loc = buildingLocs.consecutiveEmpties(2);
@@ -303,20 +350,22 @@ public class RecyclerAI extends BuildingAI {
 					// UnitType.FACTORY
 					if (handler.getBuildingType() == UnitType.ARMORY) {
 						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
-						msgHandler.queueMessage (new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateRight(buildingLocs.armoryLocation, 2), UnitType.FACTORY));
+//						msgHandler.queueMessage (new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateRight(buildingLocs.armoryLocation, 2), UnitType.FACTORY));
 						yield();
 						// UnitType.FACTORY	
 					} else if (handler.getBuildingType() == UnitType.FACTORY) {
 						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
 						if (birthRoundNum > 200)
 							msgHandler.queueMessage (new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+						else
+							msgHandler.queueMessage (new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
 						yield();
 						
 					// UnitType.TOWER
 					} else if (handler.getBuildingType() == UnitType.TOWER) {
 						buildingLocs.setLocations(handler.getBuildingType(), buildingLocation);
 						
-						msgHandler.queueMessage(new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.ARMORY));
+						msgHandler.queueMessage(new BuildingLocationResponseMessage(handler.getSourceID(), buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.FACTORY));
 						
 						while(!buildingSystem.constructComponent(buildingLocation, UnitType.TOWER)) {
 							GameObject obj = controllers.sensor.senseObjectAtLocation(buildingLocation,RobotLevel.ON_GROUND);
@@ -423,8 +472,8 @@ public class RecyclerAI extends BuildingAI {
 			}
 		}
 		
-		controllers.myRC.setIndicatorString(0, "My Location:" + controllers.myRC.getLocation() + "Empty:" + buildingLocs.emptySize);
-		controllers.myRC.setIndicatorString(1, "Max Location:" + maxEmptyLocation + "Empty:" + maxEmptyNum);
+//		controllers.myRC.setIndicatorString(0, "My Location:" + controllers.myRC.getLocation() + "Empty:" + buildingLocs.emptySize);
+//		controllers.myRC.setIndicatorString(1, "Max Location:" + maxEmptyLocation + "Empty:" + maxEmptyNum);
 
 		if (maxEmptyLocation != currentLoc) {
 			// Check if the recycler has an antenna
