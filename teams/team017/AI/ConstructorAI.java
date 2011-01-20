@@ -51,7 +51,7 @@ public class ConstructorAI extends GroundAI {
 		if (Clock.getRoundNum() == 0) {
 			init();
 		}
-
+		
 		while (true) {
 			try {
 				while (controllers.builder.isActive())
@@ -84,8 +84,10 @@ public class ConstructorAI extends GroundAI {
 ////					catch (Exception e) {}
 //					continue;
 //				}
+				
+				
 
-				if (roundSinceLastBuilt > 10)
+				if (roundSinceLastBuilt > 50)
 					navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
@@ -94,6 +96,7 @@ public class ConstructorAI extends GroundAI {
 					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				}
 
+				
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
@@ -313,6 +316,8 @@ public class ConstructorAI extends GroundAI {
 				return false;
 			yield();
 		}
+		
+		roundSinceLastBuilt = 0;
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
 		if (type == UnitType.RECYCLER) {

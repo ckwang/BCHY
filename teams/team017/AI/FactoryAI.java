@@ -1,9 +1,16 @@
 package team017.AI;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.MineInquiryMessage;
+import team017.message.MineResponseMessage;
+import team017.message.ScoutingInquiryMessage;
+import team017.message.ScoutingResponseMessage;
 import team017.message.TurnOffMessage;
 import team017.util.Util;
 import battlecode.common.Clock;
@@ -18,8 +25,16 @@ import battlecode.common.RobotLevel;
 
 public class FactoryAI extends BuildingAI {
 
+	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
+	
 	public FactoryAI(RobotController rc) {
 		super(rc);
+	}
+	
+	public void yield() {
+		super.yield();
+		controllers.senseMine();
+		senseBorder();
 	}
 
 	@Override
@@ -27,6 +42,20 @@ public class FactoryAI extends BuildingAI {
 		while (controllers.motor.isActive() || controllers.comm == null)
 			yield();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(controllers.myRC.getLocation(), UnitType.FACTORY));
+
+		// build a telescope on itself
+		while (controllers.builder.isActive())
+			yield();
+		try {
+			controllers.builder.build(ComponentType.TELESCOPE, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		for (int i = 0; i < 8; i++) {
+			watch();
+			yield();
+		}
 
 		while (true) {
 			try {
@@ -41,6 +70,16 @@ public class FactoryAI extends BuildingAI {
 
 	}
 
+	private void watch() {
+		try {
+			mineLocations.addAll(controllers.mines);
+			controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
+			controllers.myRC.setIndicatorString(0, mineLocations.size() + "");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	protected void processMessages() throws GameActionException {
 		while (msgHandler.hasMessage()) {
@@ -102,12 +141,19 @@ public class FactoryAI extends BuildingAI {
 				break;
 			}
 			
-			case TURN_OFF_MESSAGE: {
-				TurnOffMessage handler = new TurnOffMessage(msg);
-				if (controllers.myRC.getLocation() == handler.getBuildingLoc())
-					controllers.myRC.turnOff();
+			case MINE_INQUIRY_MESSAGE: {
+				MineInquiryMessage handler = new MineInquiryMessage(msg);
+				
+				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), mineLocations));
 				break;
 			}
+			
+//			case TURN_OFF_MESSAGE: {
+//				TurnOffMessage handler = new TurnOffMessage(msg);
+//				if (controllers.myRC.getLocation() == handler.getBuildingLoc())
+//					controllers.myRC.turnOff();
+//				break;
+//			}
 			
 		}
 	}
