@@ -11,12 +11,12 @@ import battlecode.common.MapLocation;
  */
 public class GridMap {
 	
-	private MapLocation origin;
+	public MapLocation origin;
 	private final int GRID_SIZE = 16;
 	private final int TOTAL_LENGTH = 70;
 	private final int GRID_NUM = TOTAL_LENGTH / GRID_SIZE * 2;
 	
-	private int[] gridBorders = {0, GRID_NUM, GRID_NUM, 0};
+	private int[] gridBorders = {0, GRID_NUM - 1, GRID_NUM - 1, 0};
 	public int[] internalRecords;
 	
 	private Grid currentScoutGrid;
@@ -26,8 +26,8 @@ public class GridMap {
 		public int gridY;
 		
 		public Grid(MapLocation loc) {
-			gridX = (loc.x - origin.x + TOTAL_LENGTH) / GRID_SIZE;
-			gridY = (loc.y - origin.y + TOTAL_LENGTH) / GRID_SIZE;
+			gridX = (loc.x - origin.x) / GRID_SIZE + TOTAL_LENGTH / GRID_SIZE;
+			gridY = (loc.y - origin.y) / GRID_SIZE + TOTAL_LENGTH / GRID_SIZE;
 		}
 		
 		private Grid(int gridX, int gridY) {
@@ -41,10 +41,10 @@ public class GridMap {
 			
 			return new Grid(gridX + x_offset, gridY + y_offset);
 		}
-		
+
 		public MapLocation toMapLocation() {
-			return new MapLocation(gridX * GRID_SIZE - TOTAL_LENGTH + origin.x,
-					gridY * GRID_SIZE - TOTAL_LENGTH + origin.y);
+			return new MapLocation(gridX * GRID_SIZE - TOTAL_LENGTH + TOTAL_LENGTH % GRID_SIZE + origin.x,
+					gridY * GRID_SIZE - TOTAL_LENGTH + TOTAL_LENGTH % GRID_SIZE + origin.y);
 		}
 		
 		public Grid[] getNeighbors(int d) {
@@ -110,9 +110,9 @@ public class GridMap {
 	public void setBorders(int[] borders) {
 		for (int i = 0; i < 4; i++) {
 			if (borders[i] == -1) {
-				gridBorders[i] = (i == 1 || i == 2) ? TOTAL_LENGTH * 2: 0;
+				gridBorders[i] = (i == 1 || i == 2) ? GRID_NUM - 1: 0;
 			} else {
-				gridBorders[i] = (borders[i] - ((i % 2 == 0) ? origin.y : origin.x) + TOTAL_LENGTH) / GRID_SIZE;
+				gridBorders[i] = (borders[i] - ((i % 2 == 0) ? origin.y : origin.x) ) / GRID_SIZE + TOTAL_LENGTH / GRID_SIZE;
 			}
 		}
 	}
@@ -121,14 +121,25 @@ public class GridMap {
 		return currentScoutGrid.toMapLocation();
 	}
 	
-	public void merge(int[] borders, int[] internalRecords) {
+	public MapLocation getOriginGrid() {
+		Grid g = new Grid(origin);
+		return new MapLocation(g.gridX, g.gridY);
+	}
+	
+	public MapLocation getScoutGrid() {
+		return new MapLocation(currentScoutGrid.gridX, currentScoutGrid.gridY);
+	}
+	
+	public void merge(MapLocation origin, int[] borders, int[] internalRecords) {
+		
+		this.origin = origin;
 		
 		int newGridBorders[] = new int[4];
 		for (int i = 0; i < 4; i++) {
 			if (borders[i] == -1) {
-				newGridBorders[i] = (i == 1 || i == 2) ? TOTAL_LENGTH * 2: 0;
+				newGridBorders[i] = (i == 1 || i == 2) ? GRID_NUM - 1: 0;
 			} else {
-				newGridBorders[i] = (borders[i] - ((i % 2 == 0) ? origin.y : origin.x) + TOTAL_LENGTH) / GRID_SIZE;
+				newGridBorders[i] = (borders[i] - ((i % 2 == 0) ? origin.y : origin.x) ) / GRID_SIZE + TOTAL_LENGTH / GRID_SIZE;
 			}
 		}
 		
@@ -140,7 +151,7 @@ public class GridMap {
 		}
 		
 		for (int i = 0; i < internalRecords.length; i++) {
-			internalRecords[i] |= internalRecords[i];
+			this.internalRecords[i] |= internalRecords[i];
 		}
 	}
 	

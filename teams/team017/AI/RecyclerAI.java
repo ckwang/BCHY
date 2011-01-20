@@ -22,14 +22,14 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 	
-	
+	private boolean built = false;
 
 	int [] unitRatios = {1, 1, 0, 1, 0};
 	int [] cumulatedRatios = new int[5];
 	int total;
 	
 //	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.BATTLE_FORTRESS};
-	private UnitType [] types = { UnitType.FLYING_CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR};
+	private UnitType [] types = { UnitType.TELESCOPER, UnitType.TELESCOPER, UnitType.TELESCOPER, UnitType.TELESCOPER, UnitType.TELESCOPER};
 	double fluxThresholds = 0.3;
 	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	
@@ -145,7 +145,7 @@ public class RecyclerAI extends BuildingAI {
 					
 				
 				
-				if (controllers.myRC.getTeamResources() > resourceThresholds && fluxRate > fluxThresholds ) {
+				if (!built && controllers.myRC.getTeamResources() > resourceThresholds && fluxRate > fluxThresholds ) {
 						constructUnitAtRatio();
 				}
 				
@@ -232,7 +232,7 @@ public class RecyclerAI extends BuildingAI {
 				
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
-				gridMap.merge(handler.getBorders(), handler.getInternalRecords());
+				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 				gridMap.updateScoutLocation(homeLocation);
 //				gridMap.printGridMap();
 				
@@ -370,14 +370,6 @@ public class RecyclerAI extends BuildingAI {
 				}
 				break;
 			}
-			case SCOUTING_INQUIRY_MESSAGE: {
-				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
-				
-				if (handler.getRecyclerID() == controllers.myRC.getRobot().getID()) {
-					msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), gridMap.getScoutLocation()));
-				}
-				break;
-			}
 
 			}
 		}
@@ -492,6 +484,7 @@ public class RecyclerAI extends BuildingAI {
 //			Cannot be built by recycler itself
 			if ((type.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
 				if (buildingSystem.constructUnit(type)) {
+					built = true;
 					++unitConstructed;
 					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 				}
@@ -499,6 +492,7 @@ public class RecyclerAI extends BuildingAI {
 				MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, type.requiredBuilders);
 				if (buildLoc != null) {
 					if (buildingSystem.constructUnit(buildLoc,type, buildingLocs)) {
+						built = true;
 						++unitConstructed;
 						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 						
@@ -507,6 +501,7 @@ public class RecyclerAI extends BuildingAI {
 			}
 		} else {
 			if (buildingLocs.getLocations(chassisBuilder) != null) {
+				built = true;
 				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), type));
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 			}
