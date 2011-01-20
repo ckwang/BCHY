@@ -19,6 +19,8 @@ public class RecyclerAI extends BuildingAI {
 	private int birthRoundNum;
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
+	
+	
 
 	int [] unitRatios = {1, 1, 0, 1, 0};
 	int [] cumulatedRatios = new int[5];
@@ -38,7 +40,7 @@ public class RecyclerAI extends BuildingAI {
 		double fluxRate = getEffectiveFluxRate();
 		if ( fluxRate > 2.0 ){
 			mySpawningState = spawningState.ATTACKING;
-			unitRatios[0] = 1;
+			unitRatios[0] = 0;
 			unitRatios[1] = 1;
 			unitRatios[2] = 1;
 			unitRatios[3] = 0;
@@ -46,7 +48,7 @@ public class RecyclerAI extends BuildingAI {
 		}
 		else if ( fluxRate > 1.0 ){
 			mySpawningState = spawningState.BALANCE;
-			unitRatios[0] = 1;
+			unitRatios[0] = 0;
 			unitRatios[1] = 1;
 			unitRatios[2] = 1;
 			unitRatios[3] = 0;
@@ -54,7 +56,7 @@ public class RecyclerAI extends BuildingAI {
 		}
 		else {
 			mySpawningState = spawningState.COLLECTING;
-			unitRatios[0] = 1;
+			unitRatios[0] = 0;
 			unitRatios[1] = 1;
 			unitRatios[2] = 1;
 			unitRatios[3] = 0;
@@ -86,21 +88,8 @@ public class RecyclerAI extends BuildingAI {
 			
 			// turn off if there is already a recycler nearby
 			if (buildingLocs.recyclerLocation != null) {
-				
-				Direction dir = Direction.NORTH;
-				for (int i = 0; i < buildingLocs.emptySize; i++) {
-					dir = dir.rotateRight();
-				}
-				while (controllers.motor.isActive())
-					controllers.myRC.yield();
-				
-				try {
-					controllers.motor.setDirection(dir);
-					controllers.myRC.yield();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-//				controllers.myRC.setIndicatorString(0, controllers.myRC.getDirection().toString());
+
+				encodeEmptyNumInDirection();
 				controllers.myRC.turnOff();
 			} else {
 				
@@ -124,6 +113,7 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
+
 
 				checkAdjacentRecyclers();
 				
@@ -181,8 +171,6 @@ public class RecyclerAI extends BuildingAI {
 				e.printStackTrace();
 			}
 
-//			controllers.myRC.setIndicatorString(0, controllers.myRC.getDirection().toString());
-
 			controllers.myRC.turnOff();
 
 		} catch (Exception e) {
@@ -192,7 +180,6 @@ public class RecyclerAI extends BuildingAI {
 	}
 	@Override
 	protected void processMessages() throws GameActionException {
-//		controllers.myRC.setIndicatorString (1, Clock.getRoundNum() + "");
 		// receive messages and handle them
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
@@ -237,9 +224,6 @@ public class RecyclerAI extends BuildingAI {
 				break;
 			}
 			case BUILDING_REQUEST:{
-//				controllers.myRC.setIndicatorString(0, "Building Request Got" + Clock.getRoundNum());
-//				controllers.myRC.setIndicatorString(1, "Building Request Got" + Clock.getRoundNum());
-//				controllers.myRC.setIndicatorString(2, "Building Request Got" + Clock.getRoundNum());
 				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
 					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
@@ -249,13 +233,6 @@ public class RecyclerAI extends BuildingAI {
 					}	
 				}
 				break;
-				
-//				BuildingRequestMessage bhandler = new BuildingRequestMessage(msg);
-//				if (bhandler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-//					buildingSystem.constructComponent(bhandler.getBuildingLocation(),bhandler.getUnitType());
-//					yield();
-//				}
-//				break;
 			}
 			
 			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
@@ -304,83 +281,11 @@ public class RecyclerAI extends BuildingAI {
 						}
 					}
 					
-//					/*
-//					 *	Case 5: T -> F -> rT -> A
-//					 *	T  rT F
-//					 * 	/  R  -
-//					 *  /  /  A
-//					 * 
-//					 *  /  T rT
-//					 *  /  R  F
-//					 *  /  A  -
-//					 *  
-//					 *  Case 4: T -> F -> rT
-//					 *  T rT  F
-//					 *  /  R  -
-//					 *  /  /  /
-//					 *  
-//					 *  /  T rT
-//					 *  /  R  F
-//					 *  /  /  -
-//					 *  
-//					 *  Case 3: F -> rT
-//					 *  / rT  F
-//					 *  /  R  -
-//					 *  /  /  /
-//					 *  
-//					 *  Case 2: T
-//					 *  T - /
-//					 *  / R /
-//					 *  / / /
-//					 *  
-//					 *  Conclusion : 
-//					 *  1. Always build a railgunTower at the left position of a Factory
-//					 *  2. Build a Tower at the empty location if empty != 3
-//					 *  3. Build at the second empty space if empty == 3 or empty == 4 and tower != null
-//					 *  
-//					 */
-//					else {
-//						if (buildingLocs.towerLocations.size() == 0) {
-//							for (int i = 5; i >= 2; i--) {
-//								loc = buildingLocs.consecutiveEmpties(i);
-//								if (loc != null) {
-//									if (i == 3 )
-//										break;
-//									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
-//									inquiryIdleRound = 5;
-//									break;
-//								}
-//							}
-//
-//						} else if (buildingLocs.factoryLocation == null) {
-//							for (int i = 4; i >= 3; i--) {
-//								loc = buildingLocs.consecutiveEmpties(i);
-//								if (loc != null)
-//									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
-//							}
-//							inquiryIdleRound = 5;
-//						} else if (buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() == 0) {
-//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-//							inquiryIdleRound = 5;
-//						} else if (buildingLocs.armoryLocation == null) {
-//							loc = buildingLocs.consecutiveEmpties(2);
-//							if (loc != null) {
-//								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.ARMORY));
-//							}
-//							inquiryIdleRound = 5;
-//						} else {
-//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-//						}
-//						yield();
-//					}
-					
-					
 				}
 				break;
 			}
 			
 			case CONSTRUCTION_COMPLETE: {
-//				controllers.myRC.setIndicatorString(0, "Complete msg got" + Clock.getRoundNum());
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation buildingLocation = handler.getBuildingLocation();
 				Direction builderDir = currentLoc.directionTo(buildingLocation);
@@ -442,7 +347,6 @@ public class RecyclerAI extends BuildingAI {
 							controllers.motor.setDirection(builderDir);
 							yield();
 						}
-//						
 						// build an antenna if it doesn't have one
 						if (!Util.containsComponent(controllers, buildingLocation, RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
 							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
@@ -474,6 +378,23 @@ public class RecyclerAI extends BuildingAI {
 		return null;
 	}
 	
+	private void encodeEmptyNumInDirection () {
+		
+		Direction dir = Direction.NORTH;
+		for (int i = 0; i < buildingLocs.emptySize; i++) {
+			dir = dir.rotateRight();
+		}
+		while (controllers.motor.isActive())
+			controllers.myRC.yield();
+		
+		try {
+			controllers.motor.setDirection(dir);
+			controllers.myRC.yield();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private void checkAdjacentRecyclers() throws GameActionException {
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		MapLocation maxEmptyLocation = currentLoc;
@@ -497,6 +418,10 @@ public class RecyclerAI extends BuildingAI {
 				}
 			}
 		}
+		
+		controllers.myRC.setIndicatorString(0, "My Location:" + controllers.myRC.getLocation() + "Empty:" + buildingLocs.emptySize);
+		controllers.myRC.setIndicatorString(1, "Max Location:" + maxEmptyLocation + "Empty:" + maxEmptyNum);
+
 		if (maxEmptyLocation != currentLoc) {
 			// Check if the recycler has an antenna
 			boolean hasAntenna = false;
@@ -510,6 +435,7 @@ public class RecyclerAI extends BuildingAI {
 				if (controllers.myRC.getTeamResources() > 10)
 					controllers.builder.build(ComponentType.ANTENNA, maxEmptyLocation, RobotLevel.ON_GROUND);
 			}
+			encodeEmptyNumInDirection();
 			controllers.myRC.turnOn(maxEmptyLocation, RobotLevel.ON_GROUND);
 			controllers.myRC.turnOff();
 		}
@@ -529,8 +455,6 @@ public class RecyclerAI extends BuildingAI {
 		int index;
 		int seed = ((int) (getEffectiveFluxRate()*100) + Clock.getRoundNum()) % total; 
 
-//		controllers.myRC.setIndicatorString(0, seed+"");
-		
 		// Find the production index
 		for (index = 0; seed >= cumulatedRatios[index]; ++index);
 
@@ -566,20 +490,13 @@ public class RecyclerAI extends BuildingAI {
 		}
 		
 
-//
-		
-//		if (buildingSystem.constructUnit(types[index])) {
-//			++unitConstructed;
-//			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-//		}
-		
 		
 //		Build more constructors if flux is insufficient
 		double fluxRate = getEffectiveFluxRate();
 		
 		if ( fluxRate > 2.0 && Clock.getRoundNum() > 300){
 			mySpawningState = spawningState.ATTACKING;
-			unitRatios[0] = 1;
+			unitRatios[0] = 0;
 			unitRatios[1] = 1;
 			unitRatios[2] = 1;
 			unitRatios[3] = 0;
@@ -587,7 +504,7 @@ public class RecyclerAI extends BuildingAI {
 		}
 		else if ( fluxRate > 1.0 && Clock.getRoundNum() > 200 ){
 			mySpawningState = spawningState.BALANCE;
-			unitRatios[0] = 1;
+			unitRatios[0] = 0;
 			unitRatios[1] = 1;
 			unitRatios[2] = 1;
 			unitRatios[3] = 0;
@@ -595,7 +512,7 @@ public class RecyclerAI extends BuildingAI {
 		}
 		else {
 			mySpawningState = spawningState.COLLECTING;
-			unitRatios[0] = 1;
+			unitRatios[0] = 0;
 			unitRatios[1] = 1;
 			unitRatios[2] = 1;
 			unitRatios[3] = 0;
