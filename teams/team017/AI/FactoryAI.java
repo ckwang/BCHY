@@ -27,7 +27,9 @@ import battlecode.common.RobotLevel;
 
 public class FactoryAI extends BuildingAI {
 
-	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
 	
 	public FactoryAI(RobotController rc) {
 		super(rc);
@@ -74,9 +76,12 @@ public class FactoryAI extends BuildingAI {
 
 	private void watch() {
 		try {
-			mineLocations.addAll(controllers.mines);
+			emptyMineLocations.addAll(controllers.emptyMines);
+			alliedMineLocations.addAll(controllers.allyMines);
+			enemyMineLocations.addAll(controllers.enemyMines);
+			
 			controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
-			controllers.myRC.setIndicatorString(0, mineLocations.size() + "");
+			controllers.myRC.setIndicatorString(0, emptyMineLocations.size() + "");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -170,7 +175,7 @@ public class FactoryAI extends BuildingAI {
 			case MINE_INQUIRY_MESSAGE: {
 				MineInquiryMessage handler = new MineInquiryMessage(msg);
 				
-				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), mineLocations));
+				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
 				break;
 			}
 			
@@ -185,7 +190,10 @@ public class FactoryAI extends BuildingAI {
 			case MINE_LOCATIONS_MESSAGE: {
 				MineLocationsMessage handler = new MineLocationsMessage(msg);
 				
-				mineLocations.addAll(handler.getMineLocations());
+				emptyMineLocations.addAll(handler.getEmptyMineLocations());
+				alliedMineLocations.addAll(handler.getAlliedMineLocations());
+				enemyMineLocations.addAll(handler.getEnemyMineLocations());
+
 //				controllers.myRC.setIndicatorString(1, mineLocations.toString());
 				
 				break;
