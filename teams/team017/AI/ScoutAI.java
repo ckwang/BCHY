@@ -5,7 +5,9 @@ import java.util.Set;
 
 import team017.message.BorderMessage;
 import team017.message.GridMapMessage;
+import team017.message.MineInquiryMessage;
 import team017.message.MineLocationsMessage;
+import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
 import battlecode.common.Clock;
@@ -25,7 +27,10 @@ public class ScoutAI extends AI {
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
+	
+	
 	private MapLocation scoutingLocation;
+	private Direction scoutingDir;
 	
 	public ScoutAI(RobotController rc) {
 		super(rc);
@@ -43,7 +48,7 @@ public class ScoutAI extends AI {
 	public void proceed() {
 		
 		msgHandler.queueMessage(new ScoutingInquiryMessage());
-		while (scoutingLocation == null) {
+		while (scoutingDir == null) {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			yield();
 		}
@@ -153,8 +158,22 @@ public class ScoutAI extends AI {
 				controllers.myRC.setIndicatorString(2, "received");
 				
 				if (handler.getTelescoperID() == id) {
-					scoutingLocation = handler.getScoutLocation();
+					scoutingDir = handler.getScoutingDirection();
 				}
+				
+				if( gridMap.updateScoutLocation(scoutingDir) )
+					scoutingLocation = gridMap.getScoutLocation();
+				
+				break;
+			}
+			
+			case MINE_INQUIRY_MESSAGE: {
+				MineInquiryMessage handler = new MineInquiryMessage(msg);
+				
+				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
+				
+				if( gridMap.updateScoutLocation(scoutingDir) )
+					scoutingLocation = gridMap.getScoutLocation();
 				break;
 			}
 				
@@ -172,17 +191,16 @@ public class ScoutAI extends AI {
 		
 		Direction desDir;
 		if (scoutingLocation == null) {
-			desDir = currentLoc.directionTo(homeLocation);
-				
+			return;
 		} 
 		else {
 			desDir = currentLoc.directionTo(scoutingLocation);
 			
 			// If arrived at scoutLoc
 			if ( desDir == Direction.OMNI ){
+				watch();
 				gridMap.setScouted(controllers.myRC.getLocation());
 				scoutingLocation = null;
-				watch();
 				return;
 			}
 		}
