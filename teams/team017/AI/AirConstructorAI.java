@@ -31,6 +31,12 @@ public class AirConstructorAI extends AI {
 
 	private int id;
 	
+	private boolean needStay = false;
+	private boolean arrivedGatheringLoc = true;
+	private MapLocation gatheringLoc;
+	private Direction scoutingDir;
+	private int group;
+	
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
@@ -43,6 +49,7 @@ public class AirConstructorAI extends AI {
 	public AirConstructorAI(RobotController rc) {
 		super(rc);
 		id = rc.getRobot().getID();
+		gatheringLoc = new MapLocation(homeLocation.x, homeLocation.y);
 	}
 	
 	@Override
@@ -78,10 +85,7 @@ public class AirConstructorAI extends AI {
 
 			if (roundSinceLastBuilt > 30)
 				navigate();
-			else if (Clock.getRoundNum() % 5 == 0)
-				msgHandler.queueMessage(new MineInquiryMessage());
 
-			
 			String s = "";
 			for (MapLocation loc : mineLocations) {
 				s += loc.toString();
@@ -94,6 +98,16 @@ public class AirConstructorAI extends AI {
 				s += loc.toString();
 			}
 			controllers.myRC.setIndicatorString(1, s);
+			
+			if ( controllers.myRC.getLocation().distanceSquaredTo(gatheringLoc) < controllers.comm.type().range )
+				msgHandler.queueMessage(new MineInquiryMessage());
+			
+			if (arrivedGatheringLoc && mineLocations.size() == 0){
+				arrivedGatheringLoc = false;
+				// TODO update scoutingLoc;
+				
+			}
+				
 			
 			yield();
 		}
@@ -110,6 +124,9 @@ public class AirConstructorAI extends AI {
 				
 				if (handler.getConstructorID() == id) {
 					mineLocations.addAll(handler.getMineLocations());
+				}
+				if ( handler.getSourceLocation().equals(gatheringLoc) ){
+					arrivedGatheringLoc = true;
 				}
 				break;
 			}
@@ -259,62 +276,49 @@ public class AirConstructorAI extends AI {
 	}
 	
 	private void navigate() {
+		
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		Direction currentDir = controllers.myRC.getDirection();
+		
+		if (controllers.motor.isActive())
+			return;
+		
+		Direction desDir;
+		
 		if (nearestMine != null) {
-			while (!controllers.myRC.getLocation().equals(nearestMine)) {
-				MapLocation myloc = controllers.myRC.getLocation();
-				Direction mydir = controllers.myRC.getDirection();
-				Direction todest = myloc.directionTo(nearestMine);
-				if (mydir != todest) {
-					while (!setDirection(todest))
-						yield();
-				}
-				while (controllers.motor.isActive())
-					yield();
-				if (!controllers.motor.canMove(todest)) {
-					while (!setDirection(todest.rotateLeft()))
-							yield();
-					while (controllers.motor.isActive())
-						yield();
-					if (moveForward())
-						continue;
-					while (!setDirection(todest.rotateRight()))
-						yield();
-					while (controllers.motor.isActive())
-						yield();
-				}
-				moveForward();
-				yield();
-			}
+			desDir = currentLoc.directionTo(nearestMine);
+		} else if ( !needStay ) {
+			desDir = currentLoc.directionTo(gatheringLoc);
+		}
+		else {
+			return;
 		}
 		
-	}
-	
-	public boolean moveForward() {
-		if (!controllers.motor.isActive() && controllers.motor.canMove(controllers.myRC.getDirection())) {
-			try {
-				controllers.motor.moveForward();
-				return true;
+		try{
+			// Can go toward destination
+			if ( controllers.motor.canMove(desDir) ){
+				if (currentDir == desDir)
+					controllers.motor.moveForward();
+				else
+					controllers.motor.setDirection(desDir);
 			} 
-			catch (Exception e) {
-				e.printStackTrace();
+			// if can go to the 
+			else if ( controllers.motor.canMove(desDir.rotateLeft()) ){
+				if (currentDir == desDir.rotateLeft())
+					controllers.motor.moveForward();
+				else
+					controllers.motor.setDirection(desDir.rotateLeft());
 			}
-		}
-		return false;
-	}
-	
-	public boolean setDirection(Direction dir) {
-		if (controllers.myRC.getDirection() == dir)
-			return true;
-		if (!controllers.motor.isActive()) {
-			try {
-				controllers.motor.setDirection(dir);
-				return true;
-			} 
-			catch (Exception e) {
-				e.printStackTrace();
+			else if ( controllers.motor.canMove(desDir.rotateRight()) ){
+				if (currentDir == desDir.rotateRight())
+					controllers.motor.moveForward();
+				else
+					controllers.motor.setDirection(desDir.rotateRight());
 			}
+		} catch (GameActionException e){
+			
 		}
-		return false;
+		
 	}
 	
 }
