@@ -178,6 +178,7 @@ public class ScoutAI extends AI {
 		else {
 			desDir = currentLoc.directionTo(scoutingLocation);
 			
+			// If arrived at scoutLoc
 			if ( desDir == Direction.OMNI ){
 				gridMap.setScouted(controllers.myRC.getLocation());
 				scoutingLocation = null;
