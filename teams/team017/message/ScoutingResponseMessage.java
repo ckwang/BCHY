@@ -1,31 +1,46 @@
 package team017.message;
 
+import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 
 public class ScoutingResponseMessage extends GenericMessage {
 	private int telescoperID;
-	private MapLocation scoutLocation;
+	private Direction direction;
+	private boolean branch;
+	private int order;
 	
-	public ScoutingResponseMessage(int id, MapLocation loc) {
+	public ScoutingResponseMessage(int id, Direction dir, boolean branch, int order) {
 		super(MessageType.SCOUTING_RESPONSE_MESSAGE);
 		
 		msg.ints[intCounter++] = id;
-		msg.locations[locCounter++] = loc;
+		msg.ints[intCounter++] = dir.ordinal();
+		msg.ints[intCounter++] = branch ? 1 : 0;
+		msg.ints[intCounter++] = order;
 	}
 	
 	public ScoutingResponseMessage(Message msg) {
 		super(msg);
 
 		telescoperID = msg.ints[intCounter++];
-		scoutLocation = msg.locations[locCounter++];
+		direction = Direction.values()[msg.ints[intCounter++]];
+		branch = msg.ints[intCounter++] == 1;
+		order = msg.ints[intCounter++];
 	}
 	
 	public int getTelescoperID() {
 		return telescoperID;
 	}
 	
-	public MapLocation getScoutLocation() {
-		return scoutLocation;
+	public Direction getScoutingDirection() {
+		return direction;
+	}
+	
+	public boolean isBranch() {
+		return branch;
+	}
+	
+	public int getOrder() {
+		return order;
 	}
 }
