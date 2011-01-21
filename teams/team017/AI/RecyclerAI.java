@@ -342,7 +342,7 @@ public class RecyclerAI extends BuildingAI {
 									case 2:
 										// Initially has 2 empties only
 										if (buildingLocs.factoryLocation == null) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.FACTORY));
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
 											inquiryIdleRound = 5;
 										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
 											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
@@ -360,7 +360,6 @@ public class RecyclerAI extends BuildingAI {
 												msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
 												inquiryIdleRound = 5;
 											}
-
 										} else if(buildingLocs.railgunTowerLocations.size() == 0) {
 											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
 											inquiryIdleRound = 5;
