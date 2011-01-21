@@ -44,11 +44,13 @@ public class ScoutAI extends AI {
 			
 		
 		while (true) {
+			
+			
+			try {processMessages();} catch (Exception e) {e.printStackTrace();}
+			
 			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
 			controllers.myRC.setIndicatorString(1, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
 			controllers.myRC.setIndicatorString(2, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3] );
-			
-			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 			// ask for a scouting location if there is none
 			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 16) {
@@ -146,73 +148,53 @@ public class ScoutAI extends AI {
 	}
 	
 	private void navigate() {
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		Direction currentDir = controllers.myRC.getDirection();
+		
+		if (controllers.motor.isActive())
+			return;
+		
+		Direction desDir;
 		if (scoutingLocation == null) {
-			goTo(homeLocation);
+			desDir = currentLoc.directionTo(homeLocation);
+				
 		} 
 		else {
-			goTo(scoutingLocation);
-			gridMap.setScouted(controllers.myRC.getLocation());
-			scoutingLocation = null;
+			desDir = currentLoc.directionTo(scoutingLocation);
 			
-			watch();
+			if ( desDir == Direction.OMNI ){
+				gridMap.setScouted(controllers.myRC.getLocation());
+				scoutingLocation = null;
+				watch();
+				return;
+			}
 		}
 		
-	}
-	
-	public void goTo(MapLocation loc) {
-		while (!controllers.myRC.getLocation().equals(loc)) {
-			MapLocation myloc = controllers.myRC.getLocation();
-			Direction mydir = controllers.myRC.getDirection();
-			Direction todest = myloc.directionTo(loc);
-			if (mydir != todest) {
-				while (!setDirection(todest))
-					yield();
-			}
-			while (controllers.motor.isActive())
-				yield();
-			if (!controllers.motor.canMove(todest)) {
-				while (!setDirection(todest.rotateLeft()))
-						yield();
-				while (controllers.motor.isActive())
-					yield();
-				if (moveForward())
-					continue;
-				while (!setDirection(todest.rotateRight()))
-					yield();
-				while (controllers.motor.isActive())
-					yield();
-			}
-			moveForward();
-			yield();
-		}
-	}
-	
-	public boolean moveForward() {
-		if (!controllers.motor.isActive() && controllers.motor.canMove(controllers.myRC.getDirection())) {
-			try {
-				controllers.motor.moveForward();
-				return true;
+		try{
+			// Can go toward destination
+			if ( controllers.motor.canMove(desDir) ){
+				if (currentDir == desDir)
+					controllers.motor.moveForward();
+				else
+					controllers.motor.setDirection(desDir);
 			} 
-			catch (Exception e) {
-				e.printStackTrace();
+			// if can go to the 
+			else if ( controllers.motor.canMove(desDir.rotateLeft()) ){
+				if (currentDir == desDir.rotateLeft())
+					controllers.motor.moveForward();
+				else
+					controllers.motor.setDirection(desDir.rotateLeft());
 			}
-		}
-		return false;
-	}
-	
-	public boolean setDirection(Direction dir) {
-		if (controllers.myRC.getDirection() == dir)
-			return true;
-		if (!controllers.motor.isActive()) {
-			try {
-				controllers.motor.setDirection(dir);
-				return true;
-			} 
-			catch (Exception e) {
-				e.printStackTrace();
+			else if ( controllers.motor.canMove(desDir.rotateRight()) ){
+				if (currentDir == desDir.rotateRight())
+					controllers.motor.moveForward();
+				else
+					controllers.motor.setDirection(desDir.rotateRight());
 			}
+		} catch (GameActionException e){
+			
 		}
-		return false;
+		
 	}
 	
 }
