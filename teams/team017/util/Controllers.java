@@ -20,6 +20,7 @@ import battlecode.common.MovementController;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import battlecode.common.RobotLevel;
 import battlecode.common.SensorController;
 import battlecode.common.WeaponController;
 
@@ -39,7 +40,9 @@ public class Controllers {
 	public List<RobotInfo> enemyMobile = new LinkedList<RobotInfo>();
 	public List<RobotInfo> enemyImmobile = new LinkedList<RobotInfo>();
 	public List<RobotInfo> debris = new LinkedList<RobotInfo>();
-	public List<MapLocation> mines = new ArrayList<MapLocation>();
+	public List<MapLocation> emptyMines = new ArrayList<MapLocation>();
+	public List<MapLocation> allyMines = new ArrayList<MapLocation>();
+	public List<MapLocation> enemyMines = new ArrayList<MapLocation>();
 	
 //	public Direction dir;
 //	public MapLocation loc;
@@ -66,8 +69,11 @@ public class Controllers {
 		enemyMobile.clear();
 		enemyImmobile.clear();
 		debris.clear();
-		if (mine)
-			mines.clear();
+		if (mine) {
+			emptyMines.clear();
+			allyMines.clear();
+			enemyMines.clear();
+		}
 	}
 	
 	public int enemyNum() {
@@ -100,10 +106,28 @@ public class Controllers {
 		int roundNum = Clock.getRoundNum();
 		if (roundNum == lastUpdateMine)
 			return;
-		mines.clear();
+		emptyMines.clear();
+		allyMines.clear();
+		enemyMines.clear();
 		Mine[] minearray = sensor.senseNearbyGameObjects(Mine.class);
 		for (Mine m: minearray) {
-			mines.add(m.getLocation());
+			MapLocation loc = m.getLocation();
+			GameObject object;
+			try {
+				object = sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND);
+				if (object == null || sensor.senseRobotInfo((Robot) object).chassis != Chassis.BUILDING) {
+					emptyMines.add(loc);
+				} else {
+					if (object.getTeam() == myRC.getTeam()) {
+						allyMines.add(loc);
+					} else {
+						enemyMines.add(loc);
+					}
+				}
+			} catch (GameActionException e) {
+				e.printStackTrace();
+			}
+
 		}
 		lastUpdateMine = roundNum;
 	}
@@ -162,7 +186,22 @@ public class Controllers {
 		GameObject[] objects = sensor.senseNearbyGameObjects(GameObject.class);
 		for (GameObject o: objects) {
 			if (o instanceof Mine) {
-				mines.add(((Mine) o).getLocation());
+				MapLocation loc = ((Mine) o).getLocation();
+				GameObject object;
+				try {
+					object = sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND);
+					if (object == null || sensor.senseRobotInfo((Robot) object).chassis != Chassis.BUILDING) {
+						emptyMines.add(loc);
+					} else {
+						if (object.getTeam() == myRC.getTeam()) {
+							allyMines.add(loc);
+						} else {
+							enemyMines.add(loc);
+						}
+					}
+				} catch (GameActionException e) {
+					e.printStackTrace();
+				}
 				continue;
 			}
 			try {

@@ -46,11 +46,12 @@ public class RecyclerAI extends BuildingAI {
 		super(rc);		
 		birthRoundNum = Clock.getRoundNum();
 		
-		constructingQueue = new ArrayDeque<UnitType>(5);
+		constructingQueue = new ArrayDeque<UnitType>(10);
 		constructingQueue.add(UnitType.TELESCOPER);
 		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+		constructingQueue.add(UnitType.TELESCOPER);
 		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+		constructingQueue.add(UnitType.TELESCOPER);
 		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 
 		updateRatios();
