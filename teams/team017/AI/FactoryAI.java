@@ -59,12 +59,15 @@ public class FactoryAI extends BuildingAI {
 			e.printStackTrace();
 		}
 		
+		// watch 8 directions
 		for (int i = 0; i < 8; i++) {
 			watch();
 			yield();
 			senseBorder();
 		}
+		msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 
+		// calculate exploring directions
 		enemyBase = controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]);
 		toExplore[0] = enemyBase;
 		if (enemyBase.isDiagonal()) {
@@ -204,7 +207,7 @@ public class FactoryAI extends BuildingAI {
 				toExploreIndex = (toExploreIndex+1)%3;
 				order = 1 - order;
 				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, branching, order ));
-				gridMap.setScouted(gridMap.getScoutLocation());
+//				gridMap.setScouted(gridMap.getScoutLocation());
 				break;
 			}
 			

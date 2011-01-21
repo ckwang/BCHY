@@ -116,6 +116,10 @@ public class GridMap {
 		setScouted(new Grid(loc));
 	}
 	
+	public boolean currentIsInbound() {
+		return isInbound(currentScoutGrid);
+	}
+	
 	private boolean isInbound(Grid grid) {
 		return (grid.gridX <= gridBorders[1] && grid.gridX > gridBorders[3]) &&
 		 (grid.gridY <= gridBorders[2] && grid.gridY > gridBorders[0]);
@@ -210,7 +214,7 @@ public class GridMap {
 	
 	public boolean updateScoutLocation(Direction dir) {
 		Grid newGrid = currentScoutGrid.add(dir.dx, dir.dy);
-		if (isInbound(newGrid) && !isScouted(newGrid)) {
+		if (isInbound(newGrid) /*&& !isScouted(newGrid)*/) {
 			currentScoutGrid = newGrid;
 			return true;
 		}
