@@ -25,7 +25,6 @@ public class RecyclerAI extends BuildingAI {
 	private int birthRoundNum;
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
-	
 	private boolean built = false;
 
 	int [] unitRatios = {1, 0, 0, 0, 1};
@@ -109,7 +108,6 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
-
 				if (buildingLocs.towerLocations.size() == 0 && buildingLocs.factoryLocation == null && buildingLocs.armoryLocation == null)
 					checkAdjacentRecyclers();
 				
@@ -242,7 +240,7 @@ public class RecyclerAI extends BuildingAI {
 			
 			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
 				BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
-
+				controllers.myRC.setIndicatorString(0, "Inquiry Got" + Clock.getRoundNum());
 				
 				
 				// if the constructor is inquiring it 
@@ -273,6 +271,8 @@ public class RecyclerAI extends BuildingAI {
 									} else if (buildingLocs.factoryLocation != null && buildingLocs.armoryLocation == null) {
 										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
 										inquiryIdleRound = 5;
+									} else {
+										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
 									}
 									break;
 								case 3:
@@ -282,6 +282,8 @@ public class RecyclerAI extends BuildingAI {
 									} else if (buildingLocs.factoryLocation != null && buildingLocs.armoryLocation == null) {
 										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
 										inquiryIdleRound = 5;
+									} else {
+										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
 									}
 									break;
 								case 2:
@@ -292,9 +294,11 @@ public class RecyclerAI extends BuildingAI {
 										msgHandler.process();
 										controllers.myRC.turnOff();
 										inquiryIdleRound = 5;
-									} else {
+									} else if (buildingLocs.armoryLocation == null) {
 										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
 										inquiryIdleRound = 5;
+									} else {
+										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
 									}
 									break;
 								}
@@ -302,34 +306,72 @@ public class RecyclerAI extends BuildingAI {
 							}
 						}
 						
-						
-//						if (buildingLocs.towerLocations.size() == 0) {
-//							for (int i = 4; i > 0; i--) {
-//								loc = buildingLocs.consecutiveEmpties(i);
-//								if (loc != null) {
-//									msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
-//									inquiryIdleRound = 5;
-//									break;
-//								}
-//							}
-//						} else if (buildingLocs.armoryLocation == null && buildingLocs.towerLocations.size() > 0) {
-//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.ARMORY));
-//							inquiryIdleRound = 3;
-//						}
-//						else if (buildingLocs.armoryLocation != null && buildingLocs.factoryLocation == null) {
-//							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.armoryLocation, 2), UnitType.FACTORY));
-//							inquiryIdleRound = 5;
-//						}
 					} else {
-						if (buildingLocs.factoryLocation == null) {
-							loc = buildingLocs.consecutiveEmpties(2);
-							if (loc != null)
-								msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
-							inquiryIdleRound = 3;
-						} else if (buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() == 0) {
-							msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-							inquiryIdleRound = 5;
-						}
+							for (int i = 4; i > 0; i--) {
+								loc = buildingLocs.consecutiveEmpties(i);
+								if (loc != null) {
+									switch(i) {
+									case 4:
+										if (buildingLocs.factoryLocation == null) {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
+											inquiryIdleRound = 5;
+										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+											inquiryIdleRound = 3;
+										} else if (buildingLocs.railgunTowerLocations.size() != 0 && buildingLocs.armoryLocation == null) {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
+											inquiryIdleRound = 5;
+										} else {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
+										}
+										break;
+									case 3:
+										if (buildingLocs.factoryLocation == null) {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
+											inquiryIdleRound = 3;
+										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+											inquiryIdleRound = 5;
+										} else if (buildingLocs.armoryLocation == null){
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
+											inquiryIdleRound = 5;
+										} else {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
+										}
+										break;
+									case 2:
+										// Initially has 2 empties only
+										if (buildingLocs.factoryLocation == null) {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.FACTORY));
+											inquiryIdleRound = 5;
+										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+											inquiryIdleRound = 5;
+										} else if (buildingLocs.rotateLeft(loc) == buildingLocs.factoryLocation && buildingLocs.armoryLocation == null) {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
+											inquiryIdleRound = 5;
+										} else {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
+										}
+										break;
+									case 1:
+										if (buildingLocs.factoryLocation == null) {
+											if (buildingLocs.towerLocations.size() == 0) {
+												msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
+												inquiryIdleRound = 5;
+											}
+
+										} else if(buildingLocs.railgunTowerLocations.size() == 0) {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+											inquiryIdleRound = 5;
+										} else {
+											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
+										}
+										break;
+									}
+								break;
+								}
+							}	
 					}
 					
 				}

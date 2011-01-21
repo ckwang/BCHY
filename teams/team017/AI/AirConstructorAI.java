@@ -35,7 +35,7 @@ public class AirConstructorAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	private MapLocation currentLoc = controllers.myRC.getLocation();
-	private int roundSinceLastBuilt = 0;
+	private int builtIdleRound = 0;
 	
 	MapLocation nearestMine = null;
 	
@@ -49,7 +49,8 @@ public class AirConstructorAI extends AI {
 	public void yield() {
 		super.yield();
 		currentLoc = controllers.myRC.getLocation();
-		roundSinceLastBuilt++;
+		if (builtIdleRound > 0)
+			builtIdleRound--;
 	}
 
 	@Override
@@ -62,13 +63,26 @@ public class AirConstructorAI extends AI {
 		
 		while (true) {
 			
+			controllers.myRC.setIndicatorString(0, builtIdleRound + "");
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 			try {
 				if (buildRecyclers()) {
-					msgHandler.queueMessage(new BuildingLocationInquiryMessage(nearestMine));
-					roundSinceLastBuilt = 0;
-					nearestMine = null;
+					boolean hasAdjacentMine = false;
+					for (MapLocation mineLoc: mineLocations) {
+						if (mineLoc.isAdjacentTo(nearestMine) && !mineLoc.equals(nearestMine)) {
+							if (!recyclerLocations.contains(mineLoc)) {
+								hasAdjacentMine = true;
+								nearestMine = mineLoc;
+								break;
+							}	
+						}
+					}
+					if (!hasAdjacentMine) {
+						msgHandler.queueMessage(new BuildingLocationInquiryMessage(nearestMine));
+						builtIdleRound = 50;
+						nearestMine = null;
+					}
 				} else {
 					msgHandler.queueMessage(new MineInquiryMessage());
 				}
@@ -76,25 +90,25 @@ public class AirConstructorAI extends AI {
 			} catch (Exception e) {e.printStackTrace();}
 			
 
-			if (roundSinceLastBuilt > 30)
+			if (builtIdleRound == 0)
 				navigate();
 			else if (Clock.getRoundNum() % 5 == 0)
 				msgHandler.queueMessage(new MineInquiryMessage());
 
 			
-			String s = "";
-			for (MapLocation loc : mineLocations) {
-				s += loc.toString();
-			}
-			
-			controllers.myRC.setIndicatorString(0, s);
-			
-			s = "";
-			for (MapLocation loc : recyclerLocations) {
-				s += loc.toString();
-			}
-			controllers.myRC.setIndicatorString(1, s);
-			
+//			String s = "";
+//			for (MapLocation loc : mineLocations) {
+//				s += loc.toString();
+//			}
+//			
+//			controllers.myRC.setIndicatorString(0, s);
+//			
+//			s = "";
+//			for (MapLocation loc : recyclerLocations) {
+//				s += loc.toString();
+//			}
+//			controllers.myRC.setIndicatorString(1, s);
+//			
 			yield();
 		}
 	}
@@ -122,9 +136,9 @@ public class AirConstructorAI extends AI {
 //				controllers.myRC.setIndicatorString(1, "current location:" + controllers.myRC.getLocation());
 //				controllers.myRC.setIndicatorString(2, "build loc:" + handler.getBuildableLocation());
 				
-				// see if the message is intended for it
-				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
-					break;
+//				// see if the message is intended for it
+//				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
+//					break;
 
 				// if it is not built
 				if (builtLocations.contains(handler.getSourceLocation()))
@@ -133,12 +147,13 @@ public class AirConstructorAI extends AI {
 				UnitType type = handler.getUnitType();
 				if (type == null) { // there is nothing to build
 					builtLocations.add(handler.getSourceLocation());
+					builtIdleRound = 0;
 				} else if (handler.getBuildableLocation() != null) {
 					MapLocation buildLoc = handler.getBuildableLocation();
 					if (buildBuildingAtLoc(buildLoc, type)) {
 						if (type == UnitType.FACTORY)
 							msgHandler.queueMessage(new MineInquiryMessage());
-						roundSinceLastBuilt = 0;
+						builtIdleRound = 50;
 						msgHandler.queueMessage(new BuildingLocationInquiryMessage(handler.getSourceLocation()));
 						yield();
 					}
@@ -181,7 +196,7 @@ public class AirConstructorAI extends AI {
 		if (currentLoc.distanceSquaredTo(nearestMine) <= 2) {
 			if (controllers.builder.canBuild(Chassis.BUILDING, nearestMine)) {
 				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER))
-					controllers.myRC.setIndicatorString(2, "BuildRecycler");
+//					controllers.myRC.setIndicatorString(2, "BuildRecycler");
 					recyclerLocations.add(nearestMine);
 					return true;
 			} else {
