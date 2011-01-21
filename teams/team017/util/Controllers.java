@@ -33,7 +33,7 @@ public class Controllers {
 	public BroadcastController comm = null;
 	public List<WeaponController> weapons = null;
 	public WeaponController medic = null;
-	public JumpController jump = null;
+	public JumpController jumper = null;
 	
 	public List<RobotInfo> allyMobile = new LinkedList<RobotInfo>();
 	public List<RobotInfo> allyImmobile = new LinkedList<RobotInfo>();
@@ -280,7 +280,7 @@ public class Controllers {
 			case MISC:
 				switch (com.type()) {
 				case JUMP:
-					jump = (JumpController) com;
+					jumper = (JumpController) com;
 					break;
 				}
 			break;

@@ -15,13 +15,13 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.SensorController;
 
-public class SoldierAI extends AI {
+public class SoldierAI extends GroundAI {
 
 	private CombatSystem combat;
 	private RobotController rc = controllers.myRC;
 	private MovementController motor = controllers.motor;
 	private SensorController sensor = controllers.sensor;
-	private JumpController jump = controllers.jump;
+	private JumpController jumper = controllers.jumper;
 
 	private MapLocation leaderLoc = null;
 
@@ -108,6 +108,7 @@ public class SoldierAI extends AI {
 				}
 				catch (Exception e) {}
 			}
+			
  			broadcast();
 			yield();
 
@@ -115,6 +116,7 @@ public class SoldierAI extends AI {
 	}
 
 	public void yield() {
+		
 		super.yield();
 //		int before = Clock.getBytecodesLeft();
 		attacked = rc.getHitpoints() < prevHp;
@@ -127,20 +129,13 @@ public class SoldierAI extends AI {
 		combat.heal();
 		processMessages();
 		swarming = controllers.allyMobile.size() > 2;
-		rc.setIndicatorString(0, controllers.mobileEnemyNum() + "");
-		rc.setIndicatorString(1, controllers.immobileEnemyNum() + "");
-//		if (controllers.mobileEnemyNum() > 0)
-//			rc.setIndicatorString(2, controllers.enemyMobile.get(0).robot.getID() + "");
-//		else
-//			rc.setIndicatorString(2, "");
-//		int after = Clock.getBytecodesLeft();
-//		System.out.println("yield: " + (before-after));
 	}
 	
 	//return has target
 	public boolean attackMobile(RobotInfo target) {
 		boolean shot = false;
 		int i;
+
 		for (i = 0; i < 4 && !combat.primary.withinRange(target.location);) {
 			if (combat.approachTarget(target)) {
 				yield();
@@ -314,58 +309,18 @@ public class SoldierAI extends AI {
 	}
 
 	private void navigate() throws GameActionException {
-		Direction nextDir = Direction.OMNI;
 		if (enemyBaseLoc[0] != null) {
-			navigator.setDestination(enemyBaseLoc[0]);
-			nextDir = navigator.getNextDir(9);
-			if (nextDir == Direction.OMNI) {
+			if ( navigateToDestination(enemyBaseLoc[0], 9) )
 				enemyBaseLoc[0] = null;
-				navigator.setDestination(enemyBaseLoc[1]);
-				nextDir = navigator.getNextDir(9);
-			}
-			// rc.setIndicatorString(0,
-			// rc.getLocation() + ", e0: " + enemyBaseLoc[0]);
 		} else if (enemyBaseLoc[1] != null) {
-			navigator.setDestination(enemyBaseLoc[1]);
-			nextDir = navigator.getNextDir(9);
-			if (nextDir == Direction.OMNI) {
+			if ( navigateToDestination(enemyBaseLoc[1], 9) )
 				enemyBaseLoc[1] = null;
-				navigator.setDestination(enemyBaseLoc[2]);
-				nextDir = navigator.getNextDir(9);
-			}
-			// rc.setIndicatorString(0,
-			// rc.getLocation() + ", e1: " + enemyBaseLoc[1]);
 		} else if (enemyBaseLoc[2] != null) {
-			navigator.setDestination(enemyBaseLoc[2]);
-			nextDir = navigator.getNextDir(9);
-			if (nextDir == Direction.OMNI) {
+			if ( navigateToDestination(enemyBaseLoc[2], 9) )
 				enemyBaseLoc[2] = null;
-			}
-			// rc.setIndicatorString(0,
-			// rc.getLocation() + ", e2: " + enemyBaseLoc[2]);
 		} else {
-			navigator.setDestination(gridMap.getScoutLocation());
-			nextDir = navigator.getNextDir(4);
-		}
-		if (nextDir != Direction.OMNI) {
-			if (!motor.isActive()) {
-				if (rc.getDirection() == nextDir) {
-					if (motor.canMove(nextDir)) {
-						motor.moveForward();
-
-						MapLocation currentLoc = rc.getLocation();
-						if (!gridMap.isScouted(currentLoc)) {
-							gridMap.setScouted(currentLoc);
-							gridMap.updateScoutLocation(currentLoc);
-						}
-					}
-				} else {
-					motor.setDirection(nextDir);
-				}
-			}
-		} else {
-			if (!motor.isActive())
-				roachNavigate();
+			navigateToDestination(homeLocation.add(Direction.NORTH, 60), 9);
+			controllers.myRC.setIndicatorString(0, "currentLoc: " + controllers.myRC.getLocation());
 		}
 	}
 }

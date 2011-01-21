@@ -26,7 +26,7 @@ public enum UnitType {
 	HEAVY_CONSTRUCTOR(Chassis.HEAVY, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.DISH, ComponentType.REGEN),
 
 // Factory
-	TANK_KILLER (Chassis.MEDIUM, ComponentType.RAILGUN,ComponentType.TELESCOPE),
+	TANK_KILLER (Chassis.MEDIUM, ComponentType.RAILGUN, ComponentType.TELESCOPE),
 
 // Factory + Recycler	
 	MEDIUM_CONSTRUCTOR(Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING),
