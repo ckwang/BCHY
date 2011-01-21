@@ -8,11 +8,15 @@ import team017.message.GridMapMessage;
 import team017.message.MineLocationsMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
+import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
+import battlecode.common.Robot;
 import battlecode.common.RobotController;
+import battlecode.common.RobotLevel;
 
 public class ScoutAI extends AI {
 
@@ -62,6 +66,10 @@ public class ScoutAI extends AI {
 				yield();
 			}
 			
+			// constantly queue grid map message
+			if (Clock.getRoundNum() % 10 == 0)
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+			
 			navigate();
 			
 			yield();
@@ -78,6 +86,9 @@ public class ScoutAI extends AI {
 		for (int i = 0; i < 7; i++) {
 			try {
 				emptyMineLocations.addAll(controllers.emptyMines);
+				emptyMineLocations.removeAll(controllers.allyMines);
+				emptyMineLocations.removeAll(controllers.enemyMines);
+				
 				alliedMineLocations.addAll(controllers.allyMines);
 				enemyMineLocations.addAll(controllers.enemyMines);
 

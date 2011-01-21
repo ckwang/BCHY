@@ -190,27 +190,23 @@ public class ConstructorAI extends GroundAI {
 
 	private void updateLocationSets() {
 		controllers.senseAll();
-		for (MapLocation mineloc : controllers.emptyMines) {
+		mineLocations.addAll(controllers.emptyMines);
+		
+		for (MapLocation mineloc : controllers.allyMines) {
+			mineLocations.remove(mineloc);
+			recyclerLocations.add(mineloc);
+			
 			try {
 				GameObject object = controllers.sensor.senseObjectAtLocation(mineloc, RobotLevel.ON_GROUND);
-				if (object != null) {
-					if (controllers.sensor.senseRobotInfo((Robot) object).chassis == Chassis.BUILDING) {
-						if (mineLocations.contains(mineloc))
-							mineLocations.remove(mineloc);
-						if (object.getTeam() == controllers.myRC.getTeam()) {
-							recyclerLocations.add(mineloc);
-							if (!controllers.sensor.senseRobotInfo((Robot) object).on) {
-								recyclerLocations.remove(mineloc);
-							}
-						}
-					}
-				} else {
-					mineLocations.add(mineloc);
+				if (!controllers.sensor.senseRobotInfo((Robot) object).on) {
+					recyclerLocations.remove(mineloc);
 				}
 			} catch (GameActionException e) {
 				e.printStackTrace();
 			}
 		}
+		
+		mineLocations.removeAll(controllers.enemyMines);
 
 	}
 

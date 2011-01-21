@@ -115,7 +115,7 @@ public class Controllers {
 			GameObject object;
 			try {
 				object = sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND);
-				if (object == null && sensor.senseRobotInfo((Robot) object).chassis != Chassis.BUILDING) {
+				if (object == null || sensor.senseRobotInfo((Robot) object).chassis != Chassis.BUILDING) {
 					emptyMines.add(loc);
 				} else {
 					if (object.getTeam() == myRC.getTeam()) {
