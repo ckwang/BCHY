@@ -183,6 +183,7 @@ public class FactoryAI extends BuildingAI {
 				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
 				
 				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), gridMap.getScoutLocation()));
+				gridMap.setScouted(gridMap.getScoutLocation());
 				break;
 			}
 			

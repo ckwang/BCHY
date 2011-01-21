@@ -245,7 +245,6 @@ public class Navigator {
 
 		Direction nextDir;
 		Direction desDir;
-		Direction faceDir = controllers.myRC.getDirection();
 		
 		// if target is not traversable, back-tracing the destination
 		while ( !isTraversable(t) ) {
