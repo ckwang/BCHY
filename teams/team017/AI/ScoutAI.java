@@ -56,7 +56,7 @@ public class ScoutAI extends AI {
 	@Override
 	public void proceed() {
 		
-		msgHandler.queueMessage(new ScoutingInquiryMessage());
+		msgHandler.queueMessage(new ScoutingInquiryMessage(false));
 		while (scoutingDir == null) {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			yield();
@@ -68,24 +68,21 @@ public class ScoutAI extends AI {
 			
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
-			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
-			controllers.myRC.setIndicatorString(1, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
-			controllers.myRC.setIndicatorString(2, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3] );
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
+
 			
-			// ask for a scouting location if there is none
-			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 16) {
-				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-				yield();
-				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations));
-				yield();
-				msgHandler.queueMessage(new ScoutingInquiryMessage());
-				yield();
-			}
-			
-			// constantly queue grid map message
-			if (Clock.getRoundNum() % 10 == 0)
-				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-			
+//			// ask for a scouting location if there is none
+//			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 16) {
+//				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+//				yield();
+//				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations));
+//				yield();
+//				msgHandler.queueMessage(new ScoutingInquiryMessage());
+//				yield();
+//			}
+//			// constantly queue grid map message
+//			if (Clock.getRoundNum() % 10 == 0)
+//				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 //			if (controllers.myRC.getLocation().equals(scoutingLocation)) {
 //				while (controllers.motor.isActive())
 //					yield();
@@ -218,12 +215,12 @@ public class ScoutAI extends AI {
 			case SCOUTING_RESPONSE_MESSAGE: {
 				ScoutingResponseMessage handler = new ScoutingResponseMessage(msg);
 				controllers.myRC.setIndicatorString(2, "received");
-				if (handler.getTelescoperID() == id) {
+				if (handler.getTelescoperID() == id && handler.getSourceLocation().isAdjacentTo(controllers.myRC.getLocation())) {
 					scoutingDir = handler.getScoutingDirection();
+					if( gridMap.updateScoutLocation(scoutingDir) ) {
+						scoutingLocation = gridMap.getScoutLocation();
+					}
 				}
-				
-				if( gridMap.updateScoutLocation(scoutingDir) )
-					scoutingLocation = gridMap.getScoutLocation();
 				
 				break;
 			}
@@ -233,8 +230,11 @@ public class ScoutAI extends AI {
 				
 				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
 				
-				if( gridMap.updateScoutLocation(scoutingDir) )
-					scoutingLocation = gridMap.getScoutLocation();
+				if ( controllers.myRC.getLocation().equals(scoutingLocation) ){
+					if( gridMap.updateScoutLocation(scoutingDir) )
+						scoutingLocation = gridMap.getScoutLocation();
+				}
+				
 				break;
 			}
 				

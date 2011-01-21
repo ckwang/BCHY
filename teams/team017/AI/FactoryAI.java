@@ -65,21 +65,22 @@ public class FactoryAI extends BuildingAI {
 			senseBorder();
 		}
 
-		enemyBase = controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]);
-		toExplore[0] = enemyBase;
-		if (enemyBase.isDiagonal()) {
-			diagonallyBranching = true;
-			toExplore[1] = enemyBase.rotateLeft();
-			toExplore[2] = enemyBase.rotateRight();
-		} else {
-			diagonallyBranching = false;
-			toExplore[1] = enemyBase.rotateLeft().rotateLeft();
-			toExplore[2] = enemyBase.rotateRight().rotateRight();
+		if (enemyBaseLoc[0] != null){
+			enemyBase = controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]);
+			toExplore[0] = enemyBase;
+			if (enemyBase.isDiagonal()) {
+				diagonallyBranching = true;
+				toExplore[1] = enemyBase.rotateLeft();
+				toExplore[2] = enemyBase.rotateRight();
+			} else {
+				diagonallyBranching = false;
+				toExplore[1] = enemyBase.rotateLeft().rotateLeft();
+				toExplore[2] = enemyBase.rotateRight().rotateRight();
+			}
 		}
 		
 		while (true) {
 			try {
-
 				processMessages();
 				yield();
 			} catch (Exception e) {
@@ -197,14 +198,17 @@ public class FactoryAI extends BuildingAI {
 			
 			case SCOUTING_INQUIRY_MESSAGE: {
 				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
+				boolean isConstructor = handler.isConstructor();
+				
 				Direction scoutingDir = toExplore[toExploreIndex];
 				
-				boolean branching = scoutingDir.isDiagonal()? diagonallyBranching: !diagonallyBranching;
+				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, order ));
 				
-				toExploreIndex = (toExploreIndex+1)%3;
-				order = 1 - order;
-				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, branching, order ));
-				gridMap.setScouted(gridMap.getScoutLocation());
+				if (isConstructor)
+					order = 1 - order;
+				else
+					toExploreIndex = (toExploreIndex+1)%3;
+				
 				break;
 			}
 			

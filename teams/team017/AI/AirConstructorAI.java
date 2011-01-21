@@ -35,7 +35,7 @@ public class AirConstructorAI extends AI {
 	private boolean arrivedGatheringLoc = true;
 	private MapLocation gatheringLoc;
 	private Direction scoutingDir;
-	private int group;
+	private int order;
 	
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
@@ -65,12 +65,13 @@ public class AirConstructorAI extends AI {
 		// ask for mine locations
 		while (controllers.comm.isActive())
 			yield();
-		msgHandler.queueMessage(new ScoutingInquiryMessage());
+		msgHandler.queueMessage(new ScoutingInquiryMessage(true));
 		yield();
 		msgHandler.queueMessage(new MineInquiryMessage());
 		
 		while (true) {
 			
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + gatheringLoc);
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 			try {
@@ -78,9 +79,10 @@ public class AirConstructorAI extends AI {
 					msgHandler.queueMessage(new BuildingLocationInquiryMessage(nearestMine));
 					roundSinceLastBuilt = 0;
 					nearestMine = null;
-				} else {
-					msgHandler.queueMessage(new MineInquiryMessage());
-				}
+				} 
+//				else {
+//					msgHandler.queueMessage(new MineInquiryMessage());
+//				}
 				
 			} catch (Exception e) {e.printStackTrace();}
 			
@@ -88,18 +90,18 @@ public class AirConstructorAI extends AI {
 			if (roundSinceLastBuilt > 30)
 				navigate();
 
-			String s = "";
-			for (MapLocation loc : mineLocations) {
-				s += loc.toString();
-			}
+//			String s = "";
+//			for (MapLocation loc : mineLocations) {
+//				s += loc.toString();
+//			}
+//			
+//			controllers.myRC.setIndicatorString(0, s);
 			
-			controllers.myRC.setIndicatorString(0, s);
-			
-			s = "";
-			for (MapLocation loc : recyclerLocations) {
-				s += loc.toString();
-			}
-			controllers.myRC.setIndicatorString(1, s);
+//			s = "";
+//			for (MapLocation loc : recyclerLocations) {
+//				s += loc.toString();
+//			}
+//			controllers.myRC.setIndicatorString(1, s);
 			
 			if ( controllers.myRC.getLocation().distanceSquaredTo(gatheringLoc) < controllers.comm.type().range )
 				msgHandler.queueMessage(new MineInquiryMessage());
@@ -172,13 +174,12 @@ public class AirConstructorAI extends AI {
 			case SCOUTING_RESPONSE_MESSAGE: {
 				ScoutingResponseMessage handler = new ScoutingResponseMessage(msg);
 				controllers.myRC.setIndicatorString(2, "received");
-				if (handler.getTelescoperID() == id) {
+				if (handler.getTelescoperID() == id && handler.getSourceLocation().isAdjacentTo(currentLoc)) {
 					scoutingDir = handler.getScoutingDirection();
-				}
-				
-				if( gridMap.updateScoutLocation(scoutingDir) ) {
-					gatheringLoc = gridMap.getScoutLocation();
-					arrivedGatheringLoc = true;
+					if( gridMap.updateScoutLocation(scoutingDir) ) {
+						gatheringLoc = gridMap.getScoutLocation();
+						arrivedGatheringLoc = true;
+					}
 				}
 				
 				break;
@@ -209,6 +210,7 @@ public class AirConstructorAI extends AI {
 		
 		findNearestMine();
 		
+		controllers.myRC.setIndicatorString(0, "Building Recycler");
 		if (nearestMine.x == 0) {
 			nearestMine = null;
 			return false;

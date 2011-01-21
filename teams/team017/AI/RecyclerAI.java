@@ -515,7 +515,7 @@ public class RecyclerAI extends BuildingAI {
 	}
 	
 	private void constructUnit() {
-		if ( constructingQueue.size() == 0 )
+		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
 		else if ( unitUnderConstruction == null )
 			unitUnderConstruction = constructingQueue.poll();

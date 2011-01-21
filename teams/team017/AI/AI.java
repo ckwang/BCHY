@@ -143,7 +143,7 @@ public abstract class AI {
 			if (hasChanged) {
 				computeEnemyBaseLocation();
 				gridMap.setBorders(borders);
-				gridMap.updateScoutLocation(controllers.myRC.getLocation());
+//				gridMap.updateScoutLocation(controllers.myRC.getLocation());
 			}
 			
 		} catch (Exception e) {
