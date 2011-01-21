@@ -65,6 +65,8 @@ public class AirConstructorAI extends AI {
 		// ask for mine locations
 		while (controllers.comm.isActive())
 			yield();
+		msgHandler.queueMessage(new ScoutingInquiryMessage());
+		yield();
 		msgHandler.queueMessage(new MineInquiryMessage());
 		
 		while (true) {
@@ -105,7 +107,10 @@ public class AirConstructorAI extends AI {
 			if (arrivedGatheringLoc && mineLocations.size() == 0){
 				arrivedGatheringLoc = false;
 				// TODO update scoutingLoc;
-				
+				if (scoutingDir != null){
+					if( gridMap.updateScoutLocation(scoutingDir) )
+						gatheringLoc = gridMap.getScoutLocation();
+				}
 			}
 				
 			
@@ -161,6 +166,21 @@ public class AirConstructorAI extends AI {
 					}
 				}
 
+				break;
+			}
+			
+			case SCOUTING_RESPONSE_MESSAGE: {
+				ScoutingResponseMessage handler = new ScoutingResponseMessage(msg);
+				controllers.myRC.setIndicatorString(2, "received");
+				if (handler.getTelescoperID() == id) {
+					scoutingDir = handler.getScoutingDirection();
+				}
+				
+				if( gridMap.updateScoutLocation(scoutingDir) ) {
+					gatheringLoc = gridMap.getScoutLocation();
+					arrivedGatheringLoc = true;
+				}
+				
 				break;
 			}
 			
@@ -287,8 +307,12 @@ public class AirConstructorAI extends AI {
 		
 		if (nearestMine != null) {
 			desDir = currentLoc.directionTo(nearestMine);
+			if (desDir == Direction.OMNI)
+				return;
 		} else if ( !needStay ) {
 			desDir = currentLoc.directionTo(gatheringLoc);
+			if (desDir == Direction.OMNI)
+				return;
 		}
 		else {
 			return;

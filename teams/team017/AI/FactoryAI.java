@@ -13,9 +13,7 @@ import team017.message.MineLocationsMessage;
 import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
-import team017.message.TurnOffMessage;
 import team017.util.Util;
-import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -31,6 +29,12 @@ public class FactoryAI extends BuildingAI {
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
 	
+	private Direction enemyBase; //direction to enemy base
+	private Direction[] toExplore = new Direction[3];
+	private int toExploreIndex = 0;
+	private boolean diagonallyBranching;
+	private int order = 0;
+	
 	public FactoryAI(RobotController rc) {
 		super(rc);
 	}
@@ -38,7 +42,6 @@ public class FactoryAI extends BuildingAI {
 	public void yield() {
 		super.yield();
 		controllers.senseMine();
-		senseBorder();
 	}
 
 	@Override
@@ -59,8 +62,21 @@ public class FactoryAI extends BuildingAI {
 		for (int i = 0; i < 8; i++) {
 			watch();
 			yield();
+			senseBorder();
 		}
 
+		enemyBase = controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]);
+		toExplore[0] = enemyBase;
+		if (enemyBase.isDiagonal()) {
+			diagonallyBranching = true;
+			toExplore[1] = enemyBase.rotateLeft();
+			toExplore[2] = enemyBase.rotateRight();
+		} else {
+			diagonallyBranching = false;
+			toExplore[1] = enemyBase.rotateLeft().rotateLeft();
+			toExplore[2] = enemyBase.rotateRight().rotateRight();
+		}
+		
 		while (true) {
 			try {
 
@@ -181,8 +197,13 @@ public class FactoryAI extends BuildingAI {
 			
 			case SCOUTING_INQUIRY_MESSAGE: {
 				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
+				Direction scoutingDir = toExplore[toExploreIndex];
 				
-				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), gridMap.getScoutLocation()));
+				boolean branching = scoutingDir.isDiagonal()? diagonallyBranching: !diagonallyBranching;
+				
+				toExploreIndex = (toExploreIndex+1)%3;
+				order = 1 - order;
+				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, branching, order ));
 				gridMap.setScouted(gridMap.getScoutLocation());
 				break;
 			}

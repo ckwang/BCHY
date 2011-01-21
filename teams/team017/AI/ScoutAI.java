@@ -1,6 +1,8 @@
 package team017.AI;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import team017.message.BorderMessage;
@@ -11,14 +13,13 @@ import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
 import battlecode.common.Clock;
+import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
-import battlecode.common.Robot;
 import battlecode.common.RobotController;
-import battlecode.common.RobotLevel;
+import battlecode.common.RobotInfo;
 
 public class ScoutAI extends AI {
 
@@ -28,9 +29,14 @@ public class ScoutAI extends AI {
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
 	
+
+	private List<RobotInfo> nearbyEnemy = new ArrayList<RobotInfo>();
 	
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
+	
+	private double prevHp = 0;
+	private boolean attacked = false;
 	
 	public ScoutAI(RobotController rc) {
 		super(rc);
@@ -40,8 +46,11 @@ public class ScoutAI extends AI {
 	@Override
 	public void yield() {
 		super.yield();
-		controllers.senseMine();
+		nearbyEnemy.clear();
+		controllers.scoutNearby();
 		senseBorder();
+		attacked = controllers.myRC.getHitpoints() < prevHp;
+		prevHp = controllers.myRC.getHitpoints();
 	}
 
 	@Override
@@ -77,6 +86,31 @@ public class ScoutAI extends AI {
 			if (Clock.getRoundNum() % 10 == 0)
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 			
+//			if (controllers.myRC.getLocation().equals(scoutingLocation)) {
+//				while (controllers.motor.isActive())
+//					yield();
+//				
+//				while (true) {
+//					try {
+//						if (evaluateDanger()) {
+//							scoutingLocation = homeLocation;
+//							break;
+//						}
+//						emptyMineLocations.addAll(controllers.emptyMines);
+//						emptyMineLocations.removeAll(controllers.allyMines);
+//						emptyMineLocations.removeAll(controllers.enemyMines);
+//						
+//						alliedMineLocations.addAll(controllers.allyMines);
+//						enemyMineLocations.addAll(controllers.enemyMines);
+//
+//						controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
+//						yield();
+//					} catch (GameActionException e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+			
 			navigate();
 			
 			yield();
@@ -84,6 +118,34 @@ public class ScoutAI extends AI {
 //			// report mine locations
 //			msgHandler.queueMessage(new MineLocationsMessage(mineLocations));
 		}
+	}
+	
+	public boolean evaluateDanger() {
+		if (controllers.mobileEnemyNum() == 0)
+			return false;
+		int d;
+		MapLocation loc = controllers.myRC.getLocation();
+		for (RobotInfo r: controllers.enemyMobile) {
+			d = loc.distanceSquaredTo(r.location);
+			if (d < ComponentType.SMG.range) {
+				nearbyEnemy.add(r);
+			}
+		}
+		if (nearbyEnemy.size() == 0)
+			return false;
+		Direction dir = controllers.myRC.getDirection().opposite();
+		for (int i = 0; i < 3;) {
+			if (!controllers.motor.isActive() && controllers.motor.canMove(dir)) {
+				try {
+					controllers.motor.moveBackward();
+					++i;
+				} 
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return true;
 	}
 	
 	private void watch() {
@@ -156,7 +218,6 @@ public class ScoutAI extends AI {
 			case SCOUTING_RESPONSE_MESSAGE: {
 				ScoutingResponseMessage handler = new ScoutingResponseMessage(msg);
 				controllers.myRC.setIndicatorString(2, "received");
-				
 				if (handler.getTelescoperID() == id) {
 					scoutingDir = handler.getScoutingDirection();
 				}
@@ -195,7 +256,6 @@ public class ScoutAI extends AI {
 		} 
 		else {
 			desDir = currentLoc.directionTo(scoutingLocation);
-			
 			// If arrived at scoutLoc
 			if ( desDir == Direction.OMNI ){
 				watch();
