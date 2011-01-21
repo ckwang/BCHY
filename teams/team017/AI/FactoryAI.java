@@ -13,9 +13,7 @@ import team017.message.MineLocationsMessage;
 import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
-import team017.message.TurnOffMessage;
 import team017.util.Util;
-import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -31,6 +29,9 @@ public class FactoryAI extends BuildingAI {
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
 	
+	private Direction enemyBase; //direction to enemy base
+	private Direction[] toExplore = new Direction[3];
+	
 	public FactoryAI(RobotController rc) {
 		super(rc);
 	}
@@ -38,7 +39,6 @@ public class FactoryAI extends BuildingAI {
 	public void yield() {
 		super.yield();
 		controllers.senseMine();
-		senseBorder();
 	}
 
 	@Override
@@ -59,8 +59,19 @@ public class FactoryAI extends BuildingAI {
 		for (int i = 0; i < 8; i++) {
 			watch();
 			yield();
+			senseBorder();
 		}
 
+		enemyBase = controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]);
+		toExplore[0] = enemyBase;
+		if (enemyBase.isDiagonal()) {
+			toExplore[1] = enemyBase.rotateLeft();
+			toExplore[2] = enemyBase.rotateRight();
+		} else {
+			toExplore[1] = enemyBase.rotateLeft().rotateLeft();
+			toExplore[2] = enemyBase.rotateRight().rotateRight();
+		}
+		
 		while (true) {
 			try {
 
