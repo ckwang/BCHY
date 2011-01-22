@@ -125,6 +125,9 @@ public class RecyclerAI extends BuildingAI {
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 		}
 		
 		while (true) {
@@ -654,7 +657,7 @@ public class RecyclerAI extends BuildingAI {
 		
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
-		else if ( unitUnderConstruction == null || constructIdleRound == 0) {
+		else if ( unitUnderConstruction == null || (constructIdleRound == 0 && constructingQueue.size() > 0)) {
 			UnitType unitUnderConstruction = constructingQueue.peek();
 			
 			ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
