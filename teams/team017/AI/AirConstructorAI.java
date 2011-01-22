@@ -31,7 +31,9 @@ public class AirConstructorAI extends AI {
 	private int id;
 	
 	private boolean needStay = false;
-	private boolean arrivedGatheringLoc = true;
+	private boolean arrivedScoutingLoc = true;
+	
+	
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
 	private int order;
@@ -77,8 +79,8 @@ public class AirConstructorAI extends AI {
 			
 			try {
 				if (buildRecyclers()) {
-					msgHandler.queueMessage(new BuildingLocationInquiryMessage(nearestMine));
-					roundSinceLastBuilt = 0;
+//					msgHandler.queueMessage(new BuildingLocationInquiryMessage(nearestMine));
+//					roundSinceLastBuilt = 0;
 					nearestMine = null;
 				} 
 //				else {
@@ -88,8 +90,9 @@ public class AirConstructorAI extends AI {
 			} catch (Exception e) {e.printStackTrace();}
 			
 
-			if (roundSinceLastBuilt > 30)
-				navigate();
+//			if (roundSinceLastBuilt > 30)
+			
+			navigate();
 
 //			String s = "";
 //			for (MapLocation loc : mineLocations) {
@@ -104,15 +107,15 @@ public class AirConstructorAI extends AI {
 //			}
 //			controllers.myRC.setIndicatorString(1, s);
 			
-			if ( controllers.myRC.getLocation().distanceSquaredTo(scoutingLocation) < controllers.comm.type().range )
+			if ( !arrivedScoutingLoc && controllers.myRC.getLocation().distanceSquaredTo(scoutingLocation) < controllers.comm.type().range )
 				msgHandler.queueMessage(new MineInquiryMessage());
 			
-			if (arrivedGatheringLoc && mineLocations.size() == 0){
+			if (arrivedScoutingLoc && mineLocations.size() == 0){
 				
 				if (scoutingDir != null){
 					if( gridMap.updateScoutLocation(scoutingDir) ){
 						scoutingLocation = gridMap.getScoutLocation();
-						arrivedGatheringLoc = false;
+						arrivedScoutingLoc = false;
 					}
 				}
 			}
@@ -135,7 +138,7 @@ public class AirConstructorAI extends AI {
 					mineLocations.addAll(handler.getMineLocations());
 				}
 				if ( handler.getSourceLocation().equals(scoutingLocation) ){
-					arrivedGatheringLoc = true;
+					arrivedScoutingLoc = true;
 				}
 				break;
 			}

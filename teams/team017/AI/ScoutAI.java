@@ -24,6 +24,8 @@ public class ScoutAI extends AI {
 
 	private int id;
 	
+	private boolean scouted = false;
+	
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
@@ -211,11 +213,14 @@ public class ScoutAI extends AI {
 				
 				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
 				
-//				if ( controllers.myRC.getLocation().equals(scoutingLocation) ){
-//					if( gridMap.updateScoutLocation(scoutingDir) )
-//						scoutingLocation = gridMap.getScoutLocation();
-//				}
+				if ( scouted ){
+					if( gridMap.updateScoutLocation(scoutingDir) ){
+						scoutingLocation = gridMap.getScoutLocation();
+						scouted = false;
+						}
+				}
 				
+				controllers.myRC.setIndicatorString(2, "MINE_INQUIRY_MESSAGE " + scoutingLocation);
 				break;
 			}
 				
@@ -232,7 +237,7 @@ public class ScoutAI extends AI {
 			return;
 		
 		Direction desDir;
-		if (scoutingLocation == null) {
+		if (scouted) {
 			return;
 		} 
 		else {
@@ -241,7 +246,7 @@ public class ScoutAI extends AI {
 			if ( desDir == Direction.OMNI ){
 				watch();
 				gridMap.setScouted(controllers.myRC.getLocation());
-				scoutingLocation = null;
+				scouted = true;
 				return;
 			}
 		}
