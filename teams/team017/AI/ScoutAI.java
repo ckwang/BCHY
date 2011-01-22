@@ -217,6 +217,7 @@ public class ScoutAI extends AI {
 				
 				if ( scouted ){
 					msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
+					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 					inquiryQuota--;
 					
 					if ( inquiryQuota == 0 && gridMap.updateScoutLocation(scoutingDir) ) {
@@ -227,6 +228,8 @@ public class ScoutAI extends AI {
 				}
 				
 				controllers.myRC.setIndicatorString(2, "MINE_INQUIRY_MESSAGE " + scoutingLocation);
+				yield();
+				yield();
 				break;
 			}
 				

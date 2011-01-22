@@ -13,6 +13,7 @@ import team017.message.MineLocationsMessage;
 import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
+import team017.message.UnitReadyMessage;
 import team017.util.Util;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -54,6 +55,8 @@ public class FactoryAI extends BuildingAI {
 		while (controllers.builder.isActive())
 			yield();
 		try {
+			while (controllers.myRC.getTeamResources() < ComponentType.TELESCOPE.cost * 1.2)
+				yield();
 			controllers.builder.build(ComponentType.TELESCOPE, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -227,6 +230,12 @@ public class FactoryAI extends BuildingAI {
 				enemyMineLocations.addAll(handler.getEnemyMineLocations());
 
 //				controllers.myRC.setIndicatorString(1, mineLocations.toString());
+				
+				break;
+			}
+			
+			case UNIT_READY: {
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				
 				break;
 			}

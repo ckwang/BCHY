@@ -14,6 +14,7 @@ import team017.message.NotEnoughSpaceMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
 import team017.message.TurnOffMessage;
+import team017.message.UnitReadyMessage;
 import team017.util.Util;
 import battlecode.common.*;
 
@@ -116,8 +117,8 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
-				controllers.myRC.setIndicatorString(0, "myMine:" + myMine + "");
-				controllers.myRC.setIndicatorString(1, "clusterIsDone:" + clusterIsDone);
+//				controllers.myRC.setIndicatorString(0, "myMine:" + myMine + "");
+//				controllers.myRC.setIndicatorString(1, "clusterIsDone:" + clusterIsDone);
 
 				if (!clusterIsDone) {
 					clusterIsDone = true;
@@ -154,9 +155,11 @@ public class RecyclerAI extends BuildingAI {
 					}	
 				} else if (constructor == null) {
 
-					if (birthRoundNum < 200 || myMine == null || controllers.myRC.getTeamResources() > 400) {
-						while (recycler.isActive())
-							yield();
+					if (!recycler.isActive() && 
+							(birthRoundNum < 200 || myMine == null || controllers.myRC.getTeamResources() > 400) &&
+							controllers.myRC.getTeamResources() > ComponentType.CONSTRUCTOR.cost * 1.2) {
+//						while (recycler.isActive())
+//							yield();
 						recycler.build(ComponentType.CONSTRUCTOR, currentLoc, RobotLevel.ON_GROUND);
 						yield();
 						constructor = controllers.builder;
@@ -275,17 +278,13 @@ public class RecyclerAI extends BuildingAI {
 						yield();
 					}
 					
-					if (handler.getUnitType() == unitUnderConstruction){
-						unitUnderConstruction = null;
-					}
-					
 				}
 				break;
 			}
 			
 			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
 				BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
-				controllers.myRC.setIndicatorString(0, "Inquiry Got" + Clock.getRoundNum());
+//				controllers.myRC.setIndicatorString(0, "Inquiry Got" + Clock.getRoundNum());
 				
 				
 				// if the constructor is inquiring it 
@@ -503,6 +502,18 @@ public class RecyclerAI extends BuildingAI {
 				}
 				break;
 			}
+			
+			case UNIT_READY: {
+				UnitReadyMessage handler = new UnitReadyMessage(msg);
+				
+				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
+					if (handler.getUnitType() == unitUnderConstruction) {
+						unitUnderConstruction = null;
+					}
+				}
+				
+				break;
+			}
 
 			}
 		}
@@ -599,11 +610,11 @@ public class RecyclerAI extends BuildingAI {
 	}
 	
 	private void constructUnit() {
+		
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
-		else if ( unitUnderConstruction == null ){
-			unitUnderConstruction = constructingQueue.poll();
-		}
+		else if ( unitUnderConstruction == null ) {
+			UnitType unitUnderConstruction = constructingQueue.peek();
 			
 			ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
 			
@@ -612,24 +623,26 @@ public class RecyclerAI extends BuildingAI {
 				if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
 					if (buildingSystem.constructUnit(unitUnderConstruction)) {
 						++unitConstructed;
-						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+						msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
 					}
 				} else {
 					MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
 					if (buildLoc != null) {
 						if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
 							++unitConstructed;
-							msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
-							
+							msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
 						}
 					}
 				}
 			} else {
 				if (buildingLocs.getLocations(chassisBuilder) != null) {
-					msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), unitUnderConstruction));
-					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+					msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), unitUnderConstruction));	
+				} else {
+					return;
 				}
 			}
+			this.unitUnderConstruction = constructingQueue.poll();
+		}
 		
 	}
 	

@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import team017.message.BuildingRequestMessage;
+import team017.message.GenericMessage;
 import team017.message.MessageHandler;
+import team017.message.UnitReadyMessage;
 import team017.util.Controllers;
 import team017.util.Util;
 import battlecode.common.Chassis;
@@ -141,8 +143,12 @@ public class Builder {
 			}
 			
 			// turn on if the unit has all the parts
-			if (Util.containsComponent(controllers, buildLoc, type.chassis.level, type))
+			if (Util.containsComponent(controllers, buildLoc, type.chassis.level, type)) {
 				rc.turnOn(buildLoc, type.chassis.level);
+				GenericMessage msg = new UnitReadyMessage(type);
+				msgHandler.queueMessage(msg);
+				msgHandler.bypass(msg);
+			}
 			
 			return true;
 		}catch (Exception e){

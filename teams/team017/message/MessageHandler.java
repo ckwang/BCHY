@@ -58,6 +58,11 @@ public class MessageHandler {
 		outQueue.add(msg);
 	}
 	
+	public void bypass(GenericMessage msg) {
+		writeTag(msg);
+		inQueue.add(msg.getMessage());
+	}
+	
 	public Message nextMessage() {
 		return inQueue.poll();
 	}
