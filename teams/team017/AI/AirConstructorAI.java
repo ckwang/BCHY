@@ -1,13 +1,9 @@
 package team017.AI;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
-import team017.message.BuildingLocationInquiryMessage;
-import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
@@ -18,11 +14,9 @@ import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
-import battlecode.common.RobotLevel;
 
 
 public class AirConstructorAI extends AI {
@@ -37,7 +31,6 @@ public class AirConstructorAI extends AI {
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
 	private boolean leftward;
-	private int order;
 	
 	private int scoutingResponseDistance = 100;
 	

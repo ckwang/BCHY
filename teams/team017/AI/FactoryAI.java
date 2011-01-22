@@ -3,7 +3,6 @@ package team017.AI;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Set;
 
 import team017.construction.UnitType;
@@ -16,9 +15,7 @@ import team017.message.MineLocationsMessage;
 import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
-import team017.message.UnitReadyMessage;
 import team017.util.Util;
-import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
