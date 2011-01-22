@@ -200,7 +200,6 @@ public class AirConstructorAI extends AI {
 				if (handler.getTelescoperID() == id && handler.getSourceLocation().distanceSquaredTo(currentLoc) < scoutingResponseDistance ) {
 					scoutingResponseDistance = handler.getSourceLocation().distanceSquaredTo(currentLoc);
 					scoutingDir = handler.getScoutingDirection();
-					order = handler.getOrder();
 
 					scoutingLocation = homeLocation;
 				}

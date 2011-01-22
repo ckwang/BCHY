@@ -103,12 +103,12 @@ public class Navigator {
 				controllers.myRC.setIndicatorString(1, "precomputed");
 				return previousDir;
 			}
-			else if (!controllers.motor.isActive() && controllers.motor.canMove(previousDir.rotateRight())) {
-				isTracing = false;
-				previousDir = previousDir.rotateRight();
-				controllers.myRC.setIndicatorString(1, "yield");
-				return previousDir;
-			}
+//			else if (!controllers.motor.isActive() && controllers.motor.canMove(previousDir.rotateRight())) {
+//				isTracing = false;
+//				previousDir = previousDir.rotateRight();
+//				controllers.myRC.setIndicatorString(1, "yield");
+//				return previousDir;
+//			}
 			else {
 				controllers.myRC.setIndicatorString(1, "detour " + isCW);
 				if (!isTracing){

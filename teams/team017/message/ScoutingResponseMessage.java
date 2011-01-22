@@ -8,15 +8,13 @@ public class ScoutingResponseMessage extends GenericMessage {
 	private int telescoperID;
 	private Direction direction;
 	private boolean branch;
-	private int order;
 	
-	public ScoutingResponseMessage(int id, Direction dir, boolean branch, int order) {
+	public ScoutingResponseMessage(int id, Direction dir, boolean branch) {
 		super(MessageType.SCOUTING_RESPONSE_MESSAGE);
 		
 		msg.ints[intCounter++] = id;
 		msg.ints[intCounter++] = dir.ordinal();
 		msg.ints[intCounter++] = branch ? 1 : 0;
-		msg.ints[intCounter++] = order;
 	}
 	
 	public ScoutingResponseMessage(Message msg) {
@@ -25,7 +23,6 @@ public class ScoutingResponseMessage extends GenericMessage {
 		telescoperID = msg.ints[intCounter++];
 		direction = Direction.values()[msg.ints[intCounter++]];
 		branch = msg.ints[intCounter++] == 1;
-		order = msg.ints[intCounter++];
 	}
 	
 	public int getTelescoperID() {
@@ -38,9 +35,5 @@ public class ScoutingResponseMessage extends GenericMessage {
 	
 	public boolean isBranch() {
 		return branch;
-	}
-	
-	public int getOrder() {
-		return order;
 	}
 }
