@@ -360,7 +360,7 @@ public class AirConstructorAI extends AI {
 				return;
 		} else if ( !needStay ) {
 			desDir = currentLoc.directionTo(scoutingLocation);
-			if (desDir == Direction.OMNI)
+			if (currentLoc.distanceSquaredTo(scoutingLocation) <= 2 || desDir == Direction.OMNI)
 				return;
 		}
 		else {
