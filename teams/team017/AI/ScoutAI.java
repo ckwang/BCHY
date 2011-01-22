@@ -48,7 +48,7 @@ public class ScoutAI extends AI {
 		super.yield();
 		nearbyEnemy.clear();
 		controllers.scoutNearby();
-		senseBorder();
+		if (senseBorder())	scoutingLocation = gridMap.getScoutLocation();
 		attacked = controllers.myRC.getHitpoints() < prevHp;
 		prevHp = controllers.myRC.getHitpoints();
 	}
@@ -59,6 +59,7 @@ public class ScoutAI extends AI {
 		msgHandler.queueMessage(new ScoutingInquiryMessage(false));
 		while (scoutingDir == null) {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
+			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
 			yield();
 		}
 			
@@ -107,13 +108,14 @@ public class ScoutAI extends AI {
 //					}
 //				}
 //			}
+//			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
+			controllers.myRC.setIndicatorString(1, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
+			controllers.myRC.setIndicatorString(2, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3] );
+
 			
 			navigate();
 			
 			yield();
-			
-//			// report mine locations
-//			msgHandler.queueMessage(new MineLocationsMessage(mineLocations));
 		}
 	}
 	
@@ -230,10 +232,10 @@ public class ScoutAI extends AI {
 				
 				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
 				
-				if ( controllers.myRC.getLocation().equals(scoutingLocation) ){
-					if( gridMap.updateScoutLocation(scoutingDir) )
-						scoutingLocation = gridMap.getScoutLocation();
-				}
+//				if ( controllers.myRC.getLocation().equals(scoutingLocation) ){
+//					if( gridMap.updateScoutLocation(scoutingDir) )
+//						scoutingLocation = gridMap.getScoutLocation();
+//				}
 				
 				break;
 			}

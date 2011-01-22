@@ -33,9 +33,11 @@ public class AirConstructorAI extends AI {
 	
 	private boolean needStay = false;
 	private boolean arrivedGatheringLoc = true;
-	private MapLocation gatheringLoc;
+	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
 	private int order;
+	
+	private int scoutingResponseDistance = 100;
 	
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
@@ -49,7 +51,7 @@ public class AirConstructorAI extends AI {
 	public AirConstructorAI(RobotController rc) {
 		super(rc);
 		id = rc.getRobot().getID();
-		gatheringLoc = new MapLocation(homeLocation.x, homeLocation.y);
+		scoutingLocation = null;
 	}
 	
 	@Override
@@ -67,11 +69,11 @@ public class AirConstructorAI extends AI {
 			yield();
 		msgHandler.queueMessage(new ScoutingInquiryMessage(true));
 		yield();
-		msgHandler.queueMessage(new MineInquiryMessage());
+//		msgHandler.queueMessage(new MineInquiryMessage());
 		
 		while (true) {
 			
-			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + gatheringLoc);
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 			try {
@@ -103,15 +105,16 @@ public class AirConstructorAI extends AI {
 //			}
 //			controllers.myRC.setIndicatorString(1, s);
 			
-			if ( controllers.myRC.getLocation().distanceSquaredTo(gatheringLoc) < controllers.comm.type().range )
+			if ( controllers.myRC.getLocation().distanceSquaredTo(scoutingLocation) < controllers.comm.type().range )
 				msgHandler.queueMessage(new MineInquiryMessage());
 			
 			if (arrivedGatheringLoc && mineLocations.size() == 0){
-				arrivedGatheringLoc = false;
-				// TODO update scoutingLoc;
+				
 				if (scoutingDir != null){
-					if( gridMap.updateScoutLocation(scoutingDir) )
-						gatheringLoc = gridMap.getScoutLocation();
+					if( gridMap.updateScoutLocation(scoutingDir) ){
+						scoutingLocation = gridMap.getScoutLocation();
+						arrivedGatheringLoc = false;
+					}
 				}
 			}
 				
@@ -132,7 +135,7 @@ public class AirConstructorAI extends AI {
 				if (handler.getConstructorID() == id) {
 					mineLocations.addAll(handler.getMineLocations());
 				}
-				if ( handler.getSourceLocation().equals(gatheringLoc) ){
+				if ( handler.getSourceLocation().equals(scoutingLocation) ){
 					arrivedGatheringLoc = true;
 				}
 				break;
@@ -174,17 +177,38 @@ public class AirConstructorAI extends AI {
 			case SCOUTING_RESPONSE_MESSAGE: {
 				ScoutingResponseMessage handler = new ScoutingResponseMessage(msg);
 				controllers.myRC.setIndicatorString(2, "received");
-				if (handler.getTelescoperID() == id && handler.getSourceLocation().isAdjacentTo(currentLoc)) {
+				if (handler.getTelescoperID() == id && handler.getSourceLocation().distanceSquaredTo(currentLoc) < scoutingResponseDistance ) {
+					scoutingResponseDistance = handler.getSourceLocation().distanceSquaredTo(currentLoc);
 					scoutingDir = handler.getScoutingDirection();
-					if( gridMap.updateScoutLocation(scoutingDir) ) {
-						gatheringLoc = gridMap.getScoutLocation();
-						arrivedGatheringLoc = true;
-					}
+
+					scoutingLocation = homeLocation;
 				}
 				
 				break;
 			}
 			
+			
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
+
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1) {
+						if (borders[i] != newBorders[i]) {
+							borders[i] = newBorders[i];
+						}
+					}
+				}
+
+				homeLocation = handler.getHomeLocation();
+				if (scoutingLocation == null)
+					scoutingLocation = homeLocation;
+				computeEnemyBaseLocation();
+				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
+
+				break;
+			}
 				
 			}
 		}
@@ -312,7 +336,7 @@ public class AirConstructorAI extends AI {
 			if (desDir == Direction.OMNI)
 				return;
 		} else if ( !needStay ) {
-			desDir = currentLoc.directionTo(gatheringLoc);
+			desDir = currentLoc.directionTo(scoutingLocation);
 			if (desDir == Direction.OMNI)
 				return;
 		}

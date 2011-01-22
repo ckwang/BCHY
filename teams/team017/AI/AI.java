@@ -77,36 +77,41 @@ public abstract class AI {
 //		}
 //	}
 	
-	protected Direction senseBorder() {
-		Direction borderDirection = Direction.NONE;
-		int range = (int) Math.sqrt(controllers.sensor.type().range);
+	protected boolean senseBorder() {
+		Direction dir = controllers.myRC.getDirection();
+		boolean isDiagonal = dir.isDiagonal();
+		int range = isDiagonal ? 8 : 12;
 		
 		try {
 			boolean hasChanged = false;
-			
-			Direction[] addDirs = new Direction[3];
 
-			if (controllers.myRC.getDirection().isDiagonal()) {
-				addDirs[0] = controllers.myRC.getDirection().rotateLeft();
-				addDirs[1] = controllers.myRC.getDirection().rotateRight();
-			} else {
-				addDirs[0] = controllers.myRC.getDirection();
+			MapLocation currentLoc = controllers.myRC.getLocation();
+
+			int i;
+			for (i = range; i > 0; i--) {
+				if (controllers.myRC.senseTerrainTile(currentLoc.add(dir, i)) != TerrainTile.OFF_MAP)
+					break;
 			}
 
-			int j = -1;
-			while (addDirs[++j] != null) {
-				MapLocation currentLoc = controllers.myRC.getLocation();
-
-				int i;
-				for (i = range; i > 0; i--) {
-					if (controllers.myRC.senseTerrainTile(currentLoc.add(
-							addDirs[j], i)) != TerrainTile.OFF_MAP)
-						break;
+			// i == range means no OFF_MAP sensed
+			if (i != range) {
+				
+				Direction[] addDirs = {Direction.NONE, Direction.NONE};
+				
+				if (isDiagonal) {
+					Direction left = dir.rotateLeft();
+					Direction right = dir.rotateRight();
+					
+					if (controllers.myRC.senseTerrainTile(currentLoc.add(dir, i).add(left)) == TerrainTile.OFF_MAP)
+						addDirs[0] = left;
+					
+					if (controllers.myRC.senseTerrainTile(currentLoc.add(dir, i).add(right)) == TerrainTile.OFF_MAP)
+						addDirs[1] = right;
+				} else {
+					addDirs[0] = dir;
 				}
-
-				// i == range means no OFF_MAP sensed
-				if (i != range) {
-					borderDirection = addDirs[j];
+				
+				for (int j = 0; j < 2; j++) {
 					switch (addDirs[j]) {
 					case NORTH:
 						int newBorder = currentLoc.y - (i + 1);
@@ -143,15 +148,16 @@ public abstract class AI {
 			if (hasChanged) {
 				computeEnemyBaseLocation();
 				gridMap.setBorders(borders);
-//				gridMap.updateScoutLocation(controllers.myRC.getLocation());
+				if (!gridMap.currentIsInbound())
+					gridMap.updateScoutLocation(controllers.myRC.getLocation());
 			}
 			
+			return hasChanged;
 		} catch (Exception e) {
 			System.out.println("caught exception:");
 			e.printStackTrace();
 		}
-
-		return borderDirection;
+		return false;
 	}
 	
 	protected void computeEnemyBaseLocation() {

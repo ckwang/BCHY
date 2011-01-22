@@ -86,7 +86,8 @@ public class ConstructorAI extends GroundAI {
 //				}
 				
 				
-
+				if (Clock.getRoundNum() >= 400)	controllers.myRC.suicide();
+				
 				if (roundSinceLastBuilt > 50)
 					navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)

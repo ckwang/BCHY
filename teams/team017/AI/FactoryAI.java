@@ -59,12 +59,15 @@ public class FactoryAI extends BuildingAI {
 			e.printStackTrace();
 		}
 		
+		// watch 8 directions
 		for (int i = 0; i < 8; i++) {
 			watch();
 			yield();
 			senseBorder();
 		}
+		msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 
+		//calculate exploring directions
 		if (enemyBaseLoc[0] != null){
 			enemyBase = controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]);
 			toExplore[0] = enemyBase;
@@ -77,6 +80,7 @@ public class FactoryAI extends BuildingAI {
 				toExplore[1] = enemyBase.rotateLeft().rotateLeft();
 				toExplore[2] = enemyBase.rotateRight().rotateRight();
 			}
+
 		}
 		
 		while (true) {
@@ -202,12 +206,15 @@ public class FactoryAI extends BuildingAI {
 				
 				Direction scoutingDir = toExplore[toExploreIndex];
 				
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+				yield();
 				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, order ));
+				
+				if (isConstructor && order == 1)
+					toExploreIndex = (toExploreIndex+1)%3;
 				
 				if (isConstructor)
 					order = 1 - order;
-				else
-					toExploreIndex = (toExploreIndex+1)%3;
 				
 				break;
 			}

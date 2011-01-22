@@ -517,34 +517,35 @@ public class RecyclerAI extends BuildingAI {
 	private void constructUnit() {
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
-		else if ( unitUnderConstruction == null )
+		else if ( unitUnderConstruction == null ){
 			unitUnderConstruction = constructingQueue.poll();
-		
-		ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
-		
-		if (chassisBuilder == ComponentType.RECYCLER) {
-			//Cannot be built by recycler itself
-			if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
-				if (buildingSystem.constructUnit(unitUnderConstruction)) {
-					++unitConstructed;
-					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
-				}
-			} else {
-				MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
-				if (buildLoc != null) {
-					if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
+		}
+			
+			ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
+			
+			if (chassisBuilder == ComponentType.RECYCLER) {
+				//Cannot be built by recycler itself
+				if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
+					if (buildingSystem.constructUnit(unitUnderConstruction)) {
 						++unitConstructed;
 						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
-						
+					}
+				} else {
+					MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
+					if (buildLoc != null) {
+						if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
+							++unitConstructed;
+							msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+							
+						}
 					}
 				}
+			} else {
+				if (buildingLocs.getLocations(chassisBuilder) != null) {
+					msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), unitUnderConstruction));
+					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+				}
 			}
-		} else {
-			if (buildingLocs.getLocations(chassisBuilder) != null) {
-				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), unitUnderConstruction));
-				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
-			}
-		}
 		
 	}
 	
@@ -569,7 +570,7 @@ public class RecyclerAI extends BuildingAI {
 				if (buildingSystem.constructUnit(type)) {
 					built = true;
 					++unitConstructed;
-					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+//					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 				}
 			} else {
 				MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, type.requiredBuilders);
@@ -577,7 +578,7 @@ public class RecyclerAI extends BuildingAI {
 					if (buildingSystem.constructUnit(buildLoc,type, buildingLocs)) {
 						built = true;
 						++unitConstructed;
-						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+//						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 						
 					}
 				}
@@ -586,7 +587,7 @@ public class RecyclerAI extends BuildingAI {
 			if (buildingLocs.getLocations(chassisBuilder) != null) {
 				built = true;
 				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), type));
-				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+//				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 			}
 		}
 		
