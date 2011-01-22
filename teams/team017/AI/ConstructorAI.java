@@ -11,6 +11,8 @@ import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
+import team017.message.MineInquiryMessage;
+import team017.message.MineResponseMessage;
 import team017.util.Util;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -34,7 +36,7 @@ public class ConstructorAI extends GroundAI {
 	
 	private double prevHp = 0;
 	private CombatSystem combat;
-	private int roundSinceLastBuilt;
+	private int builtIdleRound;
 
 //	Mine[] minelist;
 	MapLocation nearestMine = null;
@@ -85,9 +87,14 @@ public class ConstructorAI extends GroundAI {
 //				}
 				
 				
-				if (Clock.getRoundNum() >= 400)	controllers.myRC.suicide();
-				
-				if (roundSinceLastBuilt > 50)
+//<<<<<<< HEAD
+
+				if (builtIdleRound == 0)
+//=======
+//				if (Clock.getRoundNum() >= 400)	controllers.myRC.suicide();
+//				
+//				if (roundSinceLastBuilt > 50)
+//>>>>>>> branch 'refs/heads/master' of git@github.com:ckwang/BCHY.git
 					navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
@@ -141,7 +148,8 @@ public class ConstructorAI extends GroundAI {
 	
 	public void yield() {
 		super.yield();
-		roundSinceLastBuilt++;
+		if (builtIdleRound > 0)
+			builtIdleRound--;
 		controllers.senseAll();
 		updateLocationSets();
 		navigator.updateMap();
@@ -167,13 +175,11 @@ public class ConstructorAI extends GroundAI {
 
 			// go build recyclers on the other two initial mines
 			if (!mineLocations.isEmpty()) {
-				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0],
-						UnitType.RECYCLER);
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0],UnitType.RECYCLER);
 			}
 			yield();
 			if (!mineLocations.isEmpty())
-				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0],
-						UnitType.RECYCLER);
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0],UnitType.RECYCLER);
 			yield();
 
 			controllers.updateComponents();
@@ -227,16 +233,13 @@ public class ConstructorAI extends GroundAI {
 		for (MapLocation mineLoc : mineLocations) {
 			// it needs to be empty
 			if (controllers.sensor.canSenseSquare(mineLoc)) {
-				GameObject object = controllers.sensor.senseObjectAtLocation(
-						mineLoc, RobotLevel.ON_GROUND);
+				GameObject object = controllers.sensor.senseObjectAtLocation(mineLoc, RobotLevel.ON_GROUND);
 				if (object != null) {
 					toBeRemoved.add(mineLoc);
 					continue;
 				}
 			}
-
-			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc
-					.distanceSquaredTo(nearestMine))
+			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(nearestMine))
 				nearestMine = mineLoc;
 		}
 
@@ -253,7 +256,6 @@ public class ConstructorAI extends GroundAI {
 			buildBuildingAtLoc(nearestMine, UnitType.RECYCLER);
 			nearestMine = null;
 		}
-
 		return false;
 	}
 
@@ -313,7 +315,7 @@ public class ConstructorAI extends GroundAI {
 			yield();
 		}
 		
-		roundSinceLastBuilt = 0;
+		builtIdleRound = 30;
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
 		msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
@@ -435,7 +437,7 @@ public class ConstructorAI extends GroundAI {
 				for (int i = 0; i < 20; i++)
 					yield();
 				msgHandler.queueMessage(new BuildingLocationInquiryMessage(buildLoc));
-				roundSinceLastBuilt = 0;
+				builtIdleRound = 50;
 				break;
 			}
 			
@@ -457,10 +459,11 @@ public class ConstructorAI extends GroundAI {
 				UnitType type = handler.getUnitType();
 				if (type == null) { // there is nothing to build
 					builtLocations.add(handler.getSourceLocation());
+					builtIdleRound = 0;
 				} else if (handler.getBuildableLocation() != null) {
 					MapLocation buildLoc = handler.getBuildableLocation();
 					if (buildBuildingAtLoc(buildLoc, type)) {
-						roundSinceLastBuilt = 0;
+						builtIdleRound = 50;
 						msgHandler.queueMessage(new BuildingLocationInquiryMessage(handler.getSourceLocation()));
 						yield();
 					}
@@ -488,6 +491,16 @@ public class ConstructorAI extends GroundAI {
 
 				break;
 			}
+			
+			case MINE_RESPONSE_MESSAGE: {
+				MineResponseMessage handler = new MineResponseMessage(msg);
+				
+				if (handler.getConstructorID() == controllers.myRC.getRobot().getID()) {
+					mineLocations.addAll(handler.getMineLocations());
+				}
+				break;
+			}
+			
 			}
 		}
 	}
