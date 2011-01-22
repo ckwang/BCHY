@@ -5,15 +5,16 @@ import java.util.List;
 
 import team017.util.Controllers;
 import team017.util.Util;
-import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Robot;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
+import battlecode.common.TerrainTile;
 import battlecode.common.WeaponController;
 
 //Assume has all weapons at the start
@@ -25,6 +26,8 @@ public class CombatSystem {
 	int lastUpdate = -1;
 	public MapLocation myloc;
 	public Direction mydir;
+	
+	public MapLocation[] enemyback = new MapLocation[5];
 	
 	public int minRange = 100;
 	public int maxRange = 0;
@@ -303,6 +306,29 @@ public class CombatSystem {
 		return controllers.enemyMobile.get(0);
 	}
 
+	public MapLocation teleport(RobotInfo r) {
+		if (controllers.jumper.isActive())
+			return null;
+		enemyback[0] = r.location.subtract(r.direction);
+		enemyback[1] = r.location.subtract(r.direction.rotateLeft());
+		enemyback[2] = r.location.subtract(r.direction.rotateRight());
+		enemyback[3] = r.location.subtract(r.direction.rotateLeft().rotateLeft());
+		enemyback[4] = r.location.subtract(r.direction.rotateRight().rotateRight());
+		for (MapLocation loc: enemyback) {
+			if (canJump(loc)) {
+				try {
+					controllers.jumper.jump(loc);
+					return loc;
+				} catch (GameActionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return null;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public boolean moveForward() {
 		updatePosition();
 		if (!controllers.motor.isActive() && controllers.motor.canMove(mydir)) {
@@ -345,6 +371,25 @@ public class CombatSystem {
 			}
 		}
 		return false;
+	}
+	
+	public boolean canJump(MapLocation loc){
+		if (!controllers.sensor.canSenseSquare(loc))
+			return false;
+		TerrainTile tile = controllers.myRC.senseTerrainTile(loc);
+		if ((tile != null) && (tile != TerrainTile.LAND)) {
+			return false;
+		}
+		try {
+			GameObject o = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND);
+			if (o == null)
+				return true;
+		} catch (GameActionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+		
 	}
 	
 	public void updatePosition() {
