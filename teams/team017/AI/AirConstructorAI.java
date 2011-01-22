@@ -36,6 +36,7 @@ public class AirConstructorAI extends AI {
 	
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
+	private boolean leftward;
 	private int order;
 	
 	private int scoutingResponseDistance = 100;
@@ -126,10 +127,12 @@ public class AirConstructorAI extends AI {
 			if (arrivedScoutingLoc && mineLocations.size() == recyclerLocations.size()){
 				
 				if (scoutingDir != null){
-					if( gridMap.updateScoutLocation(scoutingDir) ){
-						scoutingLocation = gridMap.getScoutLocation();
-						arrivedScoutingLoc = false;
+					while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+						scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 					}
+					
+					scoutingLocation = gridMap.getScoutLocation();
+					arrivedScoutingLoc = false;
 				}
 			}
 				
@@ -200,6 +203,8 @@ public class AirConstructorAI extends AI {
 				if (handler.getTelescoperID() == id && handler.getSourceLocation().distanceSquaredTo(currentLoc) < scoutingResponseDistance ) {
 					scoutingResponseDistance = handler.getSourceLocation().distanceSquaredTo(currentLoc);
 					scoutingDir = handler.getScoutingDirection();
+					
+					leftward = handler.isLeftward();
 
 					scoutingLocation = homeLocation;
 				}
@@ -236,9 +241,10 @@ public class AirConstructorAI extends AI {
 	}
 	
 	private boolean isMyBusiness(MapLocation loc) {
-		boolean ahead = ((loc.x - scoutingLocation.x) * scoutingDir.dx + (loc.y - scoutingLocation.y) * scoutingDir.dy) > 0;
-		
-		return order == 0 ? ahead : !ahead;
+		return true;
+//		boolean ahead = ((loc.x - scoutingLocation.x) * scoutingDir.dx + (loc.y - scoutingLocation.y) * scoutingDir.dy) > 0;
+//		
+//		return order == 0 ? ahead : !ahead;
 	}
 	
 	private void findNearestMine() {

@@ -1,6 +1,9 @@
 package team017.AI;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 
 import team017.construction.UnitType;
@@ -15,6 +18,7 @@ import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
 import team017.message.UnitReadyMessage;
 import team017.util.Util;
+import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -34,6 +38,8 @@ public class FactoryAI extends BuildingAI {
 	private Set<MapLocation> tempAllied = new HashSet<MapLocation>();
 	private Set<MapLocation> tempEnemy = new HashSet<MapLocation>();
 	
+	private Deque<UnitType> constructingQueue = new ArrayDeque<UnitType>(50);
+
 	private Direction enemyBase; //direction to enemy base
 	private Direction[] toExplore = new Direction[3];
 	private int toExploreIndex = 0;
@@ -60,6 +66,7 @@ public class FactoryAI extends BuildingAI {
 		while (controllers.builder.isActive())
 			yield();
 		try {
+			
 			while (controllers.myRC.getTeamResources() < ComponentType.TELESCOPE.cost * 1.2)
 				yield();
 			controllers.builder.build(ComponentType.TELESCOPE, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
@@ -94,7 +101,10 @@ public class FactoryAI extends BuildingAI {
 		// Main Loop
 		while (true) {
 			try {
+
 				processMessages();
+				constructing();
+				
 				if ( controllers.myRC.getDirection() == previousWatchingDir )
 					watch();
 				else if ( !controllers.motor.isActive() )
@@ -103,19 +113,43 @@ public class FactoryAI extends BuildingAI {
 				if (controllers.myRC.getDirection() == birthDir){			
 					updateMineSets();
 				}
-				controllers.myRC.setIndicatorString(0, emptyMineLocations.size() + "");
-				controllers.myRC.setIndicatorString(1, alliedMineLocations.size() + "");
-				controllers.myRC.setIndicatorString(2, enemyMineLocations.size() + "");
-					
+				controllers.myRC.setIndicatorString(0, "EmptyMines: " + emptyMineLocations.size() + 
+													", AlliedMines: " + alliedMineLocations.size() +  
+													", EnemyMines: " + enemyMineLocations.size());
+
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
 			}
 		}
-
 	}
 
+	private void constructing() {
+		if (constructingQueue.size() != 0) {
+			try {
+				UnitType type = constructingQueue.getFirst();
+				MapLocation buildLoc = buildingLocs.constructableLocation(Util.FACTORY_CODE, type.requiredBuilders);
+				if (buildLoc != null) {
+					// face the location
+					Direction dir = controllers.myRC.getLocation().directionTo(buildLoc);
+					Direction myDir = controllers.myRC.getDirection();
+					if (myDir != dir) {
+						while (controllers.motor.isActive())
+							yield();
+						controllers.motor.setDirection(dir);
+					}
+					if (buildingSystem.constructUnit(buildLoc,type, buildingLocs))
+							constructingQueue.pop();	
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
+		}
+	}
+	
 	private void watch() {
 		try {
 			tempEmpty.addAll(controllers.emptyMines);
@@ -126,6 +160,7 @@ public class FactoryAI extends BuildingAI {
 				previousWatchingDir = controllers.myRC.getDirection().rotateRight();
 				controllers.motor.setDirection(previousWatchingDir);
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -202,12 +237,11 @@ public class FactoryAI extends BuildingAI {
 			}
 			
 			case CONSTRUCT_UNIT_MESSAGE: {
+//				controllers.myRC.setIndicatorString (2, "ConstructMessageGot" + Clock.getRoundNum());
 				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
 				if (controllers.myRC.getLocation() == handler.getBuilderLocation()) {
 					UnitType type = handler.getType();
-					MapLocation buildLoc = buildingLocs.constructableLocation(Util.FACTORY_CODE, type.requiredBuilders);
-					if (buildLoc != null)
-						buildingSystem.constructUnit(buildLoc,type, buildingLocs);
+					constructingQueue.add(type);
 				}
 				break;
 			}
@@ -251,7 +285,8 @@ public class FactoryAI extends BuildingAI {
 				
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
-				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0 ) );
+
+				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, toExploreIndex == 2 ));
 				
 				if (isConstructor)
 					toExploreIndex = (toExploreIndex+1)%3;

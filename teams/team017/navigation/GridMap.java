@@ -12,7 +12,7 @@ import battlecode.common.MapLocation;
 public class GridMap {
 	
 	public MapLocation origin;
-	private final int GRID_SIZE = 16;
+	private final int GRID_SIZE = 8;
 	private final int TOTAL_LENGTH = 70;
 	private final int GRID_NUM = TOTAL_LENGTH / GRID_SIZE * 2;
 	private final int ROUNDED_TOTAL_LENGTH = TOTAL_LENGTH - TOTAL_LENGTH % GRID_SIZE + GRID_SIZE;
@@ -47,33 +47,33 @@ public class GridMap {
 			int x = gridX * GRID_SIZE - ROUNDED_TOTAL_LENGTH + origin.x;
 			int y = gridY * GRID_SIZE - ROUNDED_TOTAL_LENGTH + origin.y;
 			
-			for (int i = 0; i < 4; i++) {
-				int border = mapLocationBorders[i];
-				if (mapLocationBorders[i] != -1) {
-					switch (i) {
-					case 0: {
-						if (border >= y && border - y < 7) 
-							y = border + 9;
-						break;
-					}
-					case 1: {
-						if (border <= x && x - border < 7)
-							x = border - 9;
-						break;
-					}
-					case 2: {
-						if (border <= y && y - border < 7)
-							y = border - 9;
-						break;
-					}
-					case 3: {
-						if (border >= x && border - x < 7)
-							x = border + 9;
-						break;
-					}	
-					}
-				}
-			}
+//			for (int i = 0; i < 4; i++) {
+//				int border = mapLocationBorders[i];
+//				if (mapLocationBorders[i] != -1) {
+//					switch (i) {
+//					case 0: {
+//						if (border >= y && border - y < 7) 
+//							y = border + 9;
+//						break;
+//					}
+//					case 1: {
+//						if (border <= x && x - border < 7)
+//							x = border - 9;
+//						break;
+//					}
+//					case 2: {
+//						if (border <= y && y - border < 7)
+//							y = border - 9;
+//						break;
+//					}
+//					case 3: {
+//						if (border >= x && border - x < 7)
+//							x = border + 9;
+//						break;
+//					}	
+//					}
+//				}
+//			}
 			
 			return new MapLocation(x, y);
 		}
