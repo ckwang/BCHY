@@ -8,6 +8,7 @@ import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.Chassis;
 import battlecode.common.Clock;
+import battlecode.common.ComponentClass;
 import battlecode.common.ComponentController;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
@@ -101,18 +102,13 @@ public class Controllers {
 	}
 	
 	public void scoutNearby() {
-//		if (sensor == null)
-//			return;
-//		int roundNum = Clock.getRoundNum();
-//		if (roundNum == lastUpdateRobot && roundNum == lastUpdateMine)
-//			return;
 		reset(true);
 		RobotInfo rinfo;
-		Boolean mobile;
+		MapLocation loc, myloc = myRC.getLocation();
 		GameObject[] objects = sensor.senseNearbyGameObjects(GameObject.class);
 		for (GameObject o: objects) {
 			if (o instanceof Mine) {
-				MapLocation loc = ((Mine)o).getLocation();
+				loc = ((Mine)o).getLocation();
 				GameObject object;
 				try {
 					object = sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND);
@@ -132,28 +128,25 @@ public class Controllers {
 			}
 			try {
 				rinfo = sensor.senseRobotInfo((Robot)o);
-				mobile = rinfo.on && rinfo.chassis != Chassis.BUILDING && rinfo.chassis != Chassis.DUMMY;
-//				if (o.getTeam() == myRC.getTeam()) {
-//					if (mobile)
-//						allyMobile.add(rinfo);
-//					else
-//						allyImmobile.add(rinfo);
-//				} 
 				if (o.getTeam() == myRC.getTeam().opponent()) {
-					if (mobile) {
-						enemyMobile.add(rinfo);
-					} else {
-						enemyImmobile.add(rinfo);
+					boolean mobile = rinfo.on && rinfo.chassis != Chassis.BUILDING && rinfo.chassis != Chassis.DUMMY;
+					int d = myloc.distanceSquaredTo(rinfo.location);
+					if (d > ComponentType.SMG.range + 49)
+						continue;
+					ComponentType[] coms = rinfo.components;
+					for (ComponentType c: coms) {
+						if (c.componentClass == ComponentClass.WEAPON) {
+							if (mobile) {
+								enemyMobile.add(rinfo);
+							} else {
+								enemyImmobile.add(rinfo);
+							}
+						}
 					}
-				} 
-//				else if (rinfo.chassis == Chassis.DEBRIS) {
-//					debris.add(rinfo);
-//				}
+				}
 			} catch (GameActionException e) {
 			}
 		}
-//		lastUpdateRobot = roundNum;
-//		lastUpdateMine = roundNum;
 	}
 	
 	public void senseMine() {

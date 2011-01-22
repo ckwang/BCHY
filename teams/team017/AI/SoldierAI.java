@@ -123,9 +123,13 @@ public class SoldierAI extends GroundAI {
 //			combat.moveBackward();
 		prevHp = rc.getHitpoints();
 		controllers.senseRobot();
-		senseBorder();
-		navigator.updateMap();
+		int before = Clock.getBytecodesLeft();
 		combat.heal();
+		senseBorder();
+		int after = Clock.getBytecodesLeft();
+		navigator.updateMap();
+		if ((before - after) > 0)
+			System.out.println("" + (before - after));
 		processMessages();
 		swarming = controllers.allyMobile.size() > 2;
 	}

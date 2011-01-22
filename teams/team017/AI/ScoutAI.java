@@ -75,42 +75,42 @@ public class ScoutAI extends AI {
 			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
 
 			
-//			// ask for a scouting location if there is none
-//			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 16) {
-//				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-//				yield();
-//				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations));
-//				yield();
-//				msgHandler.queueMessage(new ScoutingInquiryMessage());
-//				yield();
-//			}
-//			// constantly queue grid map message
-//			if (Clock.getRoundNum() % 10 == 0)
-//				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-//			if (controllers.myRC.getLocation().equals(scoutingLocation)) {
-//				while (controllers.motor.isActive())
-//					yield();
-//				
-//				while (true) {
-//					try {
-//						if (evaluateDanger()) {
-//							scoutingLocation = homeLocation;
-//							break;
-//						}
-//						emptyMineLocations.addAll(controllers.emptyMines);
-//						emptyMineLocations.removeAll(controllers.allyMines);
-//						emptyMineLocations.removeAll(controllers.enemyMines);
-//						
-//						alliedMineLocations.addAll(controllers.allyMines);
-//						enemyMineLocations.addAll(controllers.enemyMines);
-//
-//						controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
-//						yield();
-//					} catch (GameActionException e) {
-//						e.printStackTrace();
-//					}
-//				}
-//			}
+			// ask for a scouting location if there is none
+			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 16) {
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+				yield();
+				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations));
+				yield();
+				msgHandler.queueMessage(new ScoutingInquiryMessage());
+				yield();
+			}
+			// constantly queue grid map message
+			if (Clock.getRoundNum() % 10 == 0)
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+			if (controllers.myRC.getLocation().equals(scoutingLocation)) {
+				while (controllers.motor.isActive())
+					yield();
+				
+				while (true) {
+					try {
+						if (controllers.enemyNum() > 0) {
+							scoutingLocation = homeLocation;
+							break;
+						}
+						emptyMineLocations.addAll(controllers.emptyMines);
+						emptyMineLocations.removeAll(controllers.allyMines);
+						emptyMineLocations.removeAll(controllers.enemyMines);
+						
+						alliedMineLocations.addAll(controllers.allyMines);
+						enemyMineLocations.addAll(controllers.enemyMines);
+
+						controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
+						yield();
+					} catch (GameActionException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 //			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
 			controllers.myRC.setIndicatorString(1, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
 			controllers.myRC.setIndicatorString(2, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3] );
@@ -123,18 +123,6 @@ public class ScoutAI extends AI {
 	}
 	
 	public boolean evaluateDanger() {
-		if (controllers.mobileEnemyNum() == 0)
-			return false;
-		int d;
-		MapLocation loc = controllers.myRC.getLocation();
-		for (RobotInfo r: controllers.enemyMobile) {
-			d = loc.distanceSquaredTo(r.location);
-			if (d < ComponentType.SMG.range) {
-				nearbyEnemy.add(r);
-			}
-		}
-		if (nearbyEnemy.size() == 0)
-			return false;
 		Direction dir = controllers.myRC.getDirection().opposite();
 		for (int i = 0; i < 3;) {
 			if (!controllers.motor.isActive() && controllers.motor.canMove(dir)) {
@@ -260,9 +248,15 @@ public class ScoutAI extends AI {
 			}
 		}
 		
+		
+		
 		try{
+			if (controllers.enemyNum() > 0) {
+				if (controllers.motor.canMove(currentDir.opposite()))
+					controllers.motor.moveBackward();
+			}
 			// Can go toward destination
-			if ( controllers.motor.canMove(desDir) ){
+			else if ( controllers.motor.canMove(desDir) ){
 				if (currentDir == desDir)
 					controllers.motor.moveForward();
 				else
