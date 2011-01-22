@@ -17,8 +17,9 @@ public class GridMap {
 	private final int GRID_NUM = TOTAL_LENGTH / GRID_SIZE * 2;
 	private final int ROUNDED_TOTAL_LENGTH = TOTAL_LENGTH - TOTAL_LENGTH % GRID_SIZE + GRID_SIZE;
 	
-	public int[] borders = {-1, -1, -1, -1};
 	public int[] gridBorders = {0, GRID_NUM + 1, GRID_NUM + 1, 0};
+	public int[] mapLocationBorders = {-1, -1, -1, -1};
+	
 	public int[] internalRecords;
 	
 	private Grid currentScoutGrid;
@@ -41,12 +42,44 @@ public class GridMap {
 			return new Grid(gridX + x_offset, gridY + y_offset);
 		}
 
+		
 		public MapLocation toMapLocation() {
-			return new MapLocation(gridX * GRID_SIZE - ROUNDED_TOTAL_LENGTH + origin.x,
-					gridY * GRID_SIZE - ROUNDED_TOTAL_LENGTH + origin.y);
+			int x = gridX * GRID_SIZE - ROUNDED_TOTAL_LENGTH + origin.x;
+			int y = gridY * GRID_SIZE - ROUNDED_TOTAL_LENGTH + origin.y;
+			
+			for (int i = 0; i < 4; i++) {
+				int border = mapLocationBorders[i];
+				if (mapLocationBorders[i] != -1) {
+					switch (i) {
+					case 0: {
+						if (border >= y && border - y < 7) 
+							y = border + 9;
+						break;
+					}
+					case 1: {
+						if (border <= x && x - border < 7)
+							x = border - 9;
+						break;
+					}
+					case 2: {
+						if (border <= y && y - border < 7)
+							y = border - 9;
+						break;
+					}
+					case 3: {
+						if (border >= x && border - x < 7)
+							x = border + 9;
+						break;
+					}	
+					}
+				}
+			}
+			
+			return new MapLocation(x, y);
 		}
 		
 		public Grid[] getNeighbors(int d) {
+			
 			switch (d) {
 			case 1: {
 				Grid[] ns = {add(0, -1), add(1, 0), add(0, 1), add(-1, 0), add(1, -1), add(1, 1), add(-1, 1), add(-1, -1)};
@@ -121,8 +154,35 @@ public class GridMap {
 	}
 	
 	private boolean isInbound(Grid grid) {
-		return (grid.gridX <= gridBorders[1] && grid.gridX > gridBorders[3]) &&
-		 (grid.gridY <= gridBorders[2] && grid.gridY > gridBorders[0]);
+		if ((grid.gridX >GRID_NUM +1 || grid.gridX <= 0) || (grid.gridY > GRID_NUM + 1 || grid.gridY <= 0))
+			return false;
+		int x = grid.toMapLocation().x;
+		int y = grid.toMapLocation().y;
+			
+		for (int i = 0; i < 4; i++) {
+			if (mapLocationBorders[i] != -1) {
+				int border = mapLocationBorders[i];
+				switch(i) {
+				case 0:
+					if (y <= border)
+						return false;
+					break;
+				case 1:
+					if (x >= border)
+						return false;
+					break;
+				case 2:
+					if (y >= border)
+						return false;
+					break;
+				case 3:
+					if (x <= border)
+						return false;
+					break;
+				}
+			}	 
+		}
+		return true;
 	}
 	
 	public void setCurrentAsScouted() {
@@ -135,12 +195,12 @@ public class GridMap {
 	}
 	
 	public void setBorders(int[] borders) {
-		this.borders = borders;
 		
 		for (int i = 0; i < 4; i++) {
 			if (borders[i] == -1) {
 				gridBorders[i] = (i == 1 || i == 2) ? GRID_NUM + 1: 0;
 			} else {
+				mapLocationBorders [i] = borders[i];
 				gridBorders[i] = (borders[i] - ((i % 2 == 0) ? origin.y : origin.x) + ROUNDED_TOTAL_LENGTH) / GRID_SIZE;
 			}
 		}
@@ -163,17 +223,12 @@ public class GridMap {
 		
 		this.origin = origin;
 		
-		for (int i = 0; i < 4; ++i) {
-			if (borders[i] != -1){
-				this.borders[i] = borders[i];
-			}
-		}
-		
 		int newGridBorders[] = new int[4];
 		for (int i = 0; i < 4; i++) {
 			if (borders[i] == -1) {
 				newGridBorders[i] = (i == 1 || i == 2) ? GRID_NUM + 1: 0;
 			} else {
+				mapLocationBorders[i] = borders[i];
 				newGridBorders[i] = (borders[i] - ((i % 2 == 0) ? origin.y : origin.x) + ROUNDED_TOTAL_LENGTH) / GRID_SIZE;
 			}
 		}
