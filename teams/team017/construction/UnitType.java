@@ -27,6 +27,8 @@ public enum UnitType {
 
 // Factory
 	TANK_KILLER (Chassis.MEDIUM, ComponentType.RAILGUN, ComponentType.TELESCOPE),
+	
+	HAMMER_JUMP(Chassis.MEDIUM, ComponentType.HAMMER, ComponentType.HAMMER, ComponentType.HAMMER, ComponentType.RADAR, ComponentType.JUMP),
 
 // Factory + Recycler	
 	MEDIUM_CONSTRUCTOR(Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING),

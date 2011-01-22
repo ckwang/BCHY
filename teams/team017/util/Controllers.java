@@ -78,8 +78,8 @@ public class Controllers {
 	}
 	
 	public int enemyNum() {
-		if (lastUpdateRobot < Clock.getRoundNum())
-			senseAll();
+//		if (lastUpdateRobot < Clock.getRoundNum())
+//			senseAll();
 		return enemyMobile.size() + enemyImmobile.size();
 	}
 	
@@ -141,6 +141,7 @@ public class Controllers {
 							} else {
 								enemyImmobile.add(rinfo);
 							}
+							continue;
 						}
 					}
 				}
