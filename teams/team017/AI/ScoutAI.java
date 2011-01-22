@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import team017.message.BorderMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
 import team017.message.MineLocationsMessage;
@@ -36,6 +35,8 @@ public class ScoutAI extends AI {
 	
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
+	
+	private int inquiryQuota;
 	
 	private double prevHp = 0;
 	private boolean attacked = false;
@@ -73,26 +74,13 @@ public class ScoutAI extends AI {
 			
 			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
 
-			
-//			// ask for a scouting location if there is none
-//			if (scoutingLocation == null && controllers.myRC.getLocation().distanceSquaredTo(homeLocation) <= 16) {
-//				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-//				yield();
-//				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations));
-//				yield();
-//				msgHandler.queueMessage(new ScoutingInquiryMessage());
-//				yield();
-//			}
-//			// constantly queue grid map message
-//			if (Clock.getRoundNum() % 10 == 0)
-//				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 //			if (controllers.myRC.getLocation().equals(scoutingLocation)) {
 //				while (controllers.motor.isActive())
 //					yield();
 //				
 //				while (true) {
 //					try {
-//						if (evaluateDanger()) {
+//						if (controllers.enemyNum() > 0) {
 //							scoutingLocation = homeLocation;
 //							break;
 //						}
@@ -122,18 +110,6 @@ public class ScoutAI extends AI {
 	}
 	
 	public boolean evaluateDanger() {
-		if (controllers.mobileEnemyNum() == 0)
-			return false;
-		int d;
-		MapLocation loc = controllers.myRC.getLocation();
-		for (RobotInfo r: controllers.enemyMobile) {
-			d = loc.distanceSquaredTo(r.location);
-			if (d < ComponentType.SMG.range) {
-				nearbyEnemy.add(r);
-			}
-		}
-		if (nearbyEnemy.size() == 0)
-			return false;
 		Direction dir = controllers.myRC.getDirection().opposite();
 		for (int i = 0; i < 3;) {
 			if (!controllers.motor.isActive() && controllers.motor.canMove(dir)) {
@@ -153,7 +129,7 @@ public class ScoutAI extends AI {
 		while (controllers.motor.isActive())
 			yield();
 		
-		for (int i = 0; i < 7; i++) {
+		for (int i = 0; i < 8; i++) {
 			try {
 				emptyMineLocations.addAll(controllers.emptyMines);
 				emptyMineLocations.removeAll(controllers.allyMines);
@@ -175,26 +151,6 @@ public class ScoutAI extends AI {
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
-			
-			case BORDER: {
-				BorderMessage handler = new BorderMessage(msg);
-				// update the borders
-				int[] newBorders = handler.getBorderDirection();
-
-				for (int i = 0; i < 4; ++i) {
-					if (newBorders[i] != -1) {
-						if (borders[i] != newBorders[i]) {
-							borders[i] = newBorders[i];
-						}
-					}
-				}
-
-				homeLocation = handler.getHomeLocation();
-				computeEnemyBaseLocation();
-				if (enemyBaseLoc[0] != null)
-					gridMap.setBorders(borders);
-				break;
-			}
 			
 			case GRID_MAP_MESSAGE: {
 				GridMapMessage handler = new GridMapMessage(msg);
@@ -226,22 +182,29 @@ public class ScoutAI extends AI {
 					}
 				}
 				
+				inquiryQuota = 2;
+				
 				break;
 			}
 			
 			case MINE_INQUIRY_MESSAGE: {
 				MineInquiryMessage handler = new MineInquiryMessage(msg);
 				
-				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
-				
 				if ( scouted ){
-					if( gridMap.updateScoutLocation(scoutingDir) ){
+					msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
+					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+					inquiryQuota--;
+					
+					if ( inquiryQuota == 0 && gridMap.updateScoutLocation(scoutingDir) ) {
 						scoutingLocation = gridMap.getScoutLocation();
 						scouted = false;
-						}
+						inquiryQuota = 2;
+					}
 				}
 				
 				controllers.myRC.setIndicatorString(2, "MINE_INQUIRY_MESSAGE " + scoutingLocation);
+				yield();
+				yield();
 				break;
 			}
 				
@@ -272,9 +235,15 @@ public class ScoutAI extends AI {
 			}
 		}
 		
+		
+		
 		try{
+			if (controllers.enemyNum() > 0) {
+				if (controllers.motor.canMove(currentDir.opposite()))
+					controllers.motor.moveBackward();
+			}
 			// Can go toward destination
-			if ( controllers.motor.canMove(desDir) ){
+			else if ( controllers.motor.canMove(desDir) ){
 				if (currentDir == desDir)
 					controllers.motor.moveForward();
 				else

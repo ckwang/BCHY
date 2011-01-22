@@ -7,7 +7,6 @@ import java.util.Set;
 
 import team017.combat.CombatSystem;
 import team017.construction.UnitType;
-import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
@@ -185,7 +184,7 @@ public class ConstructorAI extends GroundAI {
 
 			controllers.updateComponents();
 			computeEnemyBaseLocation();
-			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
+			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 
 		} catch (Exception e) {
 			System.out.println("caught exception:");
@@ -319,13 +318,8 @@ public class ConstructorAI extends GroundAI {
 		builtIdleRound = 30;
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
-		if (type == UnitType.RECYCLER || type == UnitType.FACTORY) {
-			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation,gridMap));
-			if (type == UnitType.FACTORY)
-				msgHandler.queueMessage(new MineInquiryMessage());
-		} else {
-			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-		}
+		msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+			
 		return true;
 	}
 
@@ -478,25 +472,6 @@ public class ConstructorAI extends GroundAI {
 				break;
 			}
 
-			case BORDER: {
-				BorderMessage handler = new BorderMessage(msg);
-				// update the borders
-				int[] newBorders = handler.getBorderDirection();
-
-				for (int i = 0; i < 4; ++i) {
-					if (newBorders[i] != -1) {
-						if (borders[i] != newBorders[i]) {
-							borders[i] = newBorders[i];
-						}
-					}
-				}
-
-				homeLocation = handler.getHomeLocation();
-				computeEnemyBaseLocation();
-				if (enemyBaseLoc[0] != null)
-					gridMap.setBorders(borders);
-				break;
-			}
 			case GRID_MAP_MESSAGE: {
 				GridMapMessage handler = new GridMapMessage(msg);
 				// update the borders

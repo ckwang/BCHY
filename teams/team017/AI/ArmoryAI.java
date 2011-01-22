@@ -56,6 +56,7 @@ public class ArmoryAI extends BuildingAI{
 			case BUILDING_REQUEST:{
 				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
+
 					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
 						if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
 							break;
@@ -78,8 +79,10 @@ public class ArmoryAI extends BuildingAI{
 				if (controllers.myRC.getLocation() == handler.getBuilderLocation()) {
 					UnitType type = handler.getType();
 					MapLocation buildLoc = buildingLocs.constructableLocation(Util.ARMORY_CODE, type.requiredBuilders);
-					if (buildLoc != null)
-						buildingSystem.constructUnit(buildLoc,type, buildingLocs);
+					if (buildLoc != null) {
+						while (!buildingSystem.constructUnit(buildLoc,type, buildingLocs))
+							yield();
+					}
 				}
 				break;
 			}

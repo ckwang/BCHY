@@ -17,7 +17,6 @@ public class GridMap {
 	private final int GRID_NUM = TOTAL_LENGTH / GRID_SIZE * 2;
 	private final int ROUNDED_TOTAL_LENGTH = TOTAL_LENGTH - TOTAL_LENGTH % GRID_SIZE + GRID_SIZE;
 	
-	public int[] borders = {-1, -1, -1, -1};
 	public int[] gridBorders = {0, GRID_NUM + 1, GRID_NUM + 1, 0};
 	public int[] mapLocationBorders = {-1, -1, -1, -1};
 	
@@ -80,6 +79,7 @@ public class GridMap {
 		}
 		
 		public Grid[] getNeighbors(int d) {
+			
 			switch (d) {
 			case 1: {
 				Grid[] ns = {add(0, -1), add(1, 0), add(0, 1), add(-1, 0), add(1, -1), add(1, 1), add(-1, 1), add(-1, -1)};
@@ -195,7 +195,6 @@ public class GridMap {
 	}
 	
 	public void setBorders(int[] borders) {
-		this.borders = borders;
 		
 		for (int i = 0; i < 4; i++) {
 			if (borders[i] == -1) {
@@ -223,12 +222,6 @@ public class GridMap {
 	public void merge(MapLocation origin, int[] borders, int[] internalRecords) {
 		
 		this.origin = origin;
-		
-		for (int i = 0; i < 4; ++i) {
-			if (borders[i] != -1){
-				this.borders[i] = borders[i];
-			}
-		}
 		
 		int newGridBorders[] = new int[4];
 		for (int i = 0; i < 4; i++) {

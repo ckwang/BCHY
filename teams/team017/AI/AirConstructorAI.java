@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
-import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
@@ -45,6 +44,8 @@ public class AirConstructorAI extends AI {
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	private MapLocation currentLoc = controllers.myRC.getLocation();
+	
+	private int roundSinceLastInquired = 0;
 	private int builtIdleRound = 0;
 	
 	MapLocation nearestMine = null;
@@ -95,8 +96,6 @@ public class AirConstructorAI extends AI {
 						builtIdleRound = 50;
 						nearestMine = null;
 					}
-				} else {
-					msgHandler.queueMessage(new MineInquiryMessage());
 				}
 			} catch (Exception e) {e.printStackTrace();}
 			
@@ -118,10 +117,13 @@ public class AirConstructorAI extends AI {
 //			}
 //			controllers.myRC.setIndicatorString(1, s);
 			
-			if ( !arrivedScoutingLoc && controllers.myRC.getLocation().distanceSquaredTo(scoutingLocation) < controllers.comm.type().range )
+			if ( !arrivedScoutingLoc && controllers.myRC.getLocation().distanceSquaredTo(scoutingLocation) < controllers.comm.type().range &&
+					Clock.getRoundNum() - roundSinceLastInquired > 10) {
 				msgHandler.queueMessage(new MineInquiryMessage());
+				roundSinceLastInquired = Clock.getRoundNum();
+			}
 			
-			if (arrivedScoutingLoc && mineLocations.size() == 0){
+			if (arrivedScoutingLoc && mineLocations.size() == recyclerLocations.size()){
 				
 				if (scoutingDir != null){
 					if( gridMap.updateScoutLocation(scoutingDir) ){
@@ -145,7 +147,12 @@ public class AirConstructorAI extends AI {
 				MineResponseMessage handler = new MineResponseMessage(msg);
 				
 				if (handler.getConstructorID() == id) {
-					mineLocations.addAll(handler.getMineLocations());
+					for (MapLocation loc : handler.getMineLocations()) {
+						mineLocations.add(loc);
+						if (!isMyBusiness(loc)) {
+							recyclerLocations.add(loc);
+						}
+					}
 				}
 				if ( handler.getSourceLocation().equals(scoutingLocation) ){
 					arrivedScoutingLoc = true;
@@ -193,6 +200,7 @@ public class AirConstructorAI extends AI {
 				if (handler.getTelescoperID() == id && handler.getSourceLocation().distanceSquaredTo(currentLoc) < scoutingResponseDistance ) {
 					scoutingResponseDistance = handler.getSourceLocation().distanceSquaredTo(currentLoc);
 					scoutingDir = handler.getScoutingDirection();
+					order = handler.getOrder();
 
 					scoutingLocation = homeLocation;
 				}
@@ -228,7 +236,13 @@ public class AirConstructorAI extends AI {
 		
 	}
 	
-	private void findNearestMine () {
+	private boolean isMyBusiness(MapLocation loc) {
+		boolean ahead = ((loc.x - scoutingLocation.x) * scoutingDir.dx + (loc.y - scoutingLocation.y) * scoutingDir.dy) > 0;
+		
+		return order == 0 ? ahead : !ahead;
+	}
+	
+	private void findNearestMine() {
 		if (nearestMine == null)
 			nearestMine = new MapLocation(0, 0);
 
@@ -256,10 +270,10 @@ public class AirConstructorAI extends AI {
 		// if there is a eligible site
 		if (currentLoc.distanceSquaredTo(nearestMine) <= 2) {
 			if (controllers.builder.canBuild(Chassis.BUILDING, nearestMine)) {
-				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER))
-//					controllers.myRC.setIndicatorString(2, "BuildRecycler");
+				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER)) {
 					recyclerLocations.add(nearestMine);
 					return true;
+				}
 			} else {
 				recyclerLocations.add(nearestMine);
 			}
@@ -326,11 +340,7 @@ public class AirConstructorAI extends AI {
 		}
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
-		if (type == UnitType.RECYCLER) {
-			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation,gridMap));
-		} else {
-			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-		}
+		msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 		return true;
 	}
 	
@@ -350,7 +360,7 @@ public class AirConstructorAI extends AI {
 				return;
 		} else if ( !needStay ) {
 			desDir = currentLoc.directionTo(scoutingLocation);
-			if (desDir == Direction.OMNI)
+			if (currentLoc.distanceSquaredTo(scoutingLocation) <= 2 || desDir == Direction.OMNI)
 				return;
 		}
 		else {
