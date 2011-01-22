@@ -241,7 +241,8 @@ public class AirConstructorAI extends AI {
 	}
 	
 	private boolean isMyBusiness(MapLocation loc) {
-		return true;
+		return scoutingLocation.distanceSquaredTo(loc) <= 144;
+		
 //		boolean ahead = ((loc.x - scoutingLocation.x) * scoutingDir.dx + (loc.y - scoutingLocation.y) * scoutingDir.dy) > 0;
 //		
 //		return order == 0 ? ahead : !ahead;
