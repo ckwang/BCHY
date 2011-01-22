@@ -142,8 +142,9 @@ public class AirConstructorAI extends AI {
 				
 				if (handler.getConstructorID() == id) {
 					for (MapLocation loc : handler.getMineLocations()) {
-						if (isMyBusiness(loc)) {
-							mineLocations.add(loc);
+						mineLocations.add(loc);
+						if (!isMyBusiness(loc)) {
+							recyclerLocations.add(loc);
 						}
 					}
 				}

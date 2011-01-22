@@ -154,7 +154,7 @@ public class ScoutAI extends AI {
 		while (controllers.motor.isActive())
 			yield();
 		
-		for (int i = 0; i < 7; i++) {
+		for (int i = 0; i < 8; i++) {
 			try {
 				emptyMineLocations.addAll(controllers.emptyMines);
 				emptyMineLocations.removeAll(controllers.allyMines);
