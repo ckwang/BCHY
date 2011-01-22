@@ -1,5 +1,8 @@
 package team017.AI;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
@@ -17,6 +20,7 @@ import battlecode.common.SensorController;
 public class ArmoryAI extends BuildingAI{
 	MapLocation currentLoc = controllers.myRC.getLocation();
 	int buildIdleRound = 0;
+	private Deque<UnitType> constructingQueue = new ArrayDeque<UnitType>(50);
 	
 	public ArmoryAI(RobotController rc) {
 		super(rc);
@@ -38,8 +42,9 @@ public class ArmoryAI extends BuildingAI{
 		
 		while (true) {
 			try {
+
 				processMessages();
-				
+				constructing();
 				yield();
 				} catch (Exception e) {
 				System.out.println("caught exception:");
@@ -48,6 +53,20 @@ public class ArmoryAI extends BuildingAI{
 		}
 	}
 
+	private void constructing() {
+		try {
+			if (constructingQueue.size() != 0) {
+				UnitType type = constructingQueue.getFirst();
+				MapLocation buildLoc = buildingLocs.constructableLocation(Util.ARMORY_CODE, type.requiredBuilders);
+				if (buildLoc != null && buildingSystem.constructUnit(buildLoc,type, buildingLocs))
+					constructingQueue.pop();
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+	}
 	@Override
 	protected void processMessages() throws GameActionException {
 		while (msgHandler.hasMessage()) {
@@ -78,11 +97,7 @@ public class ArmoryAI extends BuildingAI{
 				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
 				if (controllers.myRC.getLocation() == handler.getBuilderLocation()) {
 					UnitType type = handler.getType();
-					MapLocation buildLoc = buildingLocs.constructableLocation(Util.ARMORY_CODE, type.requiredBuilders);
-					if (buildLoc != null) {
-						while (!buildingSystem.constructUnit(buildLoc,type, buildingLocs))
-							yield();
-					}
+					constructingQueue.add(type);
 				}
 				break;
 			}

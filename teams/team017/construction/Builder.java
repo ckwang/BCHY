@@ -36,6 +36,8 @@ public class Builder {
 			if (!buildLoc.isAdjacentTo(rc.getLocation()))	return false;
 			Direction buildDir = rc.getLocation().directionTo(buildLoc);
 			
+			
+			
 			// if there's enough resource
 			if (rc.getTeamResources() > type.chassis.cost + 10) {
 				
@@ -64,6 +66,9 @@ public class Builder {
 //						if (builder != controllers.builder.type())
 //							msgHandler.queueMessage(new BuildingRequestMessage(builderLocs.getLocations(builder), buildLoc, type));
 //					}
+					
+					
+						
 					
 					// build my responsible parts
 					for (ComponentType com : type.getComponentList(controllers.builder.type())) {

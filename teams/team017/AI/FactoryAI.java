@@ -1,6 +1,9 @@
 package team017.AI;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 
 import team017.construction.UnitType;
@@ -15,6 +18,7 @@ import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
 import team017.message.UnitReadyMessage;
 import team017.util.Util;
+import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -29,7 +33,8 @@ public class FactoryAI extends BuildingAI {
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
-	
+	private Deque<UnitType> constructingQueue = new ArrayDeque<UnitType>(50);
+
 	private Direction enemyBase; //direction to enemy base
 	private Direction[] toExplore = new Direction[3];
 	private int toExploreIndex = 0;
@@ -55,6 +60,7 @@ public class FactoryAI extends BuildingAI {
 		while (controllers.builder.isActive())
 			yield();
 		try {
+			
 			while (controllers.myRC.getTeamResources() < ComponentType.TELESCOPE.cost * 1.2)
 				yield();
 			controllers.builder.build(ComponentType.TELESCOPE, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
@@ -88,16 +94,43 @@ public class FactoryAI extends BuildingAI {
 		
 		while (true) {
 			try {
+				controllers.myRC.setIndicatorString(0, constructingQueue.toString() + Clock.getRoundNum());
+
 				processMessages();
+				constructing();
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
 				e.printStackTrace();
 			}
 		}
-
 	}
 
+	private void constructing() {
+		if (constructingQueue.size() != 0) {
+			try {
+				UnitType type = constructingQueue.getFirst();
+				MapLocation buildLoc = buildingLocs.constructableLocation(Util.FACTORY_CODE, type.requiredBuilders);
+				if (buildLoc != null) {
+					// face the location
+					Direction dir = controllers.myRC.getLocation().directionTo(buildLoc);
+					Direction myDir = controllers.myRC.getDirection();
+					if (myDir != dir) {
+						while (controllers.motor.isActive())
+							yield();
+						controllers.motor.setDirection(dir);
+					}
+					if (buildingSystem.constructUnit(buildLoc,type, buildingLocs))
+							constructingQueue.pop();	
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
+		}
+	}
+	
 	private void watch() {
 		try {
 			emptyMineLocations.addAll(controllers.emptyMines);
@@ -105,7 +138,7 @@ public class FactoryAI extends BuildingAI {
 			enemyMineLocations.addAll(controllers.enemyMines);
 			
 			controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
-			controllers.myRC.setIndicatorString(0, emptyMineLocations.size() + "");
+//			controllers.myRC.setIndicatorString(0, emptyMineLocations.size() + "");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -162,12 +195,11 @@ public class FactoryAI extends BuildingAI {
 			}
 			
 			case CONSTRUCT_UNIT_MESSAGE: {
+//				controllers.myRC.setIndicatorString (2, "ConstructMessageGot" + Clock.getRoundNum());
 				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
 				if (controllers.myRC.getLocation() == handler.getBuilderLocation()) {
 					UnitType type = handler.getType();
-					MapLocation buildLoc = buildingLocs.constructableLocation(Util.FACTORY_CODE, type.requiredBuilders);
-					if (buildLoc != null)
-						buildingSystem.constructUnit(buildLoc,type, buildingLocs);
+					constructingQueue.add(type);
 				}
 				break;
 			}

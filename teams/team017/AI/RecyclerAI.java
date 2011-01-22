@@ -1,10 +1,9 @@
 package team017.AI;
 
 import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.Deque;
 
 import team017.construction.UnitType;
-import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructBaseMessage;
@@ -12,8 +11,6 @@ import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.message.NotEnoughSpaceMessage;
-import team017.message.ScoutingInquiryMessage;
-import team017.message.ScoutingResponseMessage;
 import team017.message.TurnOffMessage;
 import team017.message.UnitReadyMessage;
 import team017.util.Util;
@@ -25,6 +22,7 @@ public class RecyclerAI extends BuildingAI {
 	private int unitConstructed = 0;
 	private int birthRoundNum;
 	private int inquiryIdleRound = 0;
+	private int constructIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 	private boolean built = false;
 	private boolean clusterIsDone = false;
@@ -45,7 +43,7 @@ public class RecyclerAI extends BuildingAI {
 //	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	double resourceThresholds = 100;
 	
-	private Queue<UnitType> constructingQueue;
+	private Deque<UnitType> constructingQueue;
 	private UnitType unitUnderConstruction;
 	
 	private enum spawningState { COLLECTING, ATTACKING, BALANCE,LATE };
@@ -56,16 +54,7 @@ public class RecyclerAI extends BuildingAI {
 		super(rc);		
 		birthRoundNum = Clock.getRoundNum();
 		
-		constructingQueue = new ArrayDeque<UnitType>(10);
-		constructingQueue.add(UnitType.TELESCOPER);
-		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-//		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-		constructingQueue.add(UnitType.TELESCOPER);
-		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-//		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-		constructingQueue.add(UnitType.TELESCOPER);
-		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-//		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+		constructingQueue = new ArrayDeque<UnitType>(50);
 
 		updateRatios();
 		try {
@@ -78,6 +67,8 @@ public class RecyclerAI extends BuildingAI {
 	@Override
 	public void yield() {
 		super.yield();
+		if (constructIdleRound != 0)
+			constructIdleRound = 0;
 		if (inquiryIdleRound != 0)
 			inquiryIdleRound--;
 
@@ -123,6 +114,12 @@ public class RecyclerAI extends BuildingAI {
 			buildFactory = true;
 			buildArmory = true;
 			buildRailgunTower = true;
+			constructingQueue.add(UnitType.TELESCOPER);
+			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+			constructingQueue.add(UnitType.TELESCOPER);
+			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+			constructingQueue.add(UnitType.TELESCOPER);
+			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 		}
 		
 		while (true) {
@@ -545,6 +542,7 @@ public class RecyclerAI extends BuildingAI {
 				UnitReadyMessage handler = new UnitReadyMessage(msg);
 				
 				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
+					controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + handler.getUnitType());
 					if (handler.getUnitType() == unitUnderConstruction) {
 						unitUnderConstruction = null;
 					}
@@ -651,7 +649,7 @@ public class RecyclerAI extends BuildingAI {
 		
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
-		else if ( unitUnderConstruction == null ) {
+		else if ( unitUnderConstruction == null || constructIdleRound == 0) {
 			UnitType unitUnderConstruction = constructingQueue.peek();
 			
 			ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
@@ -679,7 +677,9 @@ public class RecyclerAI extends BuildingAI {
 					return;
 				}
 			}
+			constructIdleRound = 30;
 			this.unitUnderConstruction = constructingQueue.poll();
+
 		}
 		
 	}
@@ -688,7 +688,6 @@ public class RecyclerAI extends BuildingAI {
 		MapLocation loc;
 		if (buildFactory) {
 			// Build 1 factory only
-			controllers.myRC.setIndicatorString (0, "FactoryLoc:" + buildingLocs.factoryLocation);
 
 			if (buildingLocs.factoryLocation == null) {
 				// Try to build somewhere near armory
@@ -837,12 +836,10 @@ public class RecyclerAI extends BuildingAI {
 			}
 			
 			buildingLocs.setLocations(type, buildLoc);
-			controllers.myRC.setIndicatorString (1, "FactoryLoc:" + buildingLocs.factoryLocation);
 
 			controllers.myRC.turnOn(buildLoc, RobotLevel.ON_GROUND);
 
 			buildingLocs.updateBuildingLocs();
-			controllers.myRC.setIndicatorString (2, "FactoryLoc:" + buildingLocs.factoryLocation);
 
 			return true;
 			
