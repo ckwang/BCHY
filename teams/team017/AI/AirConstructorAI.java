@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import team017.construction.UnitType;
+import team017.message.ConstructBaseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
@@ -27,13 +28,17 @@ public class AirConstructorAI extends AI {
 	private boolean needStay = false;
 	private boolean arrivedScoutingLoc = true;
 	
+	private int scoutingLocationCount = 0;
+	private boolean builtBranch = true;
 	
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
+	private boolean branch;
 	private boolean leftward;
 	
 	private int scoutingResponseDistance = 100;
 	
+	private Set<MapLocation> blockedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
@@ -125,9 +130,13 @@ public class AirConstructorAI extends AI {
 					}
 					
 					scoutingLocation = gridMap.getScoutLocation();
+					scoutingLocationCount++;
+					if (scoutingLocationCount % 2 == 0)	builtBranch = false;
 					arrivedScoutingLoc = false;
 				}
 			}
+			
+			controllers.myRC.setIndicatorString(1, builtBranch + "");
 				
 			yield();
 		}
@@ -149,6 +158,9 @@ public class AirConstructorAI extends AI {
 							recyclerLocations.add(loc);
 						}
 					}
+					
+					if (handler.getBlockedLocations() != null)
+						blockedMineLocations.addAll(handler.getBlockedLocations());
 				}
 				if ( handler.getSourceLocation().equals(scoutingLocation) ){
 					arrivedScoutingLoc = true;
@@ -196,7 +208,7 @@ public class AirConstructorAI extends AI {
 				if (handler.getTelescoperID() == id && handler.getSourceLocation().distanceSquaredTo(currentLoc) < scoutingResponseDistance ) {
 					scoutingResponseDistance = handler.getSourceLocation().distanceSquaredTo(currentLoc);
 					scoutingDir = handler.getScoutingDirection();
-					
+					branch = handler.isBranch();
 					leftward = handler.isLeftward();
 
 					scoutingLocation = homeLocation;
@@ -270,6 +282,11 @@ public class AirConstructorAI extends AI {
 		if (currentLoc.distanceSquaredTo(nearestMine) <= 2) {
 			if (controllers.builder.canBuild(Chassis.BUILDING, nearestMine)) {
 				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER)) {
+					if (!builtBranch && !blockedMineLocations.contains(nearestMine)) {
+						msgHandler.queueMessage(new ConstructBaseMessage(nearestMine, UnitType.ARMORY));
+						builtBranch = true;
+					}
+					
 					recyclerLocations.add(nearestMine);
 					return true;
 				}

@@ -270,7 +270,7 @@ public class FactoryAI extends BuildingAI {
 			case MINE_INQUIRY_MESSAGE: {
 				MineInquiryMessage handler = new MineInquiryMessage(msg);
 				
-				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
+				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations, null));
 				break;
 			}
 			
