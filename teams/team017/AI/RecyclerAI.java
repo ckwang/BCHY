@@ -4,7 +4,6 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 import team017.construction.UnitType;
-import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.BuildingRequestMessage;
@@ -185,25 +184,7 @@ public class RecyclerAI extends BuildingAI {
 			Message msg = msgHandler.nextMessage();
 			outer:
 			switch (msgHandler.getMessageType(msg)) {
-			case BORDER: {						
-				BorderMessage handler = new BorderMessage(msg);
-				// update the borders
-				int[] newBorders = handler.getBorderDirection();
 
-				for (int i = 0; i < 4; ++i) {
-					if (newBorders[i] != -1){
-						if (borders[i] != newBorders[i]){
-							borders[i] = newBorders[i];
-						}
-					}
-				}
-				
-				homeLocation = handler.getHomeLocation();
-				computeEnemyBaseLocation();
-				if (enemyBaseLoc[0] != null)
-					gridMap.setBorders(borders);
-				break;
-			}
 			case GRID_MAP_MESSAGE: {
 				GridMapMessage handler = new GridMapMessage(msg);
 				// update the borders

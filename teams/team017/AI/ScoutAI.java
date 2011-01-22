@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import team017.message.BorderMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
 import team017.message.MineLocationsMessage;
@@ -173,26 +172,6 @@ public class ScoutAI extends AI {
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
-			
-			case BORDER: {
-				BorderMessage handler = new BorderMessage(msg);
-				// update the borders
-				int[] newBorders = handler.getBorderDirection();
-
-				for (int i = 0; i < 4; ++i) {
-					if (newBorders[i] != -1) {
-						if (borders[i] != newBorders[i]) {
-							borders[i] = newBorders[i];
-						}
-					}
-				}
-
-				homeLocation = handler.getHomeLocation();
-				computeEnemyBaseLocation();
-				if (enemyBaseLoc[0] != null)
-					gridMap.setBorders(borders);
-				break;
-			}
 			
 			case GRID_MAP_MESSAGE: {
 				GridMapMessage handler = new GridMapMessage(msg);

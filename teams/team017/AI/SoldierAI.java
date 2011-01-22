@@ -1,7 +1,6 @@
 package team017.AI;
 
 import team017.combat.CombatSystem;
-import team017.message.BorderMessage;
 import team017.message.FollowMeMessage;
 import team017.message.GridMapMessage;
 import battlecode.common.Clock;
@@ -237,21 +236,7 @@ public class SoldierAI extends GroundAI {
 		while (msgHandler.hasMessage()) {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
-			case BORDER: {
-				BorderMessage handler = new BorderMessage(msg);
-				// update the borders
-				int[] newBorders = handler.getBorderDirection();
-				for (int i = 0; i < 4; ++i) {
-					if (newBorders[i] != -1) {
-						if (borders[i] != newBorders[i]) {
-							borders[i] = newBorders[i];
-						}
-					}
-				}
-				homeLocation = handler.getHomeLocation();
-				computeEnemyBaseLocation();
-				break;
-			}
+
 			case GRID_MAP_MESSAGE: {
 				GridMapMessage handler = new GridMapMessage(msg);
 				// update the borders

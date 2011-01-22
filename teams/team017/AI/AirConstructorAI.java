@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
-import team017.message.BorderMessage;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
 import team017.message.ConstructionCompleteMessage;
@@ -313,11 +312,7 @@ public class AirConstructorAI extends AI {
 		}
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
-		if (type == UnitType.RECYCLER) {
-			msgHandler.queueMessage(new GridMapMessage(borders, homeLocation,gridMap));
-		} else {
-			msgHandler.queueMessage(new BorderMessage(borders, homeLocation));
-		}
+		msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 		return true;
 	}
 	
