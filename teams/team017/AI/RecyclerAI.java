@@ -59,13 +59,13 @@ public class RecyclerAI extends BuildingAI {
 		constructingQueue = new ArrayDeque<UnitType>(10);
 		constructingQueue.add(UnitType.TELESCOPER);
 		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+//		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 		constructingQueue.add(UnitType.TELESCOPER);
 		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+//		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 		constructingQueue.add(UnitType.TELESCOPER);
 		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+//		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 
 		updateRatios();
 		try {

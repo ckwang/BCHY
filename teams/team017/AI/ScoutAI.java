@@ -35,6 +35,8 @@ public class ScoutAI extends AI {
 	
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
+	private boolean leftward;
+	private boolean branch;
 	
 	private int inquiryQuota;
 	
@@ -177,12 +179,15 @@ public class ScoutAI extends AI {
 				controllers.myRC.setIndicatorString(2, "received");
 				if (handler.getTelescoperID() == id && handler.getSourceLocation().isAdjacentTo(controllers.myRC.getLocation())) {
 					scoutingDir = handler.getScoutingDirection();
-					if( gridMap.updateScoutLocation(scoutingDir) ) {
-						scoutingLocation = gridMap.getScoutLocation();
+					leftward = handler.isLeftward();
+					branch = handler.isBranch();
+					while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+						scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 					}
+					scoutingLocation = gridMap.getScoutLocation();
 				}
 				
-				inquiryQuota = 2;
+				inquiryQuota = 1;
 				
 				break;
 			}
@@ -191,14 +196,18 @@ public class ScoutAI extends AI {
 				MineInquiryMessage handler = new MineInquiryMessage(msg);
 				
 				if ( scouted ){
-					msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
 					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+					yield();
+					msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
 					inquiryQuota--;
 					
-					if ( inquiryQuota == 0 && gridMap.updateScoutLocation(scoutingDir) ) {
+					if ( inquiryQuota == 0 ) {
+						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+						}
 						scoutingLocation = gridMap.getScoutLocation();
 						scouted = false;
-						inquiryQuota = 2;
+						inquiryQuota = 1;
 					}
 				}
 				
@@ -238,12 +247,13 @@ public class ScoutAI extends AI {
 		
 		
 		try{
-			if (controllers.enemyNum() > 0) {
-				if (controllers.motor.canMove(currentDir.opposite()))
-					controllers.motor.moveBackward();
-			}
-			// Can go toward destination
-			else if ( controllers.motor.canMove(desDir) ){
+//			if (controllers.enemyNum() > 0) {
+//				if (controllers.motor.canMove(currentDir.opposite()))
+//					controllers.motor.moveBackward();
+//			}
+//			// Can go toward destination
+//			else 
+			if ( controllers.motor.canMove(desDir) ){
 				if (currentDir == desDir)
 					controllers.motor.moveForward();
 				else

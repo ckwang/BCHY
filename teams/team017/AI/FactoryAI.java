@@ -211,9 +211,9 @@ public class FactoryAI extends BuildingAI {
 				
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
-				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, order ));
+				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, toExploreIndex == 2, order ));
 				
-				if (isConstructor && order == 1)
+				if (isConstructor /*&& order == 1*/)
 					toExploreIndex = (toExploreIndex+1)%3;
 				
 				if (isConstructor)
