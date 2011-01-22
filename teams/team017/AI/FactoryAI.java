@@ -13,9 +13,7 @@ import team017.message.MineLocationsMessage;
 import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
-import team017.message.TurnOffMessage;
 import team017.util.Util;
-import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -31,6 +29,12 @@ public class FactoryAI extends BuildingAI {
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
 	
+	private Direction enemyBase; //direction to enemy base
+	private Direction[] toExplore = new Direction[3];
+	private int toExploreIndex = 0;
+	private boolean diagonallyBranching;
+	private int order = 0;
+	
 	public FactoryAI(RobotController rc) {
 		super(rc);
 	}
@@ -38,7 +42,6 @@ public class FactoryAI extends BuildingAI {
 	public void yield() {
 		super.yield();
 		controllers.senseMine();
-		senseBorder();
 	}
 
 	@Override
@@ -56,14 +59,32 @@ public class FactoryAI extends BuildingAI {
 			e.printStackTrace();
 		}
 		
+		// watch 8 directions
 		for (int i = 0; i < 8; i++) {
 			watch();
 			yield();
+			senseBorder();
 		}
+		msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 
+		//calculate exploring directions
+		if (enemyBaseLoc[0] != null){
+			enemyBase = controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]);
+			toExplore[0] = enemyBase;
+			if (enemyBase.isDiagonal()) {
+				diagonallyBranching = true;
+				toExplore[1] = enemyBase.rotateLeft();
+				toExplore[2] = enemyBase.rotateRight();
+			} else {
+				diagonallyBranching = false;
+				toExplore[1] = enemyBase.rotateLeft().rotateLeft();
+				toExplore[2] = enemyBase.rotateRight().rotateRight();
+			}
+
+		}
+		
 		while (true) {
 			try {
-
 				processMessages();
 				yield();
 			} catch (Exception e) {
@@ -96,12 +117,6 @@ public class FactoryAI extends BuildingAI {
 			case BUILDING_REQUEST:{
 				BuildingRequestMessage handler = new BuildingRequestMessage(msg);
 				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-					Direction buildDir = controllers.myRC.getLocation().directionTo(handler.getBuildingLocation());
-					if (controllers.myRC.getDirection() != buildDir) {
-						controllers.motor.setDirection(buildDir);
-						yield();
-					}
-					
 					while(!buildingSystem.constructComponent(handler.getBuildingLocation(),handler.getUnitType())){
 						if(controllers.sensor.senseObjectAtLocation(handler.getBuilderLocation(),handler.getUnitType().chassis.level).getTeam() != controllers.myRC.getTeam())
 							break;
@@ -181,9 +196,20 @@ public class FactoryAI extends BuildingAI {
 			
 			case SCOUTING_INQUIRY_MESSAGE: {
 				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
+				boolean isConstructor = handler.isConstructor();
 				
-				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), gridMap.getScoutLocation()));
-				gridMap.setScouted(gridMap.getScoutLocation());
+				Direction scoutingDir = toExplore[toExploreIndex];
+				
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+				yield();
+				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, order ));
+				
+				if (isConstructor && order == 1)
+					toExploreIndex = (toExploreIndex+1)%3;
+				
+				if (isConstructor)
+					order = 1 - order;
+				
 				break;
 			}
 			

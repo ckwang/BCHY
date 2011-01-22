@@ -15,14 +15,12 @@ import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
 import team017.message.MineResponseMessage;
 import team017.util.Util;
-import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
-import battlecode.common.MineInfo;
 import battlecode.common.Robot;
 import battlecode.common.RobotController;
 import battlecode.common.RobotLevel;
@@ -90,8 +88,14 @@ public class ConstructorAI extends GroundAI {
 //				}
 				
 				
+//<<<<<<< HEAD
 
 				if (builtIdleRound == 0)
+//=======
+//				if (Clock.getRoundNum() >= 400)	controllers.myRC.suicide();
+//				
+//				if (roundSinceLastBuilt > 50)
+//>>>>>>> branch 'refs/heads/master' of git@github.com:ckwang/BCHY.git
 					navigate();
 				if (controllers.myRC.getTeamResources() > 100 && Clock.getRoundNum() > 200 && Clock.getRoundNum() % 2 == 1)
 					checkEmptyRecyclers();
@@ -172,13 +176,11 @@ public class ConstructorAI extends GroundAI {
 
 			// go build recyclers on the other two initial mines
 			if (!mineLocations.isEmpty()) {
-				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0],
-						UnitType.RECYCLER);
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0],UnitType.RECYCLER);
 			}
 			yield();
 			if (!mineLocations.isEmpty())
-				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0],
-						UnitType.RECYCLER);
+				buildBuildingAtLoc((MapLocation) mineLocations.toArray()[0],UnitType.RECYCLER);
 			yield();
 
 			controllers.updateComponents();
@@ -314,7 +316,7 @@ public class ConstructorAI extends GroundAI {
 			yield();
 		}
 		
-		builtIdleRound = 50;
+		builtIdleRound = 30;
 		msgHandler.clearOutQueue();
 		msgHandler.queueMessage(new ConstructionCompleteMessage(buildLoc, type));
 		if (type == UnitType.RECYCLER || type == UnitType.FACTORY) {

@@ -47,9 +47,9 @@ public class Controllers {
 //	public Direction dir;
 //	public MapLocation loc;
 //	public double hp;
-//	public final Robot self;
-//	public final Chassis chassis;
-//	public final double maxhp;
+	public final Robot self;
+	public final Chassis chassis;
+	public final double maxhp;
 	
 	public int lastUpdateInfo = -1;
 	public int lastUpdateRobot = -1;
@@ -58,9 +58,9 @@ public class Controllers {
 	public Controllers(RobotController rc) {
 		weapons = new ArrayList<WeaponController>();
 		myRC = rc;
-//		self = myRC.getRobot();
-//		chassis = myRC.getChassis();
-//		maxhp = myRC.getHitpoints();
+		self = myRC.getRobot();
+		chassis = myRC.getChassis();
+		maxhp = myRC.getHitpoints();
 	}
 	
 	public void reset(boolean mine) {
@@ -98,6 +98,62 @@ public class Controllers {
 		if (lastUpdateRobot < Clock.getRoundNum())
 			senseAll();
 		return enemyImmobile.size();
+	}
+	
+	public void scoutNearby() {
+//		if (sensor == null)
+//			return;
+//		int roundNum = Clock.getRoundNum();
+//		if (roundNum == lastUpdateRobot && roundNum == lastUpdateMine)
+//			return;
+		reset(true);
+		RobotInfo rinfo;
+		Boolean mobile;
+		GameObject[] objects = sensor.senseNearbyGameObjects(GameObject.class);
+		for (GameObject o: objects) {
+			if (o instanceof Mine) {
+				MapLocation loc = ((Mine)o).getLocation();
+				GameObject object;
+				try {
+					object = sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND);
+					if (object == null || sensor.senseRobotInfo((Robot) object).chassis != Chassis.BUILDING) {
+						emptyMines.add(loc);
+					} else {
+						if (object.getTeam() == myRC.getTeam()) {
+							allyMines.add(loc);
+						} else {
+							enemyMines.add(loc);
+						}
+					}
+				} catch (GameActionException e) {
+					e.printStackTrace();
+				}
+				continue;
+			}
+			try {
+				rinfo = sensor.senseRobotInfo((Robot)o);
+				mobile = rinfo.on && rinfo.chassis != Chassis.BUILDING && rinfo.chassis != Chassis.DUMMY;
+//				if (o.getTeam() == myRC.getTeam()) {
+//					if (mobile)
+//						allyMobile.add(rinfo);
+//					else
+//						allyImmobile.add(rinfo);
+//				} 
+				if (o.getTeam() == myRC.getTeam().opponent()) {
+					if (mobile) {
+						enemyMobile.add(rinfo);
+					} else {
+						enemyImmobile.add(rinfo);
+					}
+				} 
+//				else if (rinfo.chassis == Chassis.DEBRIS) {
+//					debris.add(rinfo);
+//				}
+			} catch (GameActionException e) {
+			}
+		}
+//		lastUpdateRobot = roundNum;
+//		lastUpdateMine = roundNum;
 	}
 	
 	public void senseMine() {

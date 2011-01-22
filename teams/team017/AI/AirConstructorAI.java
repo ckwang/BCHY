@@ -31,6 +31,14 @@ public class AirConstructorAI extends AI {
 
 	private int id;
 	
+	private boolean needStay = false;
+	private boolean arrivedGatheringLoc = true;
+	private MapLocation scoutingLocation;
+	private Direction scoutingDir;
+	private int order;
+	
+	private int scoutingResponseDistance = 100;
+	
 	private Set<MapLocation> mineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> recyclerLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
@@ -43,6 +51,7 @@ public class AirConstructorAI extends AI {
 	public AirConstructorAI(RobotController rc) {
 		super(rc);
 		id = rc.getRobot().getID();
+		scoutingLocation = null;
 	}
 	
 	@Override
@@ -59,11 +68,12 @@ public class AirConstructorAI extends AI {
 		// ask for mine locations
 		while (controllers.comm.isActive())
 			yield();
-		msgHandler.queueMessage(new MineInquiryMessage());
+		msgHandler.queueMessage(new ScoutingInquiryMessage(true));
+		yield();
+//		msgHandler.queueMessage(new MineInquiryMessage());
 		
 		while (true) {
 			
-			controllers.myRC.setIndicatorString(0, builtIdleRound + "");
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 			try {
@@ -79,7 +89,6 @@ public class AirConstructorAI extends AI {
 						}
 					}
 					if (!hasAdjacentMine) {
-						msgHandler.queueMessage(new BuildingLocationInquiryMessage(nearestMine));
 						builtIdleRound = 50;
 						nearestMine = null;
 					}
@@ -90,25 +99,34 @@ public class AirConstructorAI extends AI {
 			} catch (Exception e) {e.printStackTrace();}
 			
 
-			if (builtIdleRound == 0)
 				navigate();
-			else if (Clock.getRoundNum() % 5 == 0)
-				msgHandler.queueMessage(new MineInquiryMessage());
 
-			
 //			String s = "";
 //			for (MapLocation loc : mineLocations) {
 //				s += loc.toString();
 //			}
 //			
 //			controllers.myRC.setIndicatorString(0, s);
-//			
+			
 //			s = "";
 //			for (MapLocation loc : recyclerLocations) {
 //				s += loc.toString();
 //			}
 //			controllers.myRC.setIndicatorString(1, s);
-//			
+			
+			if ( controllers.myRC.getLocation().distanceSquaredTo(scoutingLocation) < controllers.comm.type().range )
+				msgHandler.queueMessage(new MineInquiryMessage());
+			
+			if (arrivedGatheringLoc && mineLocations.size() == 0){
+				
+				if (scoutingDir != null){
+					if( gridMap.updateScoutLocation(scoutingDir) ){
+						scoutingLocation = gridMap.getScoutLocation();
+						arrivedGatheringLoc = false;
+					}
+				}
+			}
+				
 			yield();
 		}
 	}
@@ -125,43 +143,81 @@ public class AirConstructorAI extends AI {
 				if (handler.getConstructorID() == id) {
 					mineLocations.addAll(handler.getMineLocations());
 				}
+				if ( handler.getSourceLocation().equals(scoutingLocation) ){
+					arrivedGatheringLoc = true;
+				}
 				break;
 			}
 			
-			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
-
-				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
-				
-//				controllers.myRC.setIndicatorString(0, "Type" +handler.getUnitType() + " " +  Clock.getRoundNum());
-//				controllers.myRC.setIndicatorString(1, "current location:" + controllers.myRC.getLocation());
-//				controllers.myRC.setIndicatorString(2, "build loc:" + handler.getBuildableLocation());
-				
-//				// see if the message is intended for it
-//				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
+//			case BUILDING_LOCATION_RESPONSE_MESSAGE: {
+//
+//				BuildingLocationResponseMessage handler = new BuildingLocationResponseMessage(msg);
+//				
+////				controllers.myRC.setIndicatorString(0, "Type" +handler.getUnitType() + " " +  Clock.getRoundNum());
+////				controllers.myRC.setIndicatorString(1, "current location:" + controllers.myRC.getLocation());
+////				controllers.myRC.setIndicatorString(2, "build loc:" + handler.getBuildableLocation());
+//				
+////				// see if the message is intended for it
+////				if (handler.getConstructorID() != controllers.myRC.getRobot().getID())
+////					break;
+//
+//				// if it is not built
+//				if (builtLocations.contains(handler.getSourceLocation()))
 //					break;
+//
+//				UnitType type = handler.getUnitType();
+//				if (type == null) { // there is nothing to build
+//					builtLocations.add(handler.getSourceLocation());
+//					builtIdleRound = 0;
+//				} else if (handler.getBuildableLocation() != null) {
+//					MapLocation buildLoc = handler.getBuildableLocation();
+//					if (buildBuildingAtLoc(buildLoc, type)) {
+//						if (type == UnitType.FACTORY)
+//							msgHandler.queueMessage(new MineInquiryMessage());
+//						builtIdleRound = 50;
+////						msgHandler.queueMessage(new BuildingLocationInquiryMessage(handler.getSourceLocation()));
+//						yield();
+//					}
+//				}
+//
+//				break;
+//			}
+			
+			case SCOUTING_RESPONSE_MESSAGE: {
+				ScoutingResponseMessage handler = new ScoutingResponseMessage(msg);
+				controllers.myRC.setIndicatorString(2, "received");
+				if (handler.getTelescoperID() == id && handler.getSourceLocation().distanceSquaredTo(currentLoc) < scoutingResponseDistance ) {
+					scoutingResponseDistance = handler.getSourceLocation().distanceSquaredTo(currentLoc);
+					scoutingDir = handler.getScoutingDirection();
 
-				// if it is not built
-				if (builtLocations.contains(handler.getSourceLocation()))
-					break;
+					scoutingLocation = homeLocation;
+				}
+				
+				break;
+			}
+			
+			
+			case GRID_MAP_MESSAGE: {
+				GridMapMessage handler = new GridMapMessage(msg);
+				// update the borders
+				int[] newBorders = handler.getBorders();
 
-				UnitType type = handler.getUnitType();
-				if (type == null) { // there is nothing to build
-					builtLocations.add(handler.getSourceLocation());
-					builtIdleRound = 0;
-				} else if (handler.getBuildableLocation() != null) {
-					MapLocation buildLoc = handler.getBuildableLocation();
-					if (buildBuildingAtLoc(buildLoc, type)) {
-						if (type == UnitType.FACTORY)
-							msgHandler.queueMessage(new MineInquiryMessage());
-						builtIdleRound = 50;
-						msgHandler.queueMessage(new BuildingLocationInquiryMessage(handler.getSourceLocation()));
-						yield();
+				for (int i = 0; i < 4; ++i) {
+					if (newBorders[i] != -1) {
+						if (borders[i] != newBorders[i]) {
+							borders[i] = newBorders[i];
+						}
 					}
 				}
 
+				homeLocation = handler.getHomeLocation();
+				if (scoutingLocation == null)
+					scoutingLocation = homeLocation;
+				computeEnemyBaseLocation();
+				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
+
 				break;
 			}
-			
 				
 			}
 		}
@@ -187,6 +243,7 @@ public class AirConstructorAI extends AI {
 		
 		findNearestMine();
 		
+		controllers.myRC.setIndicatorString(0, "Building Recycler");
 		if (nearestMine.x == 0) {
 			nearestMine = null;
 			return false;
@@ -274,62 +331,53 @@ public class AirConstructorAI extends AI {
 	}
 	
 	private void navigate() {
+		
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		Direction currentDir = controllers.myRC.getDirection();
+		
+		if (controllers.motor.isActive())
+			return;
+		
+		Direction desDir;
+		
 		if (nearestMine != null) {
-			while (!controllers.myRC.getLocation().equals(nearestMine)) {
-				MapLocation myloc = controllers.myRC.getLocation();
-				Direction mydir = controllers.myRC.getDirection();
-				Direction todest = myloc.directionTo(nearestMine);
-				if (mydir != todest) {
-					while (!setDirection(todest))
-						yield();
-				}
-				while (controllers.motor.isActive())
-					yield();
-				if (!controllers.motor.canMove(todest)) {
-					while (!setDirection(todest.rotateLeft()))
-							yield();
-					while (controllers.motor.isActive())
-						yield();
-					if (moveForward())
-						continue;
-					while (!setDirection(todest.rotateRight()))
-						yield();
-					while (controllers.motor.isActive())
-						yield();
-				}
-				moveForward();
-				yield();
-			}
+			desDir = currentLoc.directionTo(nearestMine);
+			if (desDir == Direction.OMNI)
+				return;
+		} else if ( !needStay ) {
+			desDir = currentLoc.directionTo(scoutingLocation);
+			if (desDir == Direction.OMNI)
+				return;
+		}
+		else {
+			return;
 		}
 		
-	}
-	
-	public boolean moveForward() {
-		if (!controllers.motor.isActive() && controllers.motor.canMove(controllers.myRC.getDirection())) {
-			try {
-				controllers.motor.moveForward();
-				return true;
+		try{
+			// Can go toward destination
+			if ( controllers.motor.canMove(desDir) ){
+				if (currentDir == desDir)
+					controllers.motor.moveForward();
+				else
+					controllers.motor.setDirection(desDir);
 			} 
-			catch (Exception e) {
-				e.printStackTrace();
+			// if can go to the 
+			else if ( controllers.motor.canMove(desDir.rotateLeft()) ){
+				if (currentDir == desDir.rotateLeft())
+					controllers.motor.moveForward();
+				else
+					controllers.motor.setDirection(desDir.rotateLeft());
 			}
-		}
-		return false;
-	}
-	
-	public boolean setDirection(Direction dir) {
-		if (controllers.myRC.getDirection() == dir)
-			return true;
-		if (!controllers.motor.isActive()) {
-			try {
-				controllers.motor.setDirection(dir);
-				return true;
-			} 
-			catch (Exception e) {
-				e.printStackTrace();
+			else if ( controllers.motor.canMove(desDir.rotateRight()) ){
+				if (currentDir == desDir.rotateRight())
+					controllers.motor.moveForward();
+				else
+					controllers.motor.setDirection(desDir.rotateRight());
 			}
+		} catch (GameActionException e){
+			
 		}
-		return false;
+		
 	}
 	
 }

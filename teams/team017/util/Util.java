@@ -93,8 +93,7 @@ public class Util {
 			MapLocation loc, RobotLevel level, UnitType type) {
 		Robot robot;
 		try {
-			robot = (Robot) controllers.sensor
-					.senseObjectAtLocation(loc, level);
+			robot = (Robot) controllers.sensor.senseObjectAtLocation(loc, level);
 			ComponentType[] parts = controllers.sensor.senseRobotInfo(robot).components;
 
 			for (ComponentType com : type.allComs) {

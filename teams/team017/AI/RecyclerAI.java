@@ -26,6 +26,9 @@ public class RecyclerAI extends BuildingAI {
 	private int inquiryIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 	private boolean built = false;
+	private boolean clusterIsDone = false;
+	private BuilderController recycler;
+	private BuilderController constructor;
 
 	int [] unitRatios = {1, 0, 0, 0, 1};
 	int [] cumulatedRatios = new int[5];
@@ -33,7 +36,8 @@ public class RecyclerAI extends BuildingAI {
 	
 	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.CHRONO_APOCALYPSE};
 	double fluxThresholds = 0.3;
-	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
+//	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
+	double resourceThresholds = 100;
 	
 	private Queue<UnitType> constructingQueue;
 	private UnitType unitUnderConstruction;
@@ -49,9 +53,12 @@ public class RecyclerAI extends BuildingAI {
 		constructingQueue = new ArrayDeque<UnitType>(10);
 		constructingQueue.add(UnitType.TELESCOPER);
 		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-		constructingQueue.add(UnitType.TELESCOPER);
 		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 		constructingQueue.add(UnitType.TELESCOPER);
+		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+		constructingQueue.add(UnitType.TELESCOPER);
+		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 		constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 
 		updateRatios();
@@ -67,12 +74,13 @@ public class RecyclerAI extends BuildingAI {
 		super.yield();
 		if (inquiryIdleRound != 0)
 			inquiryIdleRound--;
+
 	}
 	
 
 	@Override
 	public void proceed() {
-		
+		recycler = controllers.builder;
 		if (Clock.getRoundNum() <= 5)
 			init();
 		else{
@@ -93,9 +101,9 @@ public class RecyclerAI extends BuildingAI {
 					controllers.myRC.yield();
 				try {
 					// build an antenna on itself
-					while(controllers.builder.isActive())
+					while(recycler.isActive())
 						controllers.myRC.yield();
-					controllers.builder.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
+					recycler.build(ComponentType.ANTENNA, controllers.myRC.getLocation(), RobotLevel.ON_GROUND);
 					yield();
 				} catch (Exception e1) {
 					System.out.println("caught exception:");
@@ -109,10 +117,65 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
-				if (buildingLocs.towerLocations.size() == 0 && buildingLocs.factoryLocation == null && buildingLocs.armoryLocation == null)
+				controllers.myRC.setIndicatorString(0, "myMine:" + myMine + "");
+				controllers.myRC.setIndicatorString(1, "clusterIsDone:" + clusterIsDone);
+
+				if (!clusterIsDone) {
+					clusterIsDone = true;
 					checkAdjacentRecyclers();
+					Mine[] mines = controllers.sensor.senseNearbyGameObjects(Mine.class);
+					for (Mine mine : mines) {
+						if (mine.getLocation() != currentLoc) {
+							Robot r = (Robot) controllers.sensor.senseObjectAtLocation(mine.getLocation(), RobotLevel.ON_GROUND);
+							if (r == null) {
+								clusterIsDone = false;
+								break;
+							} else if (r.getTeam().equals(controllers.self.getTeam())){
+								RobotInfo info = controllers.sensor.senseRobotInfo(r);
+								if (info.chassis != Chassis.BUILDING) {
+									clusterIsDone = false;
+									break;
+								} else {
+									boolean containsRecycler = false;
+									for (ComponentType c: info.components) {
+										if (c == ComponentType.RECYCLER) {
+											containsRecycler = true;
+											break;
+										}
+									}
+									if (!containsRecycler) {
+										clusterIsDone = false;
+										break;
+									}
+
+								}
+								
+							}
+						}
+					}	
+				} else if (constructor == null) {
+
+					if (birthRoundNum < 200 || myMine == null || controllers.myRC.getTeamResources() > 400) {
+						while (recycler.isActive())
+							yield();
+						recycler.build(ComponentType.CONSTRUCTOR, currentLoc, RobotLevel.ON_GROUND);
+						yield();
+						constructor = controllers.builder;
+						controllers.builder = recycler;	
+					}
+				}
+				
+				
+				if (constructor != null) {
+					try {
+						construct();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 				
 				processMessages();
+				
 				
 				double fluxRate = getEffectiveFluxRate();
 
@@ -150,7 +213,7 @@ public class RecyclerAI extends BuildingAI {
 			// install an antenna to the adjacent constructor
 			RobotInfo info = senseAdjacentChassis(Chassis.LIGHT);
 			if (info != null && controllers.myRC.getTeamResources() >= 2 * ComponentType.ANTENNA.cost && !Util.containsComponent(info.components,ComponentType.ANTENNA)) {
-				controllers.builder.build(ComponentType.ANTENNA, info.location, RobotLevel.ON_GROUND);
+				recycler.build(ComponentType.ANTENNA, info.location, RobotLevel.ON_GROUND);
 			}
 			Direction dir = Direction.NORTH;
 			for (int i = 0; i < buildingLocs.emptySize; i++) {
@@ -263,10 +326,11 @@ public class RecyclerAI extends BuildingAI {
 							if (loc != null) {
 								switch(i) {
 								case 4:
-									if (buildingLocs.towerLocations.size() == 0) {
-										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
-										inquiryIdleRound = 5;
-									} else if (buildingLocs.factoryLocation == null && buildingLocs.towerLocations.size() > 0) {
+//									if (buildingLocs.towerLocations.size() == 0) {
+//										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
+//										inquiryIdleRound = 5;
+//									} else 
+									if (buildingLocs.factoryLocation == null && buildingLocs.towerLocations.size() == 0) {
 										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.FACTORY));
 										inquiryIdleRound = 3;
 									} else if (buildingLocs.factoryLocation != null && buildingLocs.armoryLocation == null) {
@@ -307,72 +371,73 @@ public class RecyclerAI extends BuildingAI {
 							}
 						}
 						
-					} else {
-							for (int i = 4; i > 0; i--) {
-								loc = buildingLocs.consecutiveEmpties(i);
-								if (loc != null) {
-									switch(i) {
-									case 4:
-										if (buildingLocs.factoryLocation == null) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
-											inquiryIdleRound = 5;
-										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-											inquiryIdleRound = 3;
-										} else if (buildingLocs.railgunTowerLocations.size() != 0 && buildingLocs.armoryLocation == null) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
-											inquiryIdleRound = 5;
-										} else {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-										}
-										break;
-									case 3:
-										if (buildingLocs.factoryLocation == null) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
-											inquiryIdleRound = 3;
-										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-											inquiryIdleRound = 5;
-										} else if (buildingLocs.armoryLocation == null){
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
-											inquiryIdleRound = 5;
-										} else {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-										}
-										break;
-									case 2:
-										// Initially has 2 empties only
-										if (buildingLocs.factoryLocation == null) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
-											inquiryIdleRound = 5;
-										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-											inquiryIdleRound = 5;
-										} else if (buildingLocs.rotateLeft(loc) == buildingLocs.factoryLocation && buildingLocs.armoryLocation == null) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
-											inquiryIdleRound = 5;
-										} else {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-										}
-										break;
-									case 1:
-										if (buildingLocs.factoryLocation == null) {
-											if (buildingLocs.towerLocations.size() == 0) {
-												msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
-												inquiryIdleRound = 5;
-											}
-										} else if(buildingLocs.railgunTowerLocations.size() == 0) {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-											inquiryIdleRound = 5;
-										} else {
-											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-										}
-										break;
-									}
-								break;
-								}
-							}	
-					}
+					} 
+//					else {
+//							for (int i = 4; i > 0; i--) {
+//								loc = buildingLocs.consecutiveEmpties(i);
+//								if (loc != null) {
+//									switch(i) {
+//									case 4:
+//										if (buildingLocs.factoryLocation == null) {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
+//											inquiryIdleRound = 5;
+//										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+//											inquiryIdleRound = 3;
+//										} else if (buildingLocs.railgunTowerLocations.size() != 0 && buildingLocs.armoryLocation == null) {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
+//											inquiryIdleRound = 5;
+//										} else {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
+//										}
+//										break;
+//									case 3:
+//										if (buildingLocs.factoryLocation == null) {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
+//											inquiryIdleRound = 3;
+//										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+//											inquiryIdleRound = 5;
+//										} else if (buildingLocs.armoryLocation == null){
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
+//											inquiryIdleRound = 5;
+//										} else {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
+//										}
+//										break;
+//									case 2:
+//										// Initially has 2 empties only
+//										if (buildingLocs.factoryLocation == null) {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
+//											inquiryIdleRound = 5;
+//										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+//											inquiryIdleRound = 5;
+//										} else if (buildingLocs.rotateLeft(loc) == buildingLocs.factoryLocation && buildingLocs.armoryLocation == null) {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
+//											inquiryIdleRound = 5;
+//										} else {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
+//										}
+//										break;
+//									case 1:
+//										if (buildingLocs.factoryLocation == null) {
+//											if (buildingLocs.towerLocations.size() == 0) {
+//												msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
+//												inquiryIdleRound = 5;
+//											}
+//										} else if(buildingLocs.railgunTowerLocations.size() == 0) {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
+//											inquiryIdleRound = 5;
+//										} else {
+//											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
+//										}
+//										break;
+//									}
+//								break;
+//								}
+//							}	
+//					}
 					
 				}
 				break;
@@ -451,7 +516,7 @@ public class RecyclerAI extends BuildingAI {
 						}
 						// build an antenna if it doesn't have one
 						if (!Util.containsComponent(controllers, buildingLocation, RobotLevel.ON_GROUND, ComponentType.ANTENNA)) {
-							controllers.builder.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
+							recycler.build(ComponentType.ANTENNA, handler.getBuildingLocation(), RobotLevel.ON_GROUND);
 						}
 					}
 				}
@@ -535,7 +600,7 @@ public class RecyclerAI extends BuildingAI {
 			// If not, build one on it
 			if (!hasAntenna) {
 				if (controllers.myRC.getTeamResources() > 10)
-					controllers.builder.build(ComponentType.ANTENNA, maxEmptyLocation, RobotLevel.ON_GROUND);
+					recycler.build(ComponentType.ANTENNA, maxEmptyLocation, RobotLevel.ON_GROUND);
 			}
 			encodeEmptyNumInDirection();
 			controllers.myRC.turnOn(maxEmptyLocation, RobotLevel.ON_GROUND);
@@ -553,37 +618,170 @@ public class RecyclerAI extends BuildingAI {
 	}
 	
 	private void constructUnit() {
-		if ( constructingQueue.size() == 0 )
+		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
-		else if ( unitUnderConstruction == null )
+		else if ( unitUnderConstruction == null ){
 			unitUnderConstruction = constructingQueue.poll();
-		
-		ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
-		
-		if (chassisBuilder == ComponentType.RECYCLER) {
-			//Cannot be built by recycler itself
-			if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
-				if (buildingSystem.constructUnit(unitUnderConstruction)) {
-					++unitConstructed;
-					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
-				}
-			} else {
-				MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
-				if (buildLoc != null) {
-					if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
+		}
+			
+			ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
+			
+			if (chassisBuilder == ComponentType.RECYCLER) {
+				//Cannot be built by recycler itself
+				if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
+					if (buildingSystem.constructUnit(unitUnderConstruction)) {
 						++unitConstructed;
 						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
-						
+					}
+				} else {
+					MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
+					if (buildLoc != null) {
+						if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
+							++unitConstructed;
+							msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+							
+						}
 					}
 				}
+			} else {
+				if (buildingLocs.getLocations(chassisBuilder) != null) {
+					msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), unitUnderConstruction));
+					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+				}
 			}
+		
+	}
+	
+	private void construct() throws GameActionException {
+		MapLocation loc;
+		if (birthRoundNum < 200 || myMine == null) {
+			for (int i = 4; i > 0; i--) {
+//				controllers.myRC.setIndicatorString(0, i + "");
+				loc = buildingLocs.consecutiveEmpties(i);
+				if (loc != null) {
+					switch(i) {
+					case 4:
+						if (buildingLocs.factoryLocation == null) {
+							constructBuilding (buildingLocs.rotateRight(loc), UnitType.FACTORY);
+						} else if (buildingLocs.factoryLocation != null && buildingLocs.armoryLocation == null) {
+							constructBuilding (buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY);
+						}
+						break;
+					case 3:
+						if (buildingLocs.factoryLocation == null) {
+							constructBuilding (loc, UnitType.FACTORY);
+						} else if (buildingLocs.factoryLocation != null && buildingLocs.armoryLocation == null) {
+							constructBuilding (buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY);
+						}
+						break;
+					case 2:
+						// Initially has 2 empties only
+						if (buildingLocs.towerLocations.size() == 0 && buildingLocs.factoryLocation == null) {
+							msgHandler.clearOutQueue();
+							msgHandler.queueMessage(new NotEnoughSpaceMessage());
+							msgHandler.process();
+							controllers.myRC.turnOff();
+							inquiryIdleRound = 5;
+						} else if (buildingLocs.armoryLocation == null) {
+							constructBuilding (buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY);
+							
+						}
+						break;
+					case 1:
+						if (controllers.myRC.getTeamResources() > 400 && buildingLocs.towerLocations.size() == 0)
+							constructBuilding(loc, UnitType.TOWER);
+						break;
+					}
+				break;
+				}
+			}
+			
 		} else {
-			if (buildingLocs.getLocations(chassisBuilder) != null) {
-				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), unitUnderConstruction));
-				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+			for (int i = 4; i > 0; i--) {
+//				controllers.myRC.setIndicatorString(0, i + "");
+				loc = buildingLocs.consecutiveEmpties(i);
+				if (loc != null) {
+					switch(i) {
+					case 4:
+						if (buildingLocs.factoryLocation == null) 
+							constructBuilding (buildingLocs.rotateRight(loc), UnitType.FACTORY);
+						else if (buildingLocs.railgunTowerLocations.size() == 0)
+							constructBuilding (buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER);
+						break;
+					case 3:
+						if (buildingLocs.factoryLocation == null) 
+							constructBuilding (loc, UnitType.FACTORY);
+						else if (buildingLocs.railgunTowerLocations.size() == 0)
+							constructBuilding (buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER);
+						break;
+					case 2:
+						if (buildingLocs.factoryLocation == null)
+							constructBuilding (loc, UnitType.FACTORY);
+						else if (buildingLocs.railgunTowerLocations.size() == 0)
+							constructBuilding (buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER);
+						break;
+					case 1:
+						if (buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() == 0)
+							constructBuilding(buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER);
+						break;
+					}
+				break;
+				}
 			}
 		}
-		
+	}
+	
+	private boolean constructBuilding(MapLocation buildLoc, UnitType type) {
+		try {
+			if (constructor == null)
+				return false;
+
+			if (type == UnitType.RAILGUN_TOWER && buildingLocs.factoryLocation == null)
+				return false;
+			
+			while (constructor.isActive() || controllers.myRC.getTeamResources() < 90)
+				yield();
+			if (constructor.canBuild(Chassis.BUILDING, buildLoc))
+				constructor.build(Chassis.BUILDING, buildLoc);
+			else
+				return false;
+
+			switch (type) {
+			case FACTORY:
+				while (constructor.isActive() || controllers.myRC.getTeamResources() < 80)
+					yield();
+				constructor.build(ComponentType.FACTORY, buildLoc, RobotLevel.ON_GROUND);
+				buildingSystem.constructComponent(buildLoc, UnitType.FACTORY);
+				break;
+				
+			case ARMORY:
+				while (constructor.isActive() || controllers.myRC.getTeamResources() < 80)
+					yield();
+				constructor.build(ComponentType.ARMORY, buildLoc, RobotLevel.ON_GROUND);
+				buildingSystem.constructComponent(buildLoc, UnitType.ARMORY);
+				break;
+				
+			case TOWER:
+				buildingSystem.constructComponent(buildLoc, UnitType.TOWER);
+				break;
+				
+			case RAILGUN_TOWER:
+				msgHandler.queueMessage(new BuildingRequestMessage(buildingLocs.factoryLocation, buildLoc, UnitType.RAILGUN_TOWER));
+				buildingSystem.constructComponent(buildLoc, UnitType.RAILGUN_TOWER);
+				break;
+			}
+			
+			buildingLocs.setLocations(type, buildLoc);
+			controllers.myRC.turnOn(buildLoc, RobotLevel.ON_GROUND);
+
+			return true;
+			
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 	private void constructUnitAtRatio() {
@@ -607,7 +805,7 @@ public class RecyclerAI extends BuildingAI {
 				if (buildingSystem.constructUnit(type)) {
 					built = true;
 					++unitConstructed;
-					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+//					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 				}
 			} else {
 				MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, type.requiredBuilders);
@@ -615,7 +813,7 @@ public class RecyclerAI extends BuildingAI {
 					if (buildingSystem.constructUnit(buildLoc,type, buildingLocs)) {
 						built = true;
 						++unitConstructed;
-						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+//						msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 						
 					}
 				}
@@ -624,7 +822,7 @@ public class RecyclerAI extends BuildingAI {
 			if (buildingLocs.getLocations(chassisBuilder) != null) {
 				built = true;
 				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), type));
-				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
+//				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 			}
 		}
 		
