@@ -135,7 +135,11 @@ public class AirConstructorAI extends AI {
 				MineResponseMessage handler = new MineResponseMessage(msg);
 				
 				if (handler.getConstructorID() == id) {
-					mineLocations.addAll(handler.getMineLocations());
+					for (MapLocation loc : handler.getMineLocations()) {
+						if (isMyBusiness(loc)) {
+							mineLocations.add(loc);
+						}
+					}
 				}
 				if ( handler.getSourceLocation().equals(scoutingLocation) ){
 					arrivedScoutingLoc = true;
@@ -217,7 +221,13 @@ public class AirConstructorAI extends AI {
 		
 	}
 	
-	private void findNearestMine () {
+	private boolean isMyBusiness(MapLocation loc) {
+		boolean ahead = ((loc.x - scoutingLocation.x) * scoutingDir.dx + (loc.y - scoutingLocation.y) * scoutingDir.dy) > 0;
+		
+		return order == 0 ? ahead : !ahead;
+	}
+	
+	private void findNearestMine() {
 		if (nearestMine == null)
 			nearestMine = new MapLocation(0, 0);
 
@@ -245,10 +255,11 @@ public class AirConstructorAI extends AI {
 		// if there is a eligible site
 		if (currentLoc.distanceSquaredTo(nearestMine) <= 2) {
 			if (controllers.builder.canBuild(Chassis.BUILDING, nearestMine)) {
-				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER))
+				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER)) {
 					controllers.myRC.setIndicatorString(2, "BuildRecycler");
 					recyclerLocations.add(nearestMine);
 					return true;
+				}
 			} else {
 				recyclerLocations.add(nearestMine);
 			}
