@@ -45,6 +45,7 @@ public class AirConstructorAI extends AI {
 	private Set<MapLocation> builtLocations = new HashSet<MapLocation>();
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 	private int roundSinceLastBuilt = 0;
+	private int roundSinceLastInquired = 0;
 	
 	MapLocation nearestMine = null;
 	
@@ -75,6 +76,8 @@ public class AirConstructorAI extends AI {
 		while (true) {
 			
 			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
+			controllers.myRC.setIndicatorString(1, arrivedScoutingLoc + "" + mineLocations.size());
+			
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 			try {
@@ -107,10 +110,13 @@ public class AirConstructorAI extends AI {
 //			}
 //			controllers.myRC.setIndicatorString(1, s);
 			
-			if ( !arrivedScoutingLoc && controllers.myRC.getLocation().distanceSquaredTo(scoutingLocation) < controllers.comm.type().range )
+			if ( !arrivedScoutingLoc && controllers.myRC.getLocation().distanceSquaredTo(scoutingLocation) < controllers.comm.type().range &&
+					Clock.getRoundNum() - roundSinceLastInquired > 10) {
 				msgHandler.queueMessage(new MineInquiryMessage());
+				roundSinceLastInquired = Clock.getRoundNum();
+			}
 			
-			if (arrivedScoutingLoc && mineLocations.size() == 0){
+			if (arrivedScoutingLoc && mineLocations.size() == recyclerLocations.size()){
 				
 				if (scoutingDir != null){
 					if( gridMap.updateScoutLocation(scoutingDir) ){
@@ -186,6 +192,7 @@ public class AirConstructorAI extends AI {
 				if (handler.getTelescoperID() == id && handler.getSourceLocation().distanceSquaredTo(currentLoc) < scoutingResponseDistance ) {
 					scoutingResponseDistance = handler.getSourceLocation().distanceSquaredTo(currentLoc);
 					scoutingDir = handler.getScoutingDirection();
+					order = handler.getOrder();
 
 					scoutingLocation = homeLocation;
 				}

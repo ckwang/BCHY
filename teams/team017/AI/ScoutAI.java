@@ -36,6 +36,8 @@ public class ScoutAI extends AI {
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
 	
+	private int inquiryQuota;
+	
 	private double prevHp = 0;
 	private boolean attacked = false;
 	
@@ -205,19 +207,23 @@ public class ScoutAI extends AI {
 					}
 				}
 				
+				inquiryQuota = 2;
+				
 				break;
 			}
 			
 			case MINE_INQUIRY_MESSAGE: {
 				MineInquiryMessage handler = new MineInquiryMessage(msg);
 				
-				msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
-				
 				if ( scouted ){
-					if( gridMap.updateScoutLocation(scoutingDir) ){
+					msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
+					inquiryQuota--;
+					
+					if ( inquiryQuota == 0 && gridMap.updateScoutLocation(scoutingDir) ) {
 						scoutingLocation = gridMap.getScoutLocation();
 						scouted = false;
-						}
+						inquiryQuota = 2;
+					}
 				}
 				
 				controllers.myRC.setIndicatorString(2, "MINE_INQUIRY_MESSAGE " + scoutingLocation);
