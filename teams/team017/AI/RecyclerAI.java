@@ -679,6 +679,7 @@ public class RecyclerAI extends BuildingAI {
 		
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
+
 		else if ( unitUnderConstruction == null){
 //				|| (constructIdleRound == 0 && constructingQueue.size() > 0)) {
 			UnitType unitUnderConstruction = constructingQueue.peek();
