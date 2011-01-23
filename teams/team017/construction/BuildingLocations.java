@@ -27,6 +27,7 @@ public class BuildingLocations {
 	public MapLocation factoryLocation;
 	public List<MapLocation> towerLocations = new ArrayList<MapLocation>();
 	public List<MapLocation> railgunTowerLocations = new ArrayList<MapLocation>();
+	public int adjacentBuilders = 0;
 	
 	/*
 	 * 7 0 1
@@ -133,12 +134,24 @@ public class BuildingLocations {
 		switch (type) {
 		case RECYCLER:
 			recyclerLocation = loc;
+			if (loc != null) 
+				adjacentBuilders |= Util.RECYCLER_CODE;
+			else
+				adjacentBuilders &= ~Util.RECYCLER_CODE;
 			break;
 		case ARMORY:
 			armoryLocation = loc;
+			if (loc != null) 
+				adjacentBuilders |= Util.ARMORY_CODE;
+			else
+				adjacentBuilders &= ~Util.ARMORY_CODE;
 			break;
 		case FACTORY:
 			factoryLocation = loc;
+			if (loc != null) 
+				adjacentBuilders |= Util.FACTORY_CODE;
+			else
+				adjacentBuilders &= ~Util.FACTORY_CODE;
 			break;
 		case TOWER:
 			towerLocations.add(loc);
@@ -153,12 +166,24 @@ public class BuildingLocations {
 		switch (type) {
 		case RECYCLER:
 			recyclerLocation = loc;
+			if (loc != null) 
+				adjacentBuilders |= Util.RECYCLER_CODE;
+			else
+				adjacentBuilders &= ~Util.RECYCLER_CODE;
 			break;
 		case ARMORY:
 			armoryLocation = loc;
+			if (loc != null) 
+				adjacentBuilders |= Util.ARMORY_CODE;
+			else
+				adjacentBuilders &= ~Util.ARMORY_CODE;
 			break;
 		case FACTORY:
 			factoryLocation = loc;
+			if (loc != null) 
+				adjacentBuilders |= Util.FACTORY_CODE;
+			else
+				adjacentBuilders &= ~Util.FACTORY_CODE;
 			break;
 		}
 	}

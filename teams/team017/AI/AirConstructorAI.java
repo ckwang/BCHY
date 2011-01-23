@@ -8,6 +8,7 @@ import java.util.Set;
 import team017.construction.UnitType;
 import team017.message.BuildingLocationInquiryMessage;
 import team017.message.BuildingLocationResponseMessage;
+import team017.message.ConstructBaseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
@@ -272,6 +273,7 @@ public class AirConstructorAI extends AI {
 			if (controllers.builder.canBuild(Chassis.BUILDING, nearestMine)) {
 				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER)) {
 					recyclerLocations.add(nearestMine);
+//					msgHandler.queueMessage(new ConstructBaseMessage(nearestMine, UnitType.ARMORY));
 					return true;
 				}
 			} else {

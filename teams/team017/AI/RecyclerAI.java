@@ -2,6 +2,7 @@ package team017.AI;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 import team017.construction.UnitType;
 import team017.message.BuildingLocationResponseMessage;
@@ -164,8 +165,9 @@ public class RecyclerAI extends BuildingAI {
 						}
 					}	
 				} else if (constructor == null) {
+					boolean needToBuild = buildFactory | buildArmory | buildTower | buildRailgunTower;
 					if (!recycler.isActive() && 
-							(birthRoundNum < 200 || myMine == null || controllers.myRC.getTeamResources() > 400) &&
+							(birthRoundNum < 200 || myMine == null || needToBuild || controllers.myRC.getTeamResources() > 400) &&
 							controllers.myRC.getTeamResources() > ComponentType.CONSTRUCTOR.cost * 1.2) {
 //						while (recycler.isActive())
 //							yield();
@@ -176,7 +178,7 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 				
-
+//				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "Armory:" + buildArmory);
 				if (constructor != null) {
 					try {
 						constructBase();
@@ -277,6 +279,25 @@ public class RecyclerAI extends BuildingAI {
 				break;
 			}
 			
+			case CONSTRUCT_UNIT_MESSAGE: {
+				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
+				if (handler.getBuilderLocation().equals(currentLoc)) {
+					if (handler.isList()) {
+						if (handler.isUrgent()) {
+							for (int i = handler.getTypes().size() - 1; i >= 0; i--)
+								constructingQueue.addFirst(handler.getTypes().get(i));
+						} else {
+							constructingQueue.addAll(handler.getTypes());
+						}	
+					} else {
+						if (handler.isUrgent())
+							constructingQueue.addFirst(handler.getType());
+						else
+							constructingQueue.addLast(handler.getType());
+					}
+				}
+			}
+			
 			case CONSTRUCT_BASE_MESSAGE:{
 				ConstructBaseMessage handler = new ConstructBaseMessage(msg);
 				// Check if is intended for it
@@ -285,6 +306,10 @@ public class RecyclerAI extends BuildingAI {
 						while (recycler.isActive())
 							yield();
 						recycler.build(ComponentType.CONSTRUCTOR, currentLoc, RobotLevel.ON_GROUND);
+						yield();
+						constructor = controllers.builder;
+						controllers.builder = recycler;	
+
 					} 
 					switch (handler.getType()) {
 					case FACTORY:
@@ -550,7 +575,7 @@ public class RecyclerAI extends BuildingAI {
 				UnitReadyMessage handler = new UnitReadyMessage(msg);
 				
 				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
-					controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + handler.getUnitType());
+//					controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + handler.getUnitType());
 					if (handler.getUnitType() == unitUnderConstruction) {
 						unitUnderConstruction = null;
 					}
@@ -657,39 +682,63 @@ public class RecyclerAI extends BuildingAI {
 		
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
-		else if ( unitUnderConstruction == null || (constructIdleRound == 0 && constructingQueue.size() > 0)) {
+		else if ( unitUnderConstruction == null){
+//				|| (constructIdleRound == 0 && constructingQueue.size() > 0)) {
 			UnitType unitUnderConstruction = constructingQueue.peek();
 			
-			ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
+//			controllers.myRC.setIndicatorString(0, unitUnderConstruction + "" + Clock.getRoundNum());
 			
-			if (chassisBuilder == ComponentType.RECYCLER) {
-				//Cannot be built by recycler itself
-				if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
-					if (buildingSystem.constructUnit(unitUnderConstruction)) {
-						++unitConstructed;
-						msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
-					}
-				} else {
-					MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
-					if (buildLoc != null) {
-						if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
+			ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
+
+			//	Get all needed builders
+			int allNeededBuilders = unitUnderConstruction.requiredBuilders | Util.getBuilderCode(chassisBuilder);
+
+			
+			//	Does not need to consider itself
+			allNeededBuilders &= ~Util.RECYCLER_CODE;
+
+			//	See if it's lack of some builders
+			buildingLocs.updateBuildingLocs();
+			int buildersLack = (allNeededBuilders ^ buildingLocs.adjacentBuilders) & allNeededBuilders;
+			
+			//	There's something lack			
+			if ((buildersLack & Util.RECYCLER_CODE) > 0) {
+				if ((buildersLack & Util.FACTORY_CODE) > 0)
+					buildFactory = true;
+				if ((buildersLack & Util.ARMORY_CODE) > 0)
+					buildArmory = true;
+
+			//	Has got all builders			
+			} else {
+				if (chassisBuilder == ComponentType.RECYCLER) {
+					//Cannot be built by recycler itself
+					if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
+						if (buildingSystem.constructUnit(unitUnderConstruction)) {
 							++unitConstructed;
 							msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
 						}
+					} else {
+						
+						MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
+						if (buildLoc != null) {
+							if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
+								++unitConstructed;
+								msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
+							}
+						}
+					}
+				} else {
+
+					if (buildingLocs.getLocations(chassisBuilder) != null) {
+						msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), unitUnderConstruction, false));	
+					} else {
+						return;
 					}
 				}
-			} else {
-				if (buildingLocs.getLocations(chassisBuilder) != null) {
-					msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), unitUnderConstruction));	
-				} else {
-					return;
-				}
+				constructIdleRound = 30;
+				this.unitUnderConstruction = constructingQueue.poll();				
 			}
-			constructIdleRound = 30;
-			this.unitUnderConstruction = constructingQueue.poll();
-
 		}
-		
 	}
 	
 	private void constructBase() throws GameActionException {
@@ -896,7 +945,7 @@ public class RecyclerAI extends BuildingAI {
 		} else {
 			if (buildingLocs.getLocations(chassisBuilder) != null) {
 				built = true;
-				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), type));
+				msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.getLocations(chassisBuilder), type, false));
 //				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));	
 			}
 		}
