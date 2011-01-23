@@ -195,7 +195,7 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 				
-				if (controllers.myRC.getTeamResources() > 200) {
+				if (controllers.myRC.getTeamResources() > 200 && constructingQueue.size() == 0) {
 					if (buildingLocs.factoryLocation != null) {
 						if (buildingLocs.railgunTowerLocations.size() == 0)
 							buildRailgunTower = true;
