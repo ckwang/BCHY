@@ -61,7 +61,6 @@ public class SoldierAI extends GroundAI {
 		
 		proceed:
 		while (true) {
-//			controllers.myRC.setIndicatorString(1, scoutingDir + "");
 			if (myUnitType != null && !controllers.weaponsAreSorted) {
 				controllers.sortWeapons(myUnitType);
 			}
@@ -141,10 +140,11 @@ public class SoldierAI extends GroundAI {
 		prevHp = rc.getHitpoints();
 		controllers.senseRobot();
 		combat.heal();
-		senseBorder();
+		if (senseBorder())	scoutingLocation = gridMap.getScoutLocation();
 		navigator.updateMap();
 		processMessages();
 		swarming = controllers.allyMobile.size() > 2;
+//		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"");
 	}
 	
 	//return has target
@@ -284,7 +284,6 @@ public class SoldierAI extends GroundAI {
 			
 			case PATROL_DIRECTION_MESSAGE: {
 				PatrolDirectionMessage handler = new PatrolDirectionMessage(msg);
-//				controllers.myRC.setIndicatorString(0, "received!");
 				
 				if (scoutingDir == null) {
 					scoutingDir = handler.getPatrolDirection();
@@ -305,7 +304,6 @@ public class SoldierAI extends GroundAI {
 
 	private void navigate() throws GameActionException {
 		if (jumper == null) {
-		
 			if (enemyBaseLoc[0] != null) {
 				if ( navigateToDestination(enemyBaseLoc[0], 9) )
 					enemyBaseLoc[0] = null;

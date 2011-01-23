@@ -54,65 +54,48 @@ abstract public class GroundAI extends AI {
 	public boolean jumpingNavigateToDestination(MapLocation des, int tolerance){
 		
 		MapLocation currentLoc = controllers.myRC.getLocation();
+		Direction desDir = currentLoc.directionTo(des);
 		int distance = currentLoc.distanceSquaredTo(des);
+		
 		
 		if (distance < tolerance)
 			return true;
-
-			
-		MapLocation jumpLoc = controllers.myRC.getLocation();
+		
 		Direction nextDir;
-		
-		do{
-			nextDir = jumpLoc.directionTo(des);
+		// if target is not traversable, back-tracing the destination
+		while (!navigator.isTraversable(des)) {
+			nextDir = currentLoc.directionTo(des);
+			des = des.subtract(nextDir);
 			
-			// arrive at destination
-			if (nextDir == Direction.OMNI){
-				break;
-			}
-				
-			jumpLoc = jumpLoc.add(nextDir);
-		}while (jumpLoc.distanceSquaredTo(currentLoc) <= 16);
-		
-		jumpLoc = jumpLoc.subtract(nextDir);
-		
-		MapLocation bestAlternativeJumpLoc = null;
-		if ( !navigator.isTraversable(jumpLoc) ){
-			
-			MapLocation temp = null;
-			
-			for (int i = 0; i < 8; i++){
-				temp = jumpLoc.add(Util.dirs[i]);
-				if( navigator.isTraversable(temp) 
-					&& temp.distanceSquaredTo(currentLoc) <= 18
-					&& temp.distanceSquaredTo(des) < distance ){
-					bestAlternativeJumpLoc = temp;
-					distance = temp.distanceSquaredTo(des);
-				}
-			}
-			
-			for (int i = 0; i < 8; i+=2){
-				temp = jumpLoc.add(Util.dirs[i], 2);
-				if( navigator.isTraversable(temp) 
-					&& temp.distanceSquaredTo(currentLoc) <= 18 
-					&& temp.distanceSquaredTo(des) < distance ){
-					bestAlternativeJumpLoc = temp;
-					distance = temp.distanceSquaredTo(des);
-				}
-			}
-			
-			if(bestAlternativeJumpLoc != null)
-				jumpLoc = bestAlternativeJumpLoc;
-		} else{
-			try {
-				controllers.jumper.jump(jumpLoc);
-			} catch (GameActionException e) {
-				e.printStackTrace();
+			// beside the source
+			if (currentLoc.distanceSquaredTo(des) <= tolerance) {
+				return true;
 			}
 		}
-		
-		
-		
+
+		controllers.myRC.setIndicatorString(2, "searching for jump location");
+		try{
+			navigator.setDestination(des);
+			MapLocation jumpLoc = navigator.getNextJumpingLoc(tolerance);
+	
+			controllers.myRC.setIndicatorString(2, "jump location: " + jumpLoc);
+			
+			if (jumpLoc == null){
+				return walkingNavigateToDestination(des, tolerance);
+			}
+			else{
+				if (controllers.myRC.getDirection() != currentLoc.directionTo(jumpLoc)) {
+					if (!controllers.motor.isActive())
+						controllers.motor.setDirection(currentLoc.directionTo(jumpLoc));
+				}
+				else if (!controllers.jumper.isActive())
+					controllers.jumper.jump(jumpLoc);
+				
+			}
+		} catch (GameActionException e) {
+			e.printStackTrace();
+			return false;
+		}
 		return false;
 	}
 	
