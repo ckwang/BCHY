@@ -128,9 +128,10 @@ public class RecyclerAI extends BuildingAI {
 		
 		
 		if (birthRoundNum < 200 || myMine == null) {
-			buildFactory = true;
-			buildArmory = true;
-			buildRailgunTower = true;
+//			buildFactory = true;
+//			buildArmory = true;
+//			buildRailgunTower = true;
+			constructingQueue.add(UnitType.CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
@@ -315,6 +316,9 @@ public class RecyclerAI extends BuildingAI {
 				DefenseInfoMessage handler = new DefenseInfoMessage(msg);
 				if (lastDefenseInfoRoundNum == 0)
 					lastDefenseInfoRoundNum = Clock.getRoundNum();
+				int [] a = handler.getEnemyNumInDir();
+//				controllers.myRC.setIndicatorString (0, Clock.getRoundNum() +"Msg:" + a[0] + ","+ a[1] + ","+ a[2] + ","+ a[3] + ","+ a[4] + ","+ a[5] + ","+ a[6] + ","+ a[7] );
+				
 				if (handler.getRecyclerLoc() == currentLoc) {
 					for (int i = 0; i < 8; i++) {
 						if (handler.getEnemyNumInDir()[i] > enemyEquivalentInDir[i]) {
@@ -466,7 +470,7 @@ public class RecyclerAI extends BuildingAI {
 				UnitReadyMessage handler = new UnitReadyMessage(msg);
 				
 				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
-					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + handler.getUnitType());
+//					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + handler.getUnitType());
 					if (handler.getUnitType() == unitUnderConstruction) {
 						if (soldierDirection.size() > 0)
 							msgHandler.queueMessage(new PatrolDirectionMessage(soldierDirection.poll(), true));
@@ -607,20 +611,20 @@ public class RecyclerAI extends BuildingAI {
 			} else {
 				if (chassisBuilder == ComponentType.RECYCLER) {
 					//Cannot be built by recycler itself
-					if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
+					if ((unitUnderConstruction.requiredBuilders ^ ~Util.RECYCLER_CODE) == 0) {
 						if (buildingSystem.constructUnit(unitUnderConstruction)) {
 							++unitConstructed;
 							msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
 						}
 					} else {
-						
+
 						MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
-						if (buildLoc != null) {
-							if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
-								++unitConstructed;
-								msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
-							}
-						}
+						while (buildLoc == null || !buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) 
+							yield();
+						++unitConstructed;
+						msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
+					
+						
 					}
 				} else {
 

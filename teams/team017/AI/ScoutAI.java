@@ -36,7 +36,7 @@ public class ScoutAI extends AI {
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
-	
+	private List<RobotInfo> tempEnemyInfo = new ArrayList<RobotInfo>();	
 
 	private List<RobotInfo> nearbyEnemy = new ArrayList<RobotInfo>();
 	
@@ -63,7 +63,7 @@ public class ScoutAI extends AI {
 		super.yield();
 		nearbyEnemy.clear();
 		controllers.scoutNearby();
-		controllers.myRC.setIndicatorString(1, controllers.distanceToNearestEnemy+"");
+//		controllers.myRC.setIndicatorString(1, controllers.distanceToNearestEnemy+"");
 		if (senseBorder())	scoutingLocation = gridMap.getScoutLocation();
 		attacked = controllers.myRC.getHitpoints() < prevHp;
 		prevHp = controllers.myRC.getHitpoints();
@@ -76,7 +76,7 @@ public class ScoutAI extends AI {
 		msgHandler.queueMessage(new ScoutingInquiryMessage(false));
 		while (scoutingDir == null) {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
-			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
+//			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
 			yield();
 		}
 			
@@ -86,7 +86,7 @@ public class ScoutAI extends AI {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 
-			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
 			if (controllers.distanceToNearestEnemy < 121 || attacked )
 				flee();
 			else
@@ -124,6 +124,8 @@ public class ScoutAI extends AI {
 							blockedMineLocations.add(m);
 					}
 				}
+				
+				tempEnemyInfo.addAll(controllers.enemyMobile);
 				
 				emptyMineLocations.addAll(controllers.emptyMines);
 				emptyMineLocations.removeAll(controllers.allyMines);
@@ -199,7 +201,7 @@ public class ScoutAI extends AI {
 			
 			case SCOUTING_RESPONSE_MESSAGE: {
 				ScoutingResponseMessage handler = new ScoutingResponseMessage(msg);
-				controllers.myRC.setIndicatorString(2, "received");
+//				controllers.myRC.setIndicatorString(2, "received");
 				if (handler.getTelescoperID() == id && handler.getSourceLocation().isAdjacentTo(controllers.myRC.getLocation())) {
 					scoutingDir = handler.getScoutingDirection();
 					leftward = handler.isLeftward();
@@ -238,7 +240,7 @@ public class ScoutAI extends AI {
 					}
 				}
 				
-				controllers.myRC.setIndicatorString(2, "MINE_INQUIRY_MESSAGE " + scoutingLocation);
+//				controllers.myRC.setIndicatorString(2, "MINE_INQUIRY_MESSAGE " + scoutingLocation);
 				yield();
 				yield();
 				break;
@@ -304,8 +306,10 @@ public class ScoutAI extends AI {
 		Direction currentDir = controllers.myRC.getDirection();
 		
 		// If the enemy is too faraway, scout nearby first
-		if (!attacked && controllers.distanceToNearestEnemy > 81)
+		if (!attacked && controllers.distanceToNearestEnemy > 81) {
+			tempEnemyInfo.clear();
 			watch();
+		}
 		
 		while ( !currentLoc.equals(neareastRecycler) ){
 
@@ -343,7 +347,8 @@ public class ScoutAI extends AI {
 			currentDir = controllers.myRC.getDirection();
 			
 			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
-				msgHandler.queueMessage(new DefenseInfoMessage(neareastRecycler, controllers.enemyMobile));
+				controllers.myRC.setIndicatorString(0, "Mobile:" + tempEnemyInfo);
+				msgHandler.queueMessage(new DefenseInfoMessage(neareastRecycler, tempEnemyInfo));
 //				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.APOCALYPSE , true));
 			}
 			
