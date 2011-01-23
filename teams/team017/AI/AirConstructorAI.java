@@ -211,6 +211,9 @@ public class AirConstructorAI extends AI {
 					scoutingDir = handler.getScoutingDirection();
 					branch = handler.isBranch();
 					leftward = handler.isLeftward();
+					if (homeLocation.distanceSquaredTo(controllers.myRC.getLocation()) > 16) {
+						gridMap.setScoutLocation(controllers.myRC.getLocation());
+					}
 
 					scoutingLocation = homeLocation;
 				}

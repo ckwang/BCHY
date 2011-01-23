@@ -133,25 +133,37 @@ public class BuildingLocations {
 	public void setLocations (UnitType type, MapLocation loc) {
 		switch (type) {
 		case RECYCLER:
-			recyclerLocation = loc;
-			if (loc != null) 
+			if (loc != null)  {
 				adjacentBuilders |= Util.RECYCLER_CODE;
-			else
+				if (recyclerLocation == null)
+					recyclerLocation = loc;
+			} else {
 				adjacentBuilders &= ~Util.RECYCLER_CODE;
+				recyclerLocation = null;
+			}
+			
 			break;
 		case ARMORY:
-			armoryLocation = loc;
-			if (loc != null) 
+			if (loc != null)  {
 				adjacentBuilders |= Util.ARMORY_CODE;
-			else
+				if (armoryLocation == null)
+					armoryLocation = loc;
+			} else {
 				adjacentBuilders &= ~Util.ARMORY_CODE;
+				armoryLocation = null;
+			}
+			
 			break;
 		case FACTORY:
-			factoryLocation = loc;
-			if (loc != null) 
+			if (loc != null)  {
 				adjacentBuilders |= Util.FACTORY_CODE;
-			else
+				if (factoryLocation == null)
+					factoryLocation = loc;
+			} else {
 				adjacentBuilders &= ~Util.FACTORY_CODE;
+				factoryLocation = null;
+			}
+			
 			break;
 		case TOWER:
 			towerLocations.add(loc);
@@ -165,25 +177,38 @@ public class BuildingLocations {
 	public void setLocations (ComponentType type, MapLocation loc) {
 		switch (type) {
 		case RECYCLER:
-			recyclerLocation = loc;
-			if (loc != null) 
+			
+			if (loc != null)  {
 				adjacentBuilders |= Util.RECYCLER_CODE;
-			else
+				if (recyclerLocation == null)
+					recyclerLocation = loc;
+			} else {
 				adjacentBuilders &= ~Util.RECYCLER_CODE;
+				recyclerLocation = null;
+			}
+			
 			break;
 		case ARMORY:
-			armoryLocation = loc;
-			if (loc != null) 
+			if (loc != null)  {
 				adjacentBuilders |= Util.ARMORY_CODE;
-			else
+				if (armoryLocation == null)
+					armoryLocation = loc;
+			} else {
 				adjacentBuilders &= ~Util.ARMORY_CODE;
+				armoryLocation = null;
+			}
+			
 			break;
 		case FACTORY:
-			factoryLocation = loc;
-			if (loc != null) 
+			if (loc != null)  {
 				adjacentBuilders |= Util.FACTORY_CODE;
-			else
+				if (factoryLocation == null)
+					factoryLocation = loc;
+			} else {
 				adjacentBuilders &= ~Util.FACTORY_CODE;
+				factoryLocation = null;
+			}
+			
 			break;
 		}
 	}

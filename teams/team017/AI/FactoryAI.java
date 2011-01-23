@@ -16,6 +16,7 @@ import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
 import team017.util.Util;
+import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -39,13 +40,14 @@ public class FactoryAI extends BuildingAI {
 
 	private Direction enemyBase; //direction to enemy base
 	private Direction[] toExplore = new Direction[3];
-	private int toExploreIndex = 0;
+	private int toExploreIndex;
 	
 	private Direction birthDir;
 	private Direction previousWatchingDir;
 	
 	public FactoryAI(RobotController rc) {
 		super(rc);
+		toExploreIndex = Clock.getRoundNum() < 400 ? 0 : 1;
 	}
 	
 	public void yield() {
@@ -83,7 +85,7 @@ public class FactoryAI extends BuildingAI {
 
 		//calculate exploring directions
 		if (enemyBaseLoc[0] != null){
-			enemyBase = controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]);
+			enemyBase = homeLocation.directionTo(enemyBaseLoc[0]);
 			toExplore[0] = enemyBase;
 			if (enemyBase.isDiagonal()) {
 				toExplore[1] = enemyBase.rotateLeft();
@@ -98,7 +100,7 @@ public class FactoryAI extends BuildingAI {
 		// Main Loop
 		while (true) {
 			try {
-
+							
 				processMessages();
 				constructing();
 				
@@ -113,6 +115,8 @@ public class FactoryAI extends BuildingAI {
 				controllers.myRC.setIndicatorString(0, "EmptyMines: " + emptyMineLocations.size() + 
 													", AlliedMines: " + alliedMineLocations.size() +  
 													", EnemyMines: " + enemyMineLocations.size());
+				controllers.myRC.setIndicatorString(1, enemyBase + "");
+
 
 				yield();
 			} catch (Exception e) {
@@ -272,6 +276,21 @@ public class FactoryAI extends BuildingAI {
 				computeEnemyBaseLocation();
 				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 				gridMap.updateScoutLocation(homeLocation);
+				
+				// calculate exploring directions
+				if (enemyBaseLoc[0] != null){
+					enemyBase = homeLocation.directionTo(enemyBaseLoc[0]);
+					toExplore[0] = enemyBase;
+					if (enemyBase.isDiagonal()) {
+						toExplore[1] = enemyBase.rotateLeft();
+						toExplore[2] = enemyBase.rotateRight();
+					} else {
+						toExplore[1] = enemyBase.rotateLeft().rotateLeft();
+						toExplore[2] = enemyBase.rotateRight().rotateRight();
+					}
+
+				}
+				
 //				gridMap.printGridMap();
 //				controllers.myRC.setIndicatorString(1, homeLocation + "," + gridMap.getScoutLocation() + gridMap.getOriginGrid() + gridMap.getScoutGrid());
 //				controllers.myRC.setIndicatorString(2, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
