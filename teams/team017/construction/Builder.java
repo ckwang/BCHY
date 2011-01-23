@@ -80,8 +80,12 @@ public class Builder {
 					}
 					
 					// turn on if the unit has all the parts
-					if (Util.containsComponent(controllers, buildLoc, type.chassis.level, type))
+					if (Util.containsComponent(controllers, buildLoc, type.chassis.level, type)) {
 						rc.turnOn(buildLoc, type.chassis.level);
+						GenericMessage msg = new UnitReadyMessage(type);
+						msgHandler.queueMessage(msg);
+						msgHandler.bypass(msg);
+					}
 					
 					return true;
 				}
@@ -116,6 +120,7 @@ public class Builder {
 						controllers.builder.build(com, buildLoc, chassis.level);
 					}
 					rc.turnOn(buildLoc, chassis.level);
+					
 					return true;
 				}
 			}

@@ -275,23 +275,26 @@ public class FactoryAI extends BuildingAI {
 					}
 				}
 				
+				boolean homeChanged = !homeLocation.equals(handler.getHomeLocation());
 				homeLocation = handler.getHomeLocation();
 				computeEnemyBaseLocation();
 				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 				gridMap.updateScoutLocation(homeLocation);
 				
-				// calculate exploring directions
-				if (enemyBaseLoc[0] != null){
-					enemyBase = homeLocation.directionTo(enemyBaseLoc[0]);
-					toExplore[0] = enemyBase;
-					if (enemyBase.isDiagonal()) {
-						toExplore[1] = enemyBase.rotateLeft();
-						toExplore[2] = enemyBase.rotateRight();
-					} else {
-						toExplore[1] = enemyBase.rotateLeft().rotateLeft();
-						toExplore[2] = enemyBase.rotateRight().rotateRight();
+				if (homeChanged) {
+					// calculate exploring directions
+					if (enemyBaseLoc[0] != null){
+						enemyBase = homeLocation.directionTo(enemyBaseLoc[0]);
+						toExplore[0] = enemyBase;
+						if (enemyBase.isDiagonal()) {
+							toExplore[1] = enemyBase.rotateLeft();
+							toExplore[2] = enemyBase.rotateRight();
+						} else {
+							toExplore[1] = enemyBase.rotateLeft().rotateLeft();
+							toExplore[2] = enemyBase.rotateRight().rotateRight();
+						}
+	
 					}
-
 				}
 				
 //				gridMap.printGridMap();
@@ -343,7 +346,8 @@ public class FactoryAI extends BuildingAI {
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				
 				if (handler.getUnitType() == UnitType.CHRONO_APOCALYPSE) {
-					msgHandler.queueMessage(new PatrolDirectionMessage(toExplore[toExploreIndex++], toExploreIndex == 2));
+					msgHandler.queueMessage(new PatrolDirectionMessage(toExplore[toExploreIndex], toExploreIndex == 2));
+					toExploreIndex = (toExploreIndex+1)%3;
 				}
 				
 				break;
