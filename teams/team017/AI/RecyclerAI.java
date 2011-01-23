@@ -128,6 +128,7 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
+				controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + constructingQueue);
 				if (!clusterIsDone) {
 					clusterIsDone = true;
 					checkAdjacentRecyclers();
@@ -698,7 +699,7 @@ public class RecyclerAI extends BuildingAI {
 			int buildersLack = (allNeededBuilders ^ buildingLocs.adjacentBuilders) & allNeededBuilders;
 			
 			//	There's something lack			
-			if ((buildersLack & Util.RECYCLER_CODE) > 0) {
+			if ((buildersLack & ~Util.RECYCLER_CODE) > 0) {
 				if ((buildersLack & Util.FACTORY_CODE) > 0)
 					buildFactory = true;
 				if ((buildersLack & Util.ARMORY_CODE) > 0)
