@@ -62,6 +62,7 @@ public class ConstructorAI extends GroundAI {
 
 				buildRecyclers();
 				
+				
 //				while (evaluateDanger());
 //
 //				

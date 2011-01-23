@@ -121,9 +121,9 @@ public class RecyclerAI extends BuildingAI {
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-//			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-//			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-//			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 		}
 		
 		while (true) {
@@ -834,11 +834,18 @@ public class RecyclerAI extends BuildingAI {
 			if (buildingLocs.factoryLocation != null) {
 				MapLocation loc1 = buildingLocs.rotateLeft(buildingLocs.factoryLocation);
 				MapLocation loc2 = buildingLocs.rotateRight(buildingLocs.factoryLocation);
-				if (constructor.canBuild(Chassis.BUILDING, loc1)) {
+//				Don't build adjacent to armory
+				if (buildingLocs.armoryLocation != null) {
+					if (loc1.isAdjacentTo(buildingLocs.armoryLocation))
+						loc1 = null;
+					if (loc2.isAdjacentTo(buildingLocs.armoryLocation))
+						loc2 = null;
+				}
+				if (loc1 != null && constructor.canBuild(Chassis.BUILDING, loc1)) {
 					if (constructBuilding(loc1, UnitType.RAILGUN_TOWER)) 
 						buildRailgunTower = false;
-				} else if (constructor.canBuild(Chassis.BUILDING, loc2)) {
-					if (constructBuilding(loc1, UnitType.RAILGUN_TOWER)) 
+				} else if (loc2 != null && constructor.canBuild(Chassis.BUILDING, loc2)) {
+					if (constructBuilding(loc2, UnitType.RAILGUN_TOWER)) 
 						buildRailgunTower = false;
 				} else {
 					buildRailgunTower = false;
