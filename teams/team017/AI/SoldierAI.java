@@ -123,13 +123,9 @@ public class SoldierAI extends GroundAI {
 //			combat.moveBackward();
 		prevHp = rc.getHitpoints();
 		controllers.senseRobot();
-		int before = Clock.getBytecodesLeft();
 		combat.heal();
 		senseBorder();
-		int after = Clock.getBytecodesLeft();
 		navigator.updateMap();
-		if ((before - after) > 0)
-			System.out.println("" + (before - after));
 		processMessages();
 		swarming = controllers.allyMobile.size() > 2;
 	}
@@ -258,41 +254,6 @@ public class SoldierAI extends GroundAI {
 
 				break;
 			}
-//			case FOLLOW_ME_MESSAGE:
-//				FollowMeMessage fhandler = new FollowMeMessage(msg);
-//				if (leaderID == -1) {
-//					leaderID = fhandler.getSourceID();
-//				}
-//				if (leaderID == fhandler.getSourceID()) {
-//					/*
-//					 * If 2 commanders meet, follow the one with a longer range
-//					 * of broadcast If the range is the same, follow the one
-//					 * with a smaller ID
-//					 */
-//					if (controllers.comm != null) {
-//						if (controllers.comm.type().range < fhandler
-//								.getCommRange())
-//							break;
-//						else if (controllers.comm.type().range == fhandler
-//								.getCommRange()
-//								&& fhandler.getSourceID() < rc.getRobot()
-//										.getID())
-//							break;
-//					}
-//					leaderMessageRoundCounter = 0;
-//					hasLeader = true;
-//					MapLocation loc = fhandler.getSourceLocation();
-//					followDir = fhandler.getFollowDirection();
-//					if (leaderLoc != null) {
-//						int curdist = rc.getLocation().distanceSquaredTo(
-//								leaderLoc);
-//						int newdist = rc.getLocation().distanceSquaredTo(loc);
-//						if (newdist < curdist)
-//							leaderLoc = loc;
-//					} else
-//						leaderLoc = loc;
-//				}
-//				break;
 			}
 		}
 	}
@@ -308,8 +269,7 @@ public class SoldierAI extends GroundAI {
 			if ( navigateToDestination(enemyBaseLoc[2], 9) )
 				enemyBaseLoc[2] = null;
 		} else {
-			navigateToDestination(homeLocation.add(Direction.NORTH, 60), 9);
-			controllers.myRC.setIndicatorString(0, "currentLoc: " + controllers.myRC.getLocation());
+			roachNavigate();
 		}
 	}
 }
