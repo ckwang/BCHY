@@ -36,7 +36,7 @@ public class ScoutAI extends AI {
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
-	private List<RobotInfo> tempEnemyInfo = new ArrayList<RobotInfo>();	
+//	private List<RobotInfo> tempEnemyInfo = new ArrayList<RobotInfo>();	
 
 	private List<RobotInfo> nearbyEnemy = new ArrayList<RobotInfo>();
 	
@@ -125,7 +125,7 @@ public class ScoutAI extends AI {
 					}
 				}
 				
-				tempEnemyInfo.addAll(controllers.enemyMobile);
+				nearbyEnemy.addAll(controllers.enemyMobile);
 				
 				emptyMineLocations.addAll(controllers.emptyMines);
 				emptyMineLocations.removeAll(controllers.allyMines);
@@ -307,7 +307,7 @@ public class ScoutAI extends AI {
 		
 		// If the enemy is too faraway, scout nearby first
 		if (!attacked && controllers.distanceToNearestEnemy > 81) {
-			tempEnemyInfo.clear();
+			nearbyEnemy.clear();
 			watch();
 		}
 		
@@ -347,8 +347,8 @@ public class ScoutAI extends AI {
 			currentDir = controllers.myRC.getDirection();
 			
 			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
-				controllers.myRC.setIndicatorString(0, "Mobile:" + tempEnemyInfo);
-				msgHandler.queueMessage(new DefenseInfoMessage(neareastRecycler, tempEnemyInfo));
+				controllers.myRC.setIndicatorString(0, "Mobile:" + nearbyEnemy);
+				msgHandler.queueMessage(new DefenseInfoMessage(neareastRecycler, nearbyEnemy));
 //				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.APOCALYPSE , true));
 			}
 			

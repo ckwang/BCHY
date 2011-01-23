@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import team017.construction.UnitType;
+
 import battlecode.common.BroadcastController;
 import battlecode.common.BuilderController;
 import battlecode.common.Chassis;
@@ -55,6 +57,7 @@ public class Controllers {
 	public final Chassis chassis;
 	public final double maxhp;
 	
+	public boolean weaponsAreSorted = false;
 	public int lastUpdateInfo = -1;
 	public int lastUpdateRobot = -1;
 	public int lastUpdateMine = -1;
@@ -295,6 +298,28 @@ public class Controllers {
 		return info.on && (info.chassis != Chassis.BUILDING)
 				&& (info.chassis != Chassis.DUMMY)
 				&& (info.chassis != Chassis.DEBRIS);
+	}
+	
+	public void sortWeapons(UnitType type) {
+		int weaponsPointer = 0;
+		List<ComponentType> tempComs = new ArrayList<ComponentType>();
+		for (ComponentType com: type.allComs) {
+			tempComs.add(com);
+			if (com.componentClass.equals(ComponentClass.WEAPON)) {
+				for (int i = weaponsPointer; i < weapons.size(); i++) {
+					if (weapons.get(i).type().equals(com)) {
+						if (i != weaponsPointer) {
+							WeaponController temp = weapons.get(weaponsPointer);
+							weapons.set(weaponsPointer, weapons.get(i));
+							weapons.set(i, temp);
+						}
+						weaponsPointer++;
+						break;
+					}
+				}
+			}
+		}
+		weaponsAreSorted = true;
 	}
 	
 //	public void updateInfo() {

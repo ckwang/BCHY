@@ -33,8 +33,9 @@ public class DefenseInfoMessage extends GenericMessage {
 		}
 		
 		msg.locations[locCounter++] = recyclerLoc;
-		for (int i = 0; i < 8; i++)
+		for (int i = 0; i < 8; i++) {
 			msg.ints[intCounter++] = enemyEquivalentInDir[i];
+		}
 	}
 	
 	public DefenseInfoMessage(Message msg) {

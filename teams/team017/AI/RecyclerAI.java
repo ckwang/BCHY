@@ -38,7 +38,7 @@ public class RecyclerAI extends BuildingAI {
 	private int[] enemyEquivalentInDir = new int[8];
 	private int[] buildEquivalentInDir = new int[8];
 	private int lastDefenseInfoRoundNum;
-	private final int defenseInfoLastRoundNum = 50;
+	private final int defenseInfoLastRoundNum = 200;
 	
 	private boolean buildArmory = false;
 	private boolean buildFactory = false;
@@ -54,7 +54,7 @@ public class RecyclerAI extends BuildingAI {
 //	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	double resourceThresholds = 100;
 	
-	private Deque<Direction> soldierDirection;
+	private Deque<Direction> soldierDirection = new ArrayDeque<Direction>(50);
 	private Deque<UnitType> constructingQueue;
 	private UnitType unitUnderConstruction;
 	
@@ -138,14 +138,24 @@ public class RecyclerAI extends BuildingAI {
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			constructingQueue.add(UnitType.APOCALYPSE);
+			constructingQueue.add(UnitType.APOCALYPSE);
+			constructingQueue.add(UnitType.APOCALYPSE);
+			constructingQueue.add(UnitType.WAR_MINER);
+			constructingQueue.add(UnitType.WAR_MINER);
+			constructingQueue.add(UnitType.WAR_MINER);
+			constructingQueue.add(UnitType.WAR_MINER);
+			
 		}
 		
 		while (true) {
 			try {
-				controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + constructingQueue);
+//				int [] a = enemyEquivalentInDir;
+//				controllers.myRC.setIndicatorString (0, Clock.getRoundNum() +"Enemy:" + a[0] + ","+ a[1] + ","+ a[2] + ","+ a[3] + ","+ a[4] + ","+ a[5] + ","+ a[6] + ","+ a[7] );
+//				int [] b = buildEquivalentInDir;
+//				controllers.myRC.setIndicatorString (1, Clock.getRoundNum() +"Built:" + b[0] + ","+ b[1] + ","+ b[2] + ","+ b[3] + ","+ b[4] + ","+ b[5] + ","+ b[6] + ","+ b[7] );
+//
+//				controllers.myRC.setIndicatorString(2, Clock.getRoundNum() + "" + constructingQueue);
 				if (!clusterIsDone) {
 					clusterIsDone = true;
 					checkAdjacentRecyclers();
@@ -189,6 +199,17 @@ public class RecyclerAI extends BuildingAI {
 						constructor = controllers.builder;
 						controllers.builder = recycler;	
 					}
+				}
+				
+				if (controllers.myRC.getTeamResources() > 200) {
+					if (buildingLocs.factoryLocation != null) {
+						if (buildingLocs.railgunTowerLocations.size() == 0)
+							buildRailgunTower = true;
+					} else if (buildingLocs.towerLocations.size() < 2)
+						buildTower = true;
+					
+//					buildFactory = true;
+//					buildRailgunTower = true;
 				}
 				
 //				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "Armory:" + buildArmory);
@@ -316,9 +337,10 @@ public class RecyclerAI extends BuildingAI {
 				DefenseInfoMessage handler = new DefenseInfoMessage(msg);
 				if (lastDefenseInfoRoundNum == 0)
 					lastDefenseInfoRoundNum = Clock.getRoundNum();
-				int [] a = handler.getEnemyNumInDir();
+//				int [] a = handler.getEnemyNumInDir();
 //				controllers.myRC.setIndicatorString (0, Clock.getRoundNum() +"Msg:" + a[0] + ","+ a[1] + ","+ a[2] + ","+ a[3] + ","+ a[4] + ","+ a[5] + ","+ a[6] + ","+ a[7] );
-				
+//				int [] b = handler.getEnemyNumInDir();
+//				controllers.myRC.setIndicatorString (0, Clock.getRoundNum() +"Msg:" + a[0] + ","+ a[1] + ","+ a[2] + ","+ a[3] + ","+ a[4] + ","+ a[5] + ","+ a[6] + ","+ a[7] );
 				if (handler.getRecyclerLoc() == currentLoc) {
 					for (int i = 0; i < 8; i++) {
 						if (handler.getEnemyNumInDir()[i] > enemyEquivalentInDir[i]) {
@@ -326,13 +348,15 @@ public class RecyclerAI extends BuildingAI {
 						}
 					}
 					for (int i = 0; i < 8; i++) {
-						int equivalentNeeded = (enemyEquivalentInDir[(i+7) % 8] + enemyEquivalentInDir[i] + enemyEquivalentInDir[(i+1) % 8]) -  (buildEquivalentInDir [(i+7) % 8] + buildEquivalentInDir [i] + buildEquivalentInDir[(i+1) % 8]); 
-						if (equivalentNeeded > 0) {
+//						int equivalentNeeded = (enemyEquivalentInDir[(i+7) % 8] + enemyEquivalentInDir[i] + enemyEquivalentInDir[(i+1) % 8]) -  (buildEquivalentInDir [(i+7) % 8] + buildEquivalentInDir [i] + buildEquivalentInDir[(i+1) % 8]); 
+//						if (equivalentNeeded > 0) {
+						if (enemyEquivalentInDir[i] > 0 && enemyEquivalentInDir[i] >= buildEquivalentInDir[i]) {
 							constructingQueue.addFirst(UnitType.APOCALYPSE);
 							soldierDirection.addFirst(directionMapping[i]);
 							buildEquivalentInDir[i] += 4;
-							continue;
 						}
+//							continue;
+//						}
 					}
 				}
 			}
@@ -472,7 +496,7 @@ public class RecyclerAI extends BuildingAI {
 				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
 //					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + handler.getUnitType());
 					if (handler.getUnitType() == unitUnderConstruction) {
-						if (soldierDirection.size() > 0)
+						if (soldierDirection != null && soldierDirection.size() > 0)
 							msgHandler.queueMessage(new PatrolDirectionMessage(soldierDirection.poll(), true));
 						unitUnderConstruction = null;
 					}
@@ -577,7 +601,7 @@ public class RecyclerAI extends BuildingAI {
 	}
 	
 	private void constructUnit() {
-		controllers.myRC.setIndicatorString (2, Clock.getRoundNum() + "" +unitUnderConstruction);
+//		controllers.myRC.setIndicatorString (2, Clock.getRoundNum() + "" +unitUnderConstruction);
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
 
@@ -614,7 +638,7 @@ public class RecyclerAI extends BuildingAI {
 					if ((unitUnderConstruction.requiredBuilders ^ ~Util.RECYCLER_CODE) == 0) {
 						if (buildingSystem.constructUnit(unitUnderConstruction)) {
 							++unitConstructed;
-							msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
+							msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction, currentLoc.add(controllers.myRC.getDirection())));
 						}
 					} else {
 
@@ -622,7 +646,7 @@ public class RecyclerAI extends BuildingAI {
 						while (buildLoc == null || !buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) 
 							yield();
 						++unitConstructed;
-						msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
+						msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction, currentLoc.add(controllers.myRC.getDirection())));
 					
 						
 					}

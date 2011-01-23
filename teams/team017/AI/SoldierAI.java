@@ -1,11 +1,13 @@
 package team017.AI;
 
 import team017.combat.CombatSystem;
+import team017.construction.UnitType;
 import team017.message.FollowMeMessage;
 import team017.message.GridMapMessage;
 import team017.message.PatrolDirectionMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
+import team017.message.UnitReadyMessage;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -34,7 +36,8 @@ public class SoldierAI extends GroundAI {
 	private RobotInfo unkilled = null;
 	private int leaderID = -1;
 	private int birthRound;
-
+	private UnitType myUnitType = null;
+	
 	private boolean reachedFirstBase = false;
 	private boolean hasLeader = false;
 
@@ -54,10 +57,14 @@ public class SoldierAI extends GroundAI {
 	public void proceed() {
 		birthRound = Clock.getRoundNum();
 		RobotInfo target;
+
 		
 		proceed:
 		while (true) {
-			controllers.myRC.setIndicatorString(1, scoutingDir + "");
+//			controllers.myRC.setIndicatorString(1, scoutingDir + "");
+			if (myUnitType != null && !controllers.weaponsAreSorted) {
+				controllers.sortWeapons(myUnitType);
+			}
 			
 			while (controllers.mobileEnemyNum() > 0) {
 				target = combat.getMobile();
@@ -247,6 +254,14 @@ public class SoldierAI extends GroundAI {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
 
+			case UNIT_READY: {
+				UnitReadyMessage handler = new UnitReadyMessage(msg);
+				if (handler.getUnitLoc().equals(controllers.myRC.getLocation()) && myUnitType == null) {
+					myUnitType = handler.getUnitType();
+				}
+				break;
+			}
+			
 			case GRID_MAP_MESSAGE: {
 				GridMapMessage handler = new GridMapMessage(msg);
 				// update the borders
@@ -269,7 +284,7 @@ public class SoldierAI extends GroundAI {
 			
 			case PATROL_DIRECTION_MESSAGE: {
 				PatrolDirectionMessage handler = new PatrolDirectionMessage(msg);
-				controllers.myRC.setIndicatorString(0, "received!");
+//				controllers.myRC.setIndicatorString(0, "received!");
 				
 				if (scoutingDir == null) {
 					scoutingDir = handler.getPatrolDirection();

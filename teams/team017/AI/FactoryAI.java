@@ -1,14 +1,17 @@
 package team017.AI;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
 import team017.message.BuildingRequestMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.DefenseInfoMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
 import team017.message.MineLocationsMessage;
@@ -26,6 +29,7 @@ import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 
 public class FactoryAI extends BuildingAI {
@@ -37,6 +41,8 @@ public class FactoryAI extends BuildingAI {
 	private Set<MapLocation> tempEmpty = new HashSet<MapLocation>();
 	private Set<MapLocation> tempAllied = new HashSet<MapLocation>();
 	private Set<MapLocation> tempEnemy = new HashSet<MapLocation>();
+	
+	private List<RobotInfo> nearbyEnemy = new ArrayList<RobotInfo>();
 	
 	private Deque<UnitType> constructingQueue = new ArrayDeque<UnitType>(50);
 
@@ -111,6 +117,11 @@ public class FactoryAI extends BuildingAI {
 				else if ( !controllers.motor.isActive() )
 					controllers.motor.setDirection(previousWatchingDir);
 				
+				if (nearbyEnemy.size() > 0) {
+					msgHandler.queueMessage(new DefenseInfoMessage(buildingLocs.recyclerLocation, nearbyEnemy));
+					nearbyEnemy.clear();
+				}
+				
 				if (controllers.myRC.getDirection() == birthDir){			
 					updateMineSets();
 				}
@@ -158,6 +169,7 @@ public class FactoryAI extends BuildingAI {
 			tempEmpty.addAll(controllers.emptyMines);
 			tempAllied.addAll(controllers.allyMines);
 			tempEnemy.addAll(controllers.enemyMines);
+			nearbyEnemy.addAll(controllers.enemyMobile);
 			
 			if ( !controllers.motor.isActive() ) {
 				previousWatchingDir = controllers.myRC.getDirection().rotateRight();

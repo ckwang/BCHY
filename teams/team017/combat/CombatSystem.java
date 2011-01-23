@@ -168,23 +168,23 @@ public class CombatSystem {
 			return false;
 		}
 	}
-	
-	public void healAllied() {
-		WeaponController medic = controllers.medic;
-		if (medic == null || medic.isActive())
-			return;
-		for (RobotInfo r: controllers.heal) {
-			if (medic.withinRange(r.location)) {
-				try {
-					medic.attackSquare(r.location, r.robot.getRobotLevel());
-					return;
-				} catch (GameActionException e) {
-					e.printStackTrace();
-					continue;
-				}
-			}
-		}
-	}
+//	
+//	public void healAllied() {
+//		WeaponController medic = controllers.medic;
+//		if (medic == null || medic.isActive())
+//			return;
+//		for (RobotInfo r: controllers.heal) {
+//			if (medic.withinRange(r.location)) {
+//				try {
+//					medic.attackSquare(r.location, r.robot.getRobotLevel());
+//					return;
+//				} catch (GameActionException e) {
+//					e.printStackTrace();
+//					continue;
+//				}
+//			}
+//		}
+//	}
 
 	public void heal() {
 		try {
