@@ -133,6 +133,8 @@ public class ScoutAI extends AI {
 
 				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
 				yield();
+				if (controllers.distanceToNearestEnemy < 81 || attacked )
+					break;
 			} catch (GameActionException e) {
 				e.printStackTrace();
 			}
@@ -257,6 +259,7 @@ public class ScoutAI extends AI {
 		
 		Direction desDir;
 		if (scouted) {
+			watch();
 			return;
 		} 
 		else {
