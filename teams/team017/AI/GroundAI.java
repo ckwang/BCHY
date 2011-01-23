@@ -60,12 +60,25 @@ abstract public class GroundAI extends AI {
 		
 		if (distance < tolerance)
 			return true;
+		
+		Direction nextDir;
+		// if target is not traversable, back-tracing the destination
+		while (!navigator.isTraversable(des)) {
+			nextDir = currentLoc.directionTo(des);
+			des = des.subtract(nextDir);
+			
+			// beside the source
+			if (currentLoc.distanceSquaredTo(des) <= tolerance) {
+				return true;
+			}
+		}
 
 		controllers.myRC.setIndicatorString(2, "searching for jump location");
 		try{
 			navigator.setDestination(des);
 			MapLocation jumpLoc = navigator.getNextJumpingLoc(tolerance);
 	
+			controllers.myRC.setIndicatorString(2, "jump location: " + jumpLoc);
 			
 			if (jumpLoc == null){
 				return walkingNavigateToDestination(des, tolerance);

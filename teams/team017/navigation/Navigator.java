@@ -111,6 +111,9 @@ public class Navigator {
 		MapLocation jumpLoc = controllers.myRC.getLocation();
 		Direction nextDir;
 		controllers.myRC.setIndicatorString(2, "des: " + destination);
+
+		
+		
 		do{
 			nextDir = jumpLoc.directionTo(destination);
 			jumpLoc = jumpLoc.add( nextDir );
@@ -146,7 +149,7 @@ public class Navigator {
 					return best;
 				}
 				else {
-					jumpLoc = jumpLoc.subtract(jumpLoc.directionTo( destination) );
+					jumpLoc = jumpLoc.subtract(currentLoc.directionTo( jumpLoc ) );
 				}
 			}
 		}
