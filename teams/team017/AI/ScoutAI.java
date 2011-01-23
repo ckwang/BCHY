@@ -203,6 +203,10 @@ public class ScoutAI extends AI {
 					scoutingDir = handler.getScoutingDirection();
 					leftward = handler.isLeftward();
 					branch = handler.isBranch();
+					
+					if (homeLocation.distanceSquaredTo(controllers.myRC.getLocation()) > 16) {
+						gridMap.setScoutLocation(handler.getSourceLocation());
+					}
 					while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 						scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 					}
