@@ -150,12 +150,6 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
-//				int [] a = enemyEquivalentInDir;
-//				controllers.myRC.setIndicatorString (0, Clock.getRoundNum() +"Enemy:" + a[0] + ","+ a[1] + ","+ a[2] + ","+ a[3] + ","+ a[4] + ","+ a[5] + ","+ a[6] + ","+ a[7] );
-//				int [] b = buildEquivalentInDir;
-//				controllers.myRC.setIndicatorString (1, Clock.getRoundNum() +"Built:" + b[0] + ","+ b[1] + ","+ b[2] + ","+ b[3] + ","+ b[4] + ","+ b[5] + ","+ b[6] + ","+ b[7] );
-//
-//				controllers.myRC.setIndicatorString(2, Clock.getRoundNum() + "" + constructingQueue);
 				if (!clusterIsDone) {
 					clusterIsDone = true;
 					checkAdjacentRecyclers();
@@ -226,14 +220,14 @@ public class RecyclerAI extends BuildingAI {
 				
 				double fluxRate = getEffectiveFluxRate();
 
-				
-				// Turn off recyclers and factories of cluster size 1				
-				if (Clock.getRoundNum() - birthRoundNum > 100 && buildingLocs.clusterSize == 1 && buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() > 0) {
-					msgHandler.queueMessage(new TurnOffMessage(buildingLocs.factoryLocation));
-					while (msgHandler.getOutQueueSize() > 0)
-						yield();
-					controllers.myRC.turnOff();
-				}
+//				
+//				// Turn off recyclers and factories of cluster size 1				
+//				if (Clock.getRoundNum() - birthRoundNum > 100 && buildingLocs.clusterSize == 1 && buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() > 0) {
+//					msgHandler.queueMessage(new TurnOffMessage(buildingLocs.factoryLocation));
+//					while (msgHandler.getOutQueueSize() > 0)
+//						yield();
+//					controllers.myRC.turnOff();
+//				}
 					
 				
 				
