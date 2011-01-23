@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import team017.construction.UnitType;
+import team017.message.ConstructUnitMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
 import team017.message.MineLocationsMessage;
@@ -19,6 +21,9 @@ import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import battlecode.common.RobotLevel;
+import battlecode.common.SensorController;
+import battlecode.common.TerrainTile;
 
 public class ScoutAI extends AI {
 
@@ -26,6 +31,7 @@ public class ScoutAI extends AI {
 	
 	private boolean scouted = false;
 	
+	private Set<MapLocation> blockedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
@@ -111,6 +117,13 @@ public class ScoutAI extends AI {
 		
 		for (int i = 0; i < 8; i++) {
 			try {
+				if (branch) {
+					for (MapLocation m : controllers.emptyMines) {
+						if (isBlocked(m))
+							blockedMineLocations.add(m);
+					}
+				}
+				
 				emptyMineLocations.addAll(controllers.emptyMines);
 				emptyMineLocations.removeAll(controllers.allyMines);
 				emptyMineLocations.removeAll(controllers.enemyMines);
@@ -125,6 +138,36 @@ public class ScoutAI extends AI {
 			}
 		}
 		findNearestRecycler();
+	}
+	
+	private boolean isBlocked(MapLocation loc) {
+		final int THRESHOLD = 3;
+		
+		Direction dir = Direction.NORTH;
+		SensorController sensor = controllers.sensor;
+		int n = 0;
+		
+		for (int i = 0; i < 7 + THRESHOLD; i++) {
+			try {
+				MapLocation m = loc.add(dir);
+				if (sensor.canSenseSquare(m)) {
+					if (controllers.myRC.senseTerrainTile(m) == TerrainTile.LAND &&
+							sensor.senseObjectAtLocation(m, RobotLevel.ON_GROUND) == null &&
+							sensor.senseObjectAtLocation(m, RobotLevel.MINE) == null) {
+						n++;
+					} else {
+						n = 0;
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			if (n == THRESHOLD)	return false;
+			dir = dir.rotateRight();
+		}
+		
+		return true;
 	}
 
 	@Override
@@ -177,7 +220,7 @@ public class ScoutAI extends AI {
 				if ( scouted ){
 					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 					yield();
-					msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations));
+					msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations, blockedMineLocations));
 					inquiryQuota--;
 					
 					if ( inquiryQuota == 0 ) {
@@ -295,7 +338,7 @@ public class ScoutAI extends AI {
 			currentDir = controllers.myRC.getDirection();
 			
 			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
-				
+				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.APOCALYPSE , true));
 			}
 			
 		}

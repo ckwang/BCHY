@@ -42,6 +42,7 @@ public class ArmoryAI extends BuildingAI{
 		
 		while (true) {
 			try {
+				controllers.myRC.setIndicatorString(0, constructingQueue.toString() + Clock.getRoundNum());
 
 				processMessages();
 				constructing();
@@ -95,9 +96,21 @@ public class ArmoryAI extends BuildingAI{
 			
 			case CONSTRUCT_UNIT_MESSAGE: {
 				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
-				if (controllers.myRC.getLocation() == handler.getBuilderLocation()) {
-					UnitType type = handler.getType();
-					constructingQueue.add(type);
+				if (controllers.myRC.getLocation().equals(handler.getBuilderLocation())) {
+					if (handler.isList()) {
+						if (handler.isUrgent()) {
+							for (int i = handler.getTypes().size() - 1; i >= 0; i--)
+								constructingQueue.addFirst(handler.getTypes().get(i));
+						} else {
+							constructingQueue.addAll(handler.getTypes());
+						}	
+					} else {
+						if (handler.isUrgent())
+							constructingQueue.addFirst(handler.getType());
+						else
+							constructingQueue.addLast(handler.getType());
+					}
+
 				}
 				break;
 			}
