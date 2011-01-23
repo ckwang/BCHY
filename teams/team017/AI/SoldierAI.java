@@ -3,6 +3,9 @@ package team017.AI;
 import team017.combat.CombatSystem;
 import team017.message.FollowMeMessage;
 import team017.message.GridMapMessage;
+import team017.message.PatrolDirectionMessage;
+import team017.message.ScoutingInquiryMessage;
+import team017.message.ScoutingResponseMessage;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -37,6 +40,10 @@ public class SoldierAI extends GroundAI {
 
 	private Direction followDir;
 	private Direction previousDir = null;
+	
+	private MapLocation scoutingLocation;
+	private Direction scoutingDir;
+	private boolean leftward;
 
 	public SoldierAI(RobotController rc) {
 		super(rc);
@@ -47,7 +54,10 @@ public class SoldierAI extends GroundAI {
 	public void proceed() {
 		birthRound = Clock.getRoundNum();
 		RobotInfo target;
-		proceed: while (true) {
+		
+		proceed:
+		while (true) {
+			controllers.myRC.setIndicatorString(1, scoutingDir + "");
 			
 			while (controllers.mobileEnemyNum() > 0) {
 				target = combat.getMobile();
@@ -249,27 +259,57 @@ public class SoldierAI extends GroundAI {
 					}
 				}
 				homeLocation = handler.getHomeLocation();
+				if (scoutingLocation == null)
+					scoutingLocation = homeLocation;
 				computeEnemyBaseLocation();
 				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 
 				break;
 			}
+			
+			case PATROL_DIRECTION_MESSAGE: {
+				PatrolDirectionMessage handler = new PatrolDirectionMessage(msg);
+				controllers.myRC.setIndicatorString(0, "received!");
+				
+				if (scoutingDir == null) {
+					scoutingDir = handler.getPatrolDirection();
+					leftward = handler.isLeftward();
+					if (homeLocation.distanceSquaredTo(controllers.myRC.getLocation()) > 16) {
+						gridMap.setScoutLocation(handler.getSourceLocation());
+					}
+
+					scoutingLocation = homeLocation;
+				}
+				
+				break;
+			}
+			
 			}
 		}
 	}
 
 	private void navigate() throws GameActionException {
-		if (enemyBaseLoc[0] != null) {
-			if ( navigateToDestination(enemyBaseLoc[0], 9) )
-				enemyBaseLoc[0] = null;
-		} else if (enemyBaseLoc[1] != null) {
-			if ( navigateToDestination(enemyBaseLoc[1], 9) )
-				enemyBaseLoc[1] = null;
-		} else if (enemyBaseLoc[2] != null) {
-			if ( navigateToDestination(enemyBaseLoc[2], 9) )
-				enemyBaseLoc[2] = null;
+		if (jumper == null) {
+		
+			if (enemyBaseLoc[0] != null) {
+				if ( navigateToDestination(enemyBaseLoc[0], 9) )
+					enemyBaseLoc[0] = null;
+			} else if (enemyBaseLoc[1] != null) {
+				if ( navigateToDestination(enemyBaseLoc[1], 9) )
+					enemyBaseLoc[1] = null;
+			} else if (enemyBaseLoc[2] != null) {
+				if ( navigateToDestination(enemyBaseLoc[2], 9) )
+					enemyBaseLoc[2] = null;
+			} else {
+				roachNavigate();
+			}
 		} else {
-			roachNavigate();
+			if ( navigateToDestination(scoutingLocation, 4) ) {
+				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+				}
+				scoutingLocation = gridMap.getScoutLocation();
+			}
 		}
 	}
 }

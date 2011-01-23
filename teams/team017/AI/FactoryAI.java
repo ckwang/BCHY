@@ -13,8 +13,10 @@ import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
 import team017.message.MineLocationsMessage;
 import team017.message.MineResponseMessage;
+import team017.message.PatrolDirectionMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
+import team017.message.UnitReadyMessage;
 import team017.util.Util;
 import battlecode.common.Clock;
 import battlecode.common.ComponentType;
@@ -207,6 +209,7 @@ public class FactoryAI extends BuildingAI {
 							break;
 						yield();
 					}
+
 					yield();
 				}
 				break;
@@ -335,7 +338,13 @@ public class FactoryAI extends BuildingAI {
 			}
 			
 			case UNIT_READY: {
+				UnitReadyMessage handler = new UnitReadyMessage(msg);
+				
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+				
+				if (handler.getUnitType() == UnitType.CHRONO_APOCALYPSE) {
+					msgHandler.queueMessage(new PatrolDirectionMessage(toExplore[toExploreIndex++], toExploreIndex == 2));
+				}
 				
 				break;
 			}

@@ -212,7 +212,7 @@ public class AirConstructorAI extends AI {
 					branch = handler.isBranch();
 					leftward = handler.isLeftward();
 					if (homeLocation.distanceSquaredTo(controllers.myRC.getLocation()) > 16) {
-						gridMap.setScoutLocation(controllers.myRC.getLocation());
+						gridMap.setScoutLocation(handler.getSourceLocation());
 					}
 
 					scoutingLocation = homeLocation;
