@@ -288,6 +288,7 @@ public class AirConstructorAI extends AI {
 					}
 					
 					recyclerLocations.add(nearestMine);
+//					msgHandler.queueMessage(new ConstructBaseMessage(nearestMine, UnitType.ARMORY));
 					return true;
 				}
 			} else {
