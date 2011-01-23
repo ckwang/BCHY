@@ -417,6 +417,7 @@ public class ConstructorAI extends GroundAI {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
 			case NOT_ENOUGH_SPACE_MESSAGE: {
+				controllers.myRC.setIndicatorString(0, "NotEnoughSpace" +Clock.getRoundNum());
 				while (!checkFourConsecutiveEmpties()) {
 					navigate();
 					yield();
@@ -437,7 +438,7 @@ public class ConstructorAI extends GroundAI {
 					yield();
 				for (int i = 0; i < 20; i++)
 					yield();
-				msgHandler.queueMessage(new BuildingLocationInquiryMessage(buildLoc));
+//				msgHandler.queueMessage(new BuildingLocationInquiryMessage(buildLoc));
 				builtIdleRound = 50;
 				break;
 			}

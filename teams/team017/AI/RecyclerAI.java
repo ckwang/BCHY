@@ -1,6 +1,7 @@
 package team017.AI;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import team017.message.BuildingRequestMessage;
 import team017.message.ConstructBaseMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
+import team017.message.DefenseInfoMessage;
 import team017.message.GridMapMessage;
 import team017.message.NotEnoughSpaceMessage;
 import team017.message.TurnOffMessage;
@@ -18,7 +20,9 @@ import team017.util.Util;
 import battlecode.common.*;
 
 public class RecyclerAI extends BuildingAI {
-
+	private static final Direction[] directionMapping = 
+	{Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
+	Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
 	private Mine myMine;
 	private int unitConstructed = 0;
 	private int birthRoundNum;
@@ -29,6 +33,11 @@ public class RecyclerAI extends BuildingAI {
 	private boolean clusterIsDone = false;
 	private BuilderController recycler;
 	private BuilderController constructor;
+	
+	private int[] enemyEquivalentInDir = new int[8];
+	private int[] buildEquivalentInDir = new int[8];
+	private int lastDefenseInfoRoundNum;
+	private final int defenseInfoLastRoundNum = 50;
 	
 	private boolean buildArmory = false;
 	private boolean buildFactory = false;
@@ -44,6 +53,7 @@ public class RecyclerAI extends BuildingAI {
 //	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	double resourceThresholds = 100;
 	
+	private Deque<Direction> soldierDirection;
 	private Deque<UnitType> constructingQueue;
 	private UnitType unitUnderConstruction;
 	
@@ -72,6 +82,11 @@ public class RecyclerAI extends BuildingAI {
 			constructIdleRound = 0;
 		if (inquiryIdleRound != 0)
 			inquiryIdleRound--;
+		if (Clock.getRoundNum() - lastDefenseInfoRoundNum > defenseInfoLastRoundNum) {
+			lastDefenseInfoRoundNum = 0;
+			Arrays.fill(buildEquivalentInDir, 0);
+			Arrays.fill(enemyEquivalentInDir, 0);
+		}
 
 	}
 	
@@ -295,6 +310,28 @@ public class RecyclerAI extends BuildingAI {
 				}
 			}
 			
+			case DEFENSE_INFO_MESSAGE: {
+				DefenseInfoMessage handler = new DefenseInfoMessage(msg);
+				if (lastDefenseInfoRoundNum == 0)
+					lastDefenseInfoRoundNum = Clock.getRoundNum();
+				if (handler.getRecyclerLoc() == currentLoc) {
+					for (int i = 0; i < 8; i++) {
+						if (handler.getEnemyNumInDir()[i] > enemyEquivalentInDir[i]) {
+							enemyEquivalentInDir[i] = handler.getEnemyNumInDir()[i];
+						}
+					}
+					for (int i = 0; i < 8; i++) {
+						int equivalentNeeded = (enemyEquivalentInDir[(i+7) % 8] + enemyEquivalentInDir[i] + enemyEquivalentInDir[(i+1) % 8]) -  (buildEquivalentInDir [(i+7) % 8] + buildEquivalentInDir [i] + buildEquivalentInDir[(i+1) % 8]); 
+						if (equivalentNeeded > 0) {
+							constructingQueue.addFirst(UnitType.APOCALYPSE);
+							soldierDirection.addFirst(directionMapping[i]);
+							buildEquivalentInDir[i] += 4;
+							continue;
+						}
+					}
+				}
+			}
+			
 			case CONSTRUCT_BASE_MESSAGE:{
 				ConstructBaseMessage handler = new ConstructBaseMessage(msg);
 				// Check if is intended for it
@@ -337,153 +374,9 @@ public class RecyclerAI extends BuildingAI {
 						yield();
 					}
 					
-//<<<<<<< HEAD
 					if (handler.getUnitType() == unitUnderConstruction){
 						unitUnderConstruction = null;
 					}
-//=======
-//				}
-//				break;
-//			}
-//			
-//			case BUILDING_LOCATION_INQUIRY_MESSAGE: {
-//				BuildingLocationInquiryMessage handler = new BuildingLocationInquiryMessage(msg);
-////				controllers.myRC.setIndicatorString(0, "Inquiry Got" + Clock.getRoundNum());
-//				
-//				
-//				// if the constructor is inquiring it 
-//				if (handler.getBuilderLocation().equals(controllers.myRC.getLocation())) {
-//					
-//					
-//					int constructorID = handler.getSourceID();
-//					MapLocation loc;
-//					
-//					if (inquiryIdleRound > 0)
-//						break;
-//
-//					//	Build a tower at the initial base
-//					if (birthRoundNum < 200 || myMine == null) {
-//						
-//						for (int i = 4; i > 0; i--) {
-////							controllers.myRC.setIndicatorString(0, i + "");
-//							loc = buildingLocs.consecutiveEmpties(i);
-//							if (loc != null) {
-//								switch(i) {
-//								case 4:
-////									if (buildingLocs.towerLocations.size() == 0) {
-////										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
-////										inquiryIdleRound = 5;
-////									} else 
-//									if (buildingLocs.factoryLocation == null && buildingLocs.towerLocations.size() == 0) {
-//										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.FACTORY));
-//										inquiryIdleRound = 3;
-//									} else if (buildingLocs.factoryLocation != null && buildingLocs.armoryLocation == null) {
-//										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
-//										inquiryIdleRound = 5;
-//									} else {
-//										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-//									}
-//									break;
-//								case 3:
-//									if (buildingLocs.factoryLocation == null) {
-//										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.towerLocations.get(0)), UnitType.FACTORY));
-//										inquiryIdleRound = 3;
-//									} else if (buildingLocs.factoryLocation != null && buildingLocs.armoryLocation == null) {
-//										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
-//										inquiryIdleRound = 5;
-//									} else {
-//										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-//									}
-//									break;
-//								case 2:
-//									// Initially has 2 empties only
-//									if (buildingLocs.towerLocations.size() == 0 && buildingLocs.factoryLocation == null) {
-//										msgHandler.clearOutQueue();
-//										msgHandler.queueMessage(new NotEnoughSpaceMessage());
-//										msgHandler.process();
-//										controllers.myRC.turnOff();
-//										inquiryIdleRound = 5;
-//									} else if (buildingLocs.armoryLocation == null) {
-//										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
-//										inquiryIdleRound = 5;
-//									} else {
-//										msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-//									}
-//									break;
-//								}
-//							break;
-//							}
-//						}
-//						
-//					} 
-////					else {
-////							for (int i = 4; i > 0; i--) {
-////								loc = buildingLocs.consecutiveEmpties(i);
-////								if (loc != null) {
-////									switch(i) {
-////									case 4:
-////										if (buildingLocs.factoryLocation == null) {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
-////											inquiryIdleRound = 5;
-////										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-////											inquiryIdleRound = 3;
-////										} else if (buildingLocs.railgunTowerLocations.size() != 0 && buildingLocs.armoryLocation == null) {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
-////											inquiryIdleRound = 5;
-////										} else {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-////										}
-////										break;
-////									case 3:
-////										if (buildingLocs.factoryLocation == null) {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
-////											inquiryIdleRound = 3;
-////										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-////											inquiryIdleRound = 5;
-////										} else if (buildingLocs.armoryLocation == null){
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
-////											inquiryIdleRound = 5;
-////										} else {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-////										}
-////										break;
-////									case 2:
-////										// Initially has 2 empties only
-////										if (buildingLocs.factoryLocation == null) {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(loc), UnitType.FACTORY));
-////											inquiryIdleRound = 5;
-////										} else if (buildingLocs.railgunTowerLocations.size() == 0) {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-////											inquiryIdleRound = 5;
-////										} else if (buildingLocs.rotateLeft(loc) == buildingLocs.factoryLocation && buildingLocs.armoryLocation == null) {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateRight(buildingLocs.factoryLocation, 2), UnitType.ARMORY));
-////											inquiryIdleRound = 5;
-////										} else {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-////										}
-////										break;
-////									case 1:
-////										if (buildingLocs.factoryLocation == null) {
-////											if (buildingLocs.towerLocations.size() == 0) {
-////												msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, loc, UnitType.TOWER));
-////												inquiryIdleRound = 5;
-////											}
-////										} else if(buildingLocs.railgunTowerLocations.size() == 0) {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, buildingLocs.rotateLeft(buildingLocs.factoryLocation), UnitType.RAILGUN_TOWER));
-////											inquiryIdleRound = 5;
-////										} else {
-////											msgHandler.queueMessage(new BuildingLocationResponseMessage(constructorID, null, null));
-////										}
-////										break;
-////									}
-////								break;
-////								}
-////							}	
-////					}
-//>>>>>>> branch 'refs/heads/master' of git@github.com:ckwang/BCHY.git
-					
 				}
 				break;
 			}
@@ -775,6 +668,9 @@ public class RecyclerAI extends BuildingAI {
 									msgHandler.queueMessage(new NotEnoughSpaceMessage());
 									buildFactory = false;
 									buildArmory = false;
+									for (int j = 0; j < 10; ++j)
+										yield();
+									controllers.myRC.turnOff();
 								} else {
 									
 									if (constructBuilding(loc, UnitType.FACTORY)) 
