@@ -59,60 +59,18 @@ abstract public class GroundAI extends AI {
 		if (distance < tolerance)
 			return true;
 
-			
-		MapLocation jumpLoc = controllers.myRC.getLocation();
-		Direction nextDir;
+		MapLocation jumpLoc = navigator.getNextJumpingLoc(tolerance);
 		
-		do{
-			nextDir = jumpLoc.directionTo(des);
-			
-			// arrive at destination
-			if (nextDir == Direction.OMNI){
-				break;
-			}
-				
-			jumpLoc = jumpLoc.add(nextDir);
-		}while (jumpLoc.distanceSquaredTo(currentLoc) <= 16);
-		
-		jumpLoc = jumpLoc.subtract(nextDir);
-		
-		MapLocation bestAlternativeJumpLoc = null;
-		if ( !navigator.isTraversable(jumpLoc) ){
-			
-			MapLocation temp = null;
-			
-			for (int i = 0; i < 8; i++){
-				temp = jumpLoc.add(Util.dirs[i]);
-				if( navigator.isTraversable(temp) 
-					&& temp.distanceSquaredTo(currentLoc) <= 18
-					&& temp.distanceSquaredTo(des) < distance ){
-					bestAlternativeJumpLoc = temp;
-					distance = temp.distanceSquaredTo(des);
-				}
-			}
-			
-			for (int i = 0; i < 8; i+=2){
-				temp = jumpLoc.add(Util.dirs[i], 2);
-				if( navigator.isTraversable(temp) 
-					&& temp.distanceSquaredTo(currentLoc) <= 18 
-					&& temp.distanceSquaredTo(des) < distance ){
-					bestAlternativeJumpLoc = temp;
-					distance = temp.distanceSquaredTo(des);
-				}
-			}
-			
-			if(bestAlternativeJumpLoc != null)
-				jumpLoc = bestAlternativeJumpLoc;
-		} else{
+		if (jumpLoc == null){
+			return walkingNavigateToDestination(des, tolerance);
+		}
+		else if (!controllers.jumper.isActive()){
 			try {
 				controllers.jumper.jump(jumpLoc);
 			} catch (GameActionException e) {
 				e.printStackTrace();
 			}
 		}
-		
-		
-		
 		return false;
 	}
 	

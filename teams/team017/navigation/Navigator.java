@@ -26,22 +26,18 @@ public class Navigator {
 	private int moveDiagonally = 4;
 	
 	private boolean isTracing;
+	private boolean jumpingTracing;
 	private boolean isCW;
 
 	MapLocation [] tracingLoc = new MapLocation [2];
 	Direction [] tracingDir = new Direction [2];
 	int [] tracingcost = new int [2];
-	
-//	costComparator comparator;
-//	PriorityQueue<EnhancedMapLocation> queue;
 
 	public Navigator(Controllers cs) {
 		controllers = cs;
 		isCW = true;
 		isTracing = false;
 		myMap = new InfoMap( cs.myRC.getLocation() );
-//		comparator = new costComparator();
-//		queue = new PriorityQueue<EnhancedMapLocation>(50, comparator);
 	}
 	
 	public void reset() {
@@ -50,7 +46,6 @@ public class Navigator {
 		previousRobLoc = null;
 		previousDir = null;
 		isTracing = false;
-//		queue.clear();
 	}
 
 	public void setDestination(MapLocation loc) {
@@ -109,6 +104,51 @@ public class Navigator {
 				return previousDir;
 			}
 		}
+	}
+	
+	public MapLocation getNextJumpingLoc(int tolerance){
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		MapLocation jumpLoc = currentLoc;
+		Direction nextDir;
+		
+		do{
+			nextDir = jumpLoc.directionTo(destination);
+			jumpLoc = jumpLoc.add( nextDir );
+			if ( jumpLoc.distanceSquaredTo(destination) < tolerance)
+				return jumpLoc;
+		}while( currentLoc.distanceSquaredTo(jumpLoc) < 16 );
+		
+		jumpLoc = jumpLoc.subtract(nextDir);
+		
+		// Find alternative jumping location
+		if ( !isTraversable(jumpLoc) ){
+			while( !jumpLoc.isAdjacentTo(currentLoc) ){
+				MapLocation temp = jumpLoc;
+				MapLocation best = null;
+				int distance = currentLoc.distanceSquaredTo(destination);
+				for( int i = 0; i < 8; i++ ){
+					temp = jumpLoc.add(Util.dirs[i]);
+					if ( currentLoc.distanceSquaredTo(temp) <= 25 
+							&& isTraversable(temp) 
+							&& temp.distanceSquaredTo(destination) < distance ){
+						best = temp;
+						distance = temp.distanceSquaredTo(destination);
+					}
+				}
+				
+				if (best != null){
+					return best;
+				}
+				else {
+					jumpLoc = jumpLoc.subtract(jumpLoc.directionTo( destination) );
+				}
+			}
+		}
+		
+		if (jumpLoc.isAdjacentTo(currentLoc))
+			return null;
+		
+		return jumpLoc;
 	}
 
 	public Direction Bug(MapLocation s, MapLocation t, int tolerance) {
