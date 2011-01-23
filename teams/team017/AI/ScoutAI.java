@@ -137,9 +137,11 @@ public class ScoutAI extends AI {
 		
 		for (int i = 0; i < 8; i++) {
 			try {
-				for (MapLocation m : controllers.emptyMines) {
-					if (isBlocked(m))
-						blockedMineLocations.add(m);
+				if (branch) {
+					for (MapLocation m : controllers.emptyMines) {
+						if (isBlocked(m))
+							blockedMineLocations.add(m);
+					}
 				}
 				
 				emptyMineLocations.addAll(controllers.emptyMines);

@@ -282,8 +282,8 @@ public class AirConstructorAI extends AI {
 		if (currentLoc.distanceSquaredTo(nearestMine) <= 2) {
 			if (controllers.builder.canBuild(Chassis.BUILDING, nearestMine)) {
 				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER)) {
-					if (!builtBranch && !blockedMineLocations.contains(nearestMine)) {
-						msgHandler.queueMessage(new ConstructBaseMessage(nearestMine, UnitType.ARMORY));
+					if (branch && !builtBranch && !blockedMineLocations.contains(nearestMine)) {
+//						msgHandler.queueMessage(new ConstructBaseMessage(nearestMine, UnitType.ARMORY));
 						builtBranch = true;
 					}
 					
