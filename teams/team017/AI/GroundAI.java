@@ -84,8 +84,10 @@ abstract public class GroundAI extends AI {
 				return walkingNavigateToDestination(des, tolerance);
 			}
 			else{
-				if (controllers.myRC.getDirection() != currentLoc.directionTo(jumpLoc))
-					controllers.motor.setDirection(currentLoc.directionTo(jumpLoc));
+				if (controllers.myRC.getDirection() != currentLoc.directionTo(jumpLoc)) {
+					if (!controllers.motor.isActive())
+						controllers.motor.setDirection(currentLoc.directionTo(jumpLoc));
+				}
 				else if (!controllers.jumper.isActive())
 					controllers.jumper.jump(jumpLoc);
 				

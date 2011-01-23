@@ -80,7 +80,11 @@ public abstract class AI {
 	protected boolean senseBorder() {
 		Direction dir = controllers.myRC.getDirection();
 		boolean isDiagonal = dir.isDiagonal();
-		int range = isDiagonal ? 8 : 12;
+		final int orthogonal_range = (int) Math.sqrt(controllers.sensor.type().range);
+		final int diagonal_range = (int) (Math.sqrt(controllers.sensor.type().range / 2));
+		
+		
+		int range = isDiagonal ? diagonal_range : orthogonal_range;
 		
 		try {
 			boolean hasChanged = false;
