@@ -45,6 +45,9 @@ public class Controllers {
 	public List<MapLocation> allyMines = new ArrayList<MapLocation>();
 	public List<MapLocation> enemyMines = new ArrayList<MapLocation>();
 	
+	public int distanceToNearestEnemy;
+	
+	
 //	public Direction dir;
 //	public MapLocation loc;
 //	public double hp;
@@ -70,6 +73,7 @@ public class Controllers {
 		enemyMobile.clear();
 		enemyImmobile.clear();
 		debris.clear();
+		distanceToNearestEnemy = 200;
 		if (mine) {
 			emptyMines.clear();
 			allyMines.clear();
@@ -131,8 +135,8 @@ public class Controllers {
 				if (o.getTeam() == myRC.getTeam().opponent()) {
 					boolean mobile = rinfo.on && rinfo.chassis != Chassis.BUILDING && rinfo.chassis != Chassis.DUMMY;
 					int d = myloc.distanceSquaredTo(rinfo.location);
-					if (d > ComponentType.SMG.range + 49)
-						continue;
+					if (d < distanceToNearestEnemy)
+						distanceToNearestEnemy = d;
 					ComponentType[] coms = rinfo.components;
 					for (ComponentType c: coms) {
 						if (c.componentClass == ComponentClass.WEAPON) {
@@ -146,6 +150,7 @@ public class Controllers {
 					}
 				}
 			} catch (GameActionException e) {
+				e.printStackTrace();
 			}
 		}
 	}

@@ -43,9 +43,12 @@ public class ScoutAI extends AI {
 	private double prevHp = 0;
 	private boolean attacked = false;
 	
+	private MapLocation neareastRecycler;
+	
 	public ScoutAI(RobotController rc) {
 		super(rc);
 		id = rc.getRobot().getID();
+		neareastRecycler = homeLocation;
 	}
 	
 	@Override
@@ -53,9 +56,11 @@ public class ScoutAI extends AI {
 		super.yield();
 		nearbyEnemy.clear();
 		controllers.scoutNearby();
+		controllers.myRC.setIndicatorString(1, controllers.distanceToNearestEnemy+"");
 		if (senseBorder())	scoutingLocation = gridMap.getScoutLocation();
 		attacked = controllers.myRC.getHitpoints() < prevHp;
 		prevHp = controllers.myRC.getHitpoints();
+
 	}
 
 	@Override
@@ -71,61 +76,34 @@ public class ScoutAI extends AI {
 		
 		while (true) {
 			
-			
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
+
 			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
-
-//			if (controllers.myRC.getLocation().equals(scoutingLocation)) {
-//				while (controllers.motor.isActive())
-//					yield();
-//				
-//				while (true) {
-//					try {
-//						if (controllers.enemyNum() > 0) {
-//							scoutingLocation = homeLocation;
-//							break;
-//						}
-//						emptyMineLocations.addAll(controllers.emptyMines);
-//						emptyMineLocations.removeAll(controllers.allyMines);
-//						emptyMineLocations.removeAll(controllers.enemyMines);
-//						
-//						alliedMineLocations.addAll(controllers.allyMines);
-//						enemyMineLocations.addAll(controllers.enemyMines);
-//
-//						controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
-//						yield();
-//					} catch (GameActionException e) {
-//						e.printStackTrace();
-//					}
-//				}
-//			}
-//			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
-			controllers.myRC.setIndicatorString(1, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
-			controllers.myRC.setIndicatorString(2, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3] );
-
-			
-			navigate();
+			if (controllers.distanceToNearestEnemy < 121 || attacked )
+				flee();
+			else
+				navigate();
 			
 			yield();
 		}
 	}
 	
-	public boolean evaluateDanger() {
-		Direction dir = controllers.myRC.getDirection().opposite();
-		for (int i = 0; i < 3;) {
-			if (!controllers.motor.isActive() && controllers.motor.canMove(dir)) {
-				try {
-					controllers.motor.moveBackward();
-					++i;
-				} 
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return true;
-	}
+//	public boolean evaluateDanger() {
+//		Direction dir = controllers.myRC.getDirection().opposite();
+//		for (int i = 0; i < 3;) {
+//			if (!controllers.motor.isActive() && controllers.motor.canMove(dir)) {
+//				try {
+//					controllers.motor.moveBackward();
+//					++i;
+//				} 
+//				catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//		return true;
+//	}
 	
 	private void watch() {
 		while (controllers.motor.isActive())
@@ -146,6 +124,7 @@ public class ScoutAI extends AI {
 				e.printStackTrace();
 			}
 		}
+		findNearestRecycler();
 	}
 
 	@Override
@@ -247,12 +226,6 @@ public class ScoutAI extends AI {
 		
 		
 		try{
-//			if (controllers.enemyNum() > 0) {
-//				if (controllers.motor.canMove(currentDir.opposite()))
-//					controllers.motor.moveBackward();
-//			}
-//			// Can go toward destination
-//			else 
 			if ( controllers.motor.canMove(desDir) ){
 				if (currentDir == desDir)
 					controllers.motor.moveForward();
@@ -276,6 +249,71 @@ public class ScoutAI extends AI {
 			
 		}
 		
+	}
+	
+	private void flee(){
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		Direction currentDir = controllers.myRC.getDirection();
+		
+		// If the enemy is too faraway, scout nearby first
+		if (!attacked && controllers.distanceToNearestEnemy > 81)
+			watch();
+		
+		while ( !currentLoc.equals(neareastRecycler) ){
+
+			
+			Direction desDir = currentLoc.directionTo(neareastRecycler);
+			
+			desDir = desDir.opposite();
+			
+			try{
+				if ( controllers.motor.canMove(desDir ) ){
+					if (currentDir == desDir)
+						controllers.motor.moveBackward();
+					else
+						controllers.motor.setDirection(desDir);
+				} 
+				// if can go to the 
+				else if ( controllers.motor.canMove(desDir.rotateLeft()) ){
+					if (currentDir == desDir.rotateLeft())
+						controllers.motor.moveBackward();
+					else
+						controllers.motor.setDirection(desDir.rotateLeft());
+				}
+				else if ( controllers.motor.canMove(desDir.rotateRight()) ){
+					if (currentDir == desDir.rotateRight())
+						controllers.motor.moveBackward();
+					else
+						controllers.motor.setDirection(desDir.rotateRight());
+				}
+			} catch (GameActionException e){
+				
+			}
+			
+			yield();
+			currentLoc = controllers.myRC.getLocation();
+			currentDir = controllers.myRC.getDirection();
+			
+			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
+				
+			}
+			
+		}
+		
+		watch();
+		
+	}
+	
+	private void findNearestRecycler() {
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		neareastRecycler = homeLocation;
+		
+		for (MapLocation mineLoc : alliedMineLocations) {
+			
+			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(neareastRecycler))
+				neareastRecycler = mineLoc;
+		}
+
 	}
 	
 }
