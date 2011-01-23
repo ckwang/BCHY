@@ -35,6 +35,17 @@ public class ConstructUnitMessage extends GenericMessage {
 			msg.ints[intCounter++] = types.get(i).ordinal();
 		msg.ints[intCounter++] = isUrgent? 1 : 0;
 	}
+	
+	public ConstructUnitMessage(MapLocation builderLocation, UnitType[] types, boolean isUrgent) {
+		super(MessageType.CONSTRUCT_UNIT_MESSAGE);
+		queueSize = types.length;
+		
+		msg.locations[locCounter++] = builderLocation;
+		msg.ints[intCounter++] = queueSize;
+		for (int i = 0; i < queueSize; i++)
+			msg.ints[intCounter++] = types[i].ordinal();
+		msg.ints[intCounter++] = isUrgent? 1 : 0;
+	}
 
 
 	public ConstructUnitMessage(Message msg) {

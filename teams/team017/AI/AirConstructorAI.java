@@ -5,6 +5,7 @@ import java.util.Set;
 
 import team017.construction.UnitType;
 import team017.message.ConstructBaseMessage;
+import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
@@ -277,13 +278,15 @@ public class AirConstructorAI extends AI {
 			nearestMine = null;
 			return false;
 		}
+		
+		final UnitType[] constructingQueue = {UnitType.TELESCOPER, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.FLYING_CONSTRUCTOR};
 
 		// if there is a eligible site
 		if (currentLoc.distanceSquaredTo(nearestMine) <= 2) {
 			if (controllers.builder.canBuild(Chassis.BUILDING, nearestMine)) {
 				if (buildBuildingAtLoc(nearestMine, UnitType.RECYCLER)) {
 					if (branch && !builtBranch && !blockedMineLocations.contains(nearestMine)) {
-//						msgHandler.queueMessage(new ConstructBaseMessage(nearestMine, UnitType.ARMORY));
+						msgHandler.queueMessage(new ConstructUnitMessage(nearestMine, constructingQueue, false));
 						builtBranch = true;
 					}
 					

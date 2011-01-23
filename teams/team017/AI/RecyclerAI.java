@@ -121,9 +121,9 @@ public class RecyclerAI extends BuildingAI {
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+//			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+//			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+//			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 		}
 		
 		while (true) {
@@ -277,6 +277,7 @@ public class RecyclerAI extends BuildingAI {
 			case CONSTRUCT_UNIT_MESSAGE: {
 				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
 				if (handler.getBuilderLocation().equals(currentLoc)) {
+					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "received!");
 					if (handler.isList()) {
 						if (handler.isUrgent()) {
 							for (int i = handler.getTypes().size() - 1; i >= 0; i--)
