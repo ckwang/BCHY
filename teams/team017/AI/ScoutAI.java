@@ -78,7 +78,7 @@ public class ScoutAI extends AI {
 			
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
-			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
+			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation + "," + scoutingDir);
 
 //			if (controllers.myRC.getLocation().equals(scoutingLocation)) {
 //				while (controllers.motor.isActive())
@@ -222,6 +222,10 @@ public class ScoutAI extends AI {
 					scoutingDir = handler.getScoutingDirection();
 					leftward = handler.isLeftward();
 					branch = handler.isBranch();
+					
+					if (homeLocation.distanceSquaredTo(controllers.myRC.getLocation()) > 16) {
+						gridMap.setScoutLocation(handler.getSourceLocation());
+					}
 					while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 						scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 					}
