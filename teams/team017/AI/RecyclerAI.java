@@ -278,7 +278,7 @@ public class RecyclerAI extends BuildingAI {
 			case CONSTRUCT_UNIT_MESSAGE: {
 				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
 				if (handler.getBuilderLocation().equals(currentLoc)) {
-					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "received!");
+//					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "received!");
 					if (handler.isList()) {
 						if (handler.isUrgent()) {
 							for (int i = handler.getTypes().size() - 1; i >= 0; i--)
@@ -572,7 +572,7 @@ public class RecyclerAI extends BuildingAI {
 				UnitReadyMessage handler = new UnitReadyMessage(msg);
 				
 				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
-//					controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + handler.getUnitType());
+					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + handler.getUnitType());
 					if (handler.getUnitType() == unitUnderConstruction) {
 						unitUnderConstruction = null;
 					}
@@ -676,7 +676,7 @@ public class RecyclerAI extends BuildingAI {
 	}
 	
 	private void constructUnit() {
-		
+		controllers.myRC.setIndicatorString (2, Clock.getRoundNum() + "" +unitUnderConstruction);
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
 		else if ( unitUnderConstruction == null){
@@ -870,6 +870,7 @@ public class RecyclerAI extends BuildingAI {
 					yield();
 				constructor.build(ComponentType.FACTORY, buildLoc, RobotLevel.ON_GROUND);
 				buildingSystem.constructComponent(buildLoc, UnitType.FACTORY);
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				break;
 				
 			case ARMORY:

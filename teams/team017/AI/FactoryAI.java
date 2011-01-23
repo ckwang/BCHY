@@ -98,7 +98,7 @@ public class FactoryAI extends BuildingAI {
 		// Main Loop
 		while (true) {
 			try {
-
+			
 				processMessages();
 				constructing();
 				
@@ -272,6 +272,21 @@ public class FactoryAI extends BuildingAI {
 				computeEnemyBaseLocation();
 				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 				gridMap.updateScoutLocation(homeLocation);
+				
+				// calculate exploring directions
+				if (enemyBaseLoc[0] != null){
+					enemyBase = homeLocation.directionTo(enemyBaseLoc[0]);
+					toExplore[0] = enemyBase;
+					if (enemyBase.isDiagonal()) {
+						toExplore[1] = enemyBase.rotateLeft();
+						toExplore[2] = enemyBase.rotateRight();
+					} else {
+						toExplore[1] = enemyBase.rotateLeft().rotateLeft();
+						toExplore[2] = enemyBase.rotateRight().rotateRight();
+					}
+
+				}
+				
 //				gridMap.printGridMap();
 //				controllers.myRC.setIndicatorString(1, homeLocation + "," + gridMap.getScoutLocation() + gridMap.getOriginGrid() + gridMap.getScoutGrid());
 //				controllers.myRC.setIndicatorString(2, gridMap.gridBorders[0] + "," + gridMap.gridBorders[1] + "," + gridMap.gridBorders[2] + "," + gridMap.gridBorders[3]);
