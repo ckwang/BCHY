@@ -57,8 +57,6 @@ public class RecyclerAI extends BuildingAI {
 		
 		constructingQueue = new ArrayDeque<UnitType>(50);
 
-
-		
 		updateRatios();
 		try {
 			myMine = (Mine) controllers.sensor.senseObjectAtLocation(controllers.myRC.getLocation(), RobotLevel.MINE);
@@ -119,12 +117,9 @@ public class RecyclerAI extends BuildingAI {
 			buildRailgunTower = true;
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
-			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);

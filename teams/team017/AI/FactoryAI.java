@@ -3,7 +3,6 @@ package team017.AI;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Set;
 
 import team017.construction.UnitType;
@@ -16,9 +15,7 @@ import team017.message.MineLocationsMessage;
 import team017.message.MineResponseMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
-import team017.message.UnitReadyMessage;
 import team017.util.Util;
-import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -33,13 +30,19 @@ public class FactoryAI extends BuildingAI {
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
+	
+	private Set<MapLocation> tempEmpty = new HashSet<MapLocation>();
+	private Set<MapLocation> tempAllied = new HashSet<MapLocation>();
+	private Set<MapLocation> tempEnemy = new HashSet<MapLocation>();
+	
 	private Deque<UnitType> constructingQueue = new ArrayDeque<UnitType>(50);
 
 	private Direction enemyBase; //direction to enemy base
 	private Direction[] toExplore = new Direction[3];
 	private int toExploreIndex = 0;
-	private boolean diagonallyBranching;
-	private int order = 0;
+	
+	private Direction birthDir;
+	private Direction previousWatchingDir;
 	
 	public FactoryAI(RobotController rc) {
 		super(rc);
@@ -68,6 +71,8 @@ public class FactoryAI extends BuildingAI {
 			e.printStackTrace();
 		}
 		
+		birthDir = controllers.myRC.getDirection();
+		
 		// watch 8 directions
 		for (int i = 0; i < 8; i++) {
 			watch();
@@ -81,23 +86,34 @@ public class FactoryAI extends BuildingAI {
 			enemyBase = controllers.myRC.getLocation().directionTo(enemyBaseLoc[0]);
 			toExplore[0] = enemyBase;
 			if (enemyBase.isDiagonal()) {
-				diagonallyBranching = true;
 				toExplore[1] = enemyBase.rotateLeft();
 				toExplore[2] = enemyBase.rotateRight();
 			} else {
-				diagonallyBranching = false;
 				toExplore[1] = enemyBase.rotateLeft().rotateLeft();
 				toExplore[2] = enemyBase.rotateRight().rotateRight();
 			}
 
 		}
 		
+		// Main Loop
 		while (true) {
 			try {
-				controllers.myRC.setIndicatorString(0, constructingQueue.toString() + Clock.getRoundNum());
 
 				processMessages();
 				constructing();
+				
+				if ( controllers.myRC.getDirection() == previousWatchingDir )
+					watch();
+				else if ( !controllers.motor.isActive() )
+					controllers.motor.setDirection(previousWatchingDir);
+				
+				if (controllers.myRC.getDirection() == birthDir){			
+					updateMineSets();
+				}
+				controllers.myRC.setIndicatorString(0, "EmptyMines: " + emptyMineLocations.size() + 
+													", AlliedMines: " + alliedMineLocations.size() +  
+													", EnemyMines: " + enemyMineLocations.size());
+
 				yield();
 			} catch (Exception e) {
 				System.out.println("caught exception:");
@@ -133,15 +149,38 @@ public class FactoryAI extends BuildingAI {
 	
 	private void watch() {
 		try {
-			emptyMineLocations.addAll(controllers.emptyMines);
-			alliedMineLocations.addAll(controllers.allyMines);
-			enemyMineLocations.addAll(controllers.enemyMines);
+			tempEmpty.addAll(controllers.emptyMines);
+			tempAllied.addAll(controllers.allyMines);
+			tempEnemy.addAll(controllers.enemyMines);
 			
-			controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
-//			controllers.myRC.setIndicatorString(0, emptyMineLocations.size() + "");
+			if ( !controllers.motor.isActive() ) {
+				previousWatchingDir = controllers.myRC.getDirection().rotateRight();
+				controllers.motor.setDirection(previousWatchingDir);
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void updateMineSets(){
+		Set<MapLocation> temp;
+		
+		temp = emptyMineLocations;
+		emptyMineLocations = tempEmpty;
+		temp.clear();
+		tempEmpty = temp;
+		
+		temp = alliedMineLocations;
+		alliedMineLocations = tempAllied;
+		temp.clear();
+		tempAllied = temp;
+		
+		temp = enemyMineLocations;
+		enemyMineLocations = tempEnemy;
+		temp.clear();
+		tempEnemy = temp;
+		
 	}
 	
 	@Override
@@ -255,13 +294,11 @@ public class FactoryAI extends BuildingAI {
 				
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
-				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, order ));
-				
-				if (isConstructor && order == 1)
-					toExploreIndex = (toExploreIndex+1)%3;
+
+				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, toExploreIndex == 2 ));
 				
 				if (isConstructor)
-					order = 1 - order;
+					toExploreIndex = (toExploreIndex+1)%3;
 				
 				break;
 			}

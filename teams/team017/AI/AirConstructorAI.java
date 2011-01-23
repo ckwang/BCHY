@@ -1,14 +1,9 @@
 package team017.AI;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
-import team017.message.BuildingLocationInquiryMessage;
-import team017.message.BuildingLocationResponseMessage;
-import team017.message.ConstructBaseMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
 import team017.message.MineInquiryMessage;
@@ -19,11 +14,9 @@ import battlecode.common.Chassis;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
-import battlecode.common.RobotLevel;
 
 
 public class AirConstructorAI extends AI {
@@ -37,7 +30,7 @@ public class AirConstructorAI extends AI {
 	
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
-	private int order;
+	private boolean leftward;
 	
 	private int scoutingResponseDistance = 100;
 	
@@ -127,10 +120,12 @@ public class AirConstructorAI extends AI {
 			if (arrivedScoutingLoc && mineLocations.size() == recyclerLocations.size()){
 				
 				if (scoutingDir != null){
-					if( gridMap.updateScoutLocation(scoutingDir) ){
-						scoutingLocation = gridMap.getScoutLocation();
-						arrivedScoutingLoc = false;
+					while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+						scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 					}
+					
+					scoutingLocation = gridMap.getScoutLocation();
+					arrivedScoutingLoc = false;
 				}
 			}
 				
@@ -201,7 +196,8 @@ public class AirConstructorAI extends AI {
 				if (handler.getTelescoperID() == id && handler.getSourceLocation().distanceSquaredTo(currentLoc) < scoutingResponseDistance ) {
 					scoutingResponseDistance = handler.getSourceLocation().distanceSquaredTo(currentLoc);
 					scoutingDir = handler.getScoutingDirection();
-					order = handler.getOrder();
+					
+					leftward = handler.isLeftward();
 
 					scoutingLocation = homeLocation;
 				}
@@ -238,9 +234,11 @@ public class AirConstructorAI extends AI {
 	}
 	
 	private boolean isMyBusiness(MapLocation loc) {
-		boolean ahead = ((loc.x - scoutingLocation.x) * scoutingDir.dx + (loc.y - scoutingLocation.y) * scoutingDir.dy) > 0;
+		return scoutingLocation.distanceSquaredTo(loc) <= 144;
 		
-		return order == 0 ? ahead : !ahead;
+//		boolean ahead = ((loc.x - scoutingLocation.x) * scoutingDir.dx + (loc.y - scoutingLocation.y) * scoutingDir.dy) > 0;
+//		
+//		return order == 0 ? ahead : !ahead;
 	}
 	
 	private void findNearestMine() {
