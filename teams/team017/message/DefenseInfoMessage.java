@@ -1,5 +1,7 @@
 package team017.message;
 
+import java.util.List;
+
 import battlecode.common.Chassis;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
@@ -20,11 +22,11 @@ public class DefenseInfoMessage extends GenericMessage {
 	private int[] enemyEquivalentInDir = new int[8];
 	private int totalEnemyEquivalent = 0;
 	
-	public DefenseInfoMessage (MapLocation recyclerLoc, RobotInfo[] enemyInfos) {
+	public DefenseInfoMessage (MapLocation recyclerLoc, List<RobotInfo> enemyMobile) {
 		super(MessageType.DEFENSE_INFO_MESSAGE);
 		
 		this.recyclerLoc = recyclerLoc;
-		for (RobotInfo info: enemyInfos) {
+		for (RobotInfo info: enemyMobile) {
 			Direction dir = recyclerLoc.directionTo(info.location);
 			enemyEquivalentInDir[indexMapping(dir)] += getEquivalent(info.chassis);
 			totalEnemyEquivalent += getEquivalent(info.chassis);

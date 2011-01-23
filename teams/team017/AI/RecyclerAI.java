@@ -14,6 +14,7 @@ import team017.message.ConstructionCompleteMessage;
 import team017.message.DefenseInfoMessage;
 import team017.message.GridMapMessage;
 import team017.message.NotEnoughSpaceMessage;
+import team017.message.PatrolDirectionMessage;
 import team017.message.TurnOffMessage;
 import team017.message.UnitReadyMessage;
 import team017.util.Util;
@@ -467,8 +468,11 @@ public class RecyclerAI extends BuildingAI {
 				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
 					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + handler.getUnitType());
 					if (handler.getUnitType() == unitUnderConstruction) {
+						if (soldierDirection.size() > 0)
+							msgHandler.queueMessage(new PatrolDirectionMessage(soldierDirection.poll(), true));
 						unitUnderConstruction = null;
 					}
+					
 				}
 				
 				break;
