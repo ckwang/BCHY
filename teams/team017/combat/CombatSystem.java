@@ -33,7 +33,7 @@ public class CombatSystem {
 	public int maxRange = 0;
 	public int optRange;
 	
-	public Direction nextDir = Direction.NONE;
+//	public Direction nextDir = Direction.NONE;
 //	RobotInfo lastAttacked = null;
 //	boolean killed;
 	
@@ -43,15 +43,25 @@ public class CombatSystem {
 		mydir = controllers.myRC.getDirection();
 		for (WeaponController w: controllers.weapons) {
 			ComponentType type = w.type();
+			switch (type) {
+			case RAILGUN:
+				primary = w;
+				optRange = w.type().range;
+				break;
+			case HAMMER:
+				primary = w;
+				optRange = w.type().range;
+				break;
+			}
 			if (type.range > maxRange)
 				maxRange = type.range;
 			else if (type.range < minRange)
 				minRange = type.range;
 		}
-		if (c.weapons.size() > 0) {
-			primary = controllers.weapons.get(0);
-			optRange = primary.type().range;
-		}
+//		if (c.weapons.size() > 0) {
+//			primary = controllers.weapons.get(0);
+//			optRange = primary.type().range;
+//		}
 	}
 
 	public boolean chase(Robot r) {
@@ -75,7 +85,7 @@ public class CombatSystem {
 				else
 					newdir = dir1;
 				controllers.motor.setDirection(newdir);
-				nextDir = dir2;
+//				nextDir = dir2;
 				return true;
 			}
 			if (dir2 == Direction.OMNI || dir2 == Direction.NONE)
@@ -84,16 +94,15 @@ public class CombatSystem {
 				controllers.motor.setDirection(dir2);
 				return true;
 			}
-			// controllers.motor.moveForward();
 			return true;
 		} catch (GameActionException e) {
-			if (nextDir != Direction.OMNI && nextDir != Direction.NONE) {
-				try {
-					controllers.motor.setDirection(nextDir);
-					return true;
-				} catch (GameActionException e1) {
-				}
-			}
+//			if (nextDir != Direction.OMNI && nextDir != Direction.NONE) {
+//				try {
+//					controllers.motor.setDirection(nextDir);
+//					return true;
+//				} catch (GameActionException e1) {
+//				}
+//			}
 			return false;
 		}
 	}
@@ -157,6 +166,23 @@ public class CombatSystem {
 			if (toTurn != null)
 				controllers.motor.setDirection(toTurn);
 			return false;
+		}
+	}
+	
+	public void healAllied() {
+		WeaponController medic = controllers.medic;
+		if (medic == null || medic.isActive())
+			return;
+		for (RobotInfo r: controllers.heal) {
+			if (medic.withinRange(r.location)) {
+				try {
+					medic.attackSquare(r.location, r.robot.getRobotLevel());
+					return;
+				} catch (GameActionException e) {
+					e.printStackTrace();
+					continue;
+				}
+			}
 		}
 	}
 
@@ -409,7 +435,6 @@ public class CombatSystem {
 			if (o == null)
 				return true;
 		} catch (GameActionException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
