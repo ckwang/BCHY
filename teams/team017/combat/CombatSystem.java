@@ -209,14 +209,14 @@ public class CombatSystem {
 	}
 	
 	public boolean trackTarget(RobotInfo r) {
-		if (controllers.jumper != null) {
-			MapLocation tel = teleport(r);
-			if (tel != null) {
-				Direction edir = tel.directionTo(r.location);
-				setDirection(edir);
-				return true;
-			}
-		}
+//		if (controllers.jumper != null) {
+//			MapLocation tel = teleport(r);
+//			if (tel != null) {
+//				Direction edir = tel.directionTo(r.location);
+//				setDirection(edir);
+//				return true;
+//			}
+//		}
 		MapLocation myloc = controllers.myRC.getLocation();
 		Direction mydir = controllers.myRC.getDirection();
 		Direction edir = myloc.directionTo(r.location);
@@ -254,14 +254,14 @@ public class CombatSystem {
 	//return true if need yield
 	public boolean approachTarget(RobotInfo r) {
 //		updatePosition();
-		if (controllers.jumper != null) {
-			MapLocation tel = teleport(r);
-			if (tel != null) {
-				Direction edir = tel.directionTo(r.location);
-				setDirection(edir);
-				return true;
-			}
-		}
+//		if (controllers.jumper != null) {
+//			MapLocation tel = teleport(r);
+//			if (tel != null) {
+//				Direction edir = tel.directionTo(r.location);
+//				setDirection(edir);
+//				return true;
+//			}
+//		}
 		if (controllers.motor.isActive())
 			return true;
 		MapLocation myloc = controllers.myRC.getLocation();
@@ -322,36 +322,36 @@ public class CombatSystem {
 		return controllers.enemyMobile.get(0);
 	}
 
-	public MapLocation teleport(RobotInfo r) {
-		if (controllers.jumper.isActive())
-			return null;
-		
-		enemyback[0] = r.location.subtract(r.direction);
-		enemyback[1] = r.location.add(r.direction.opposite(), 2);
-		enemyback[2] = r.location.subtract(r.direction.rotateLeft());
-		enemyback[3] = r.location.subtract(r.direction.rotateRight());
-		enemyback[4] = r.location.add(r.direction.rotateLeft().rotateLeft());
-		enemyback[5] = r.location.add(r.direction.rotateRight().rotateRight());
-		enemyback[6] = r.location.add(r.direction.rotateLeft().rotateLeft(), 2);
-		enemyback[7] = r.location.add(r.direction.rotateRight().rotateRight(), 2);
-		enemyback[8] = r.location.add(r.direction.rotateLeft());
-		enemyback[9] = r.location.add(r.direction.rotateRight());
-		enemyback[10] = r.location.add(r.direction);
-		enemyback[11] = r.location.add(r.direction, 2);
-		
-		for (MapLocation loc: enemyback) {
-			if (canJump(loc)) {
-				try {
-					controllers.jumper.jump(loc);
-					return loc;
-				} catch (Exception e) {
-					e.printStackTrace();
-					return null;
-				}
-			}
-		}
-		return null;
-	}
+//	public MapLocation teleport(RobotInfo r) {
+//		if (controllers.jumper.isActive())
+//			return null;
+//		
+//		enemyback[0] = r.location.subtract(r.direction);
+//		enemyback[1] = r.location.add(r.direction.opposite(), 2);
+//		enemyback[2] = r.location.subtract(r.direction.rotateLeft());
+//		enemyback[3] = r.location.subtract(r.direction.rotateRight());
+//		enemyback[4] = r.location.add(r.direction.rotateLeft().rotateLeft());
+//		enemyback[5] = r.location.add(r.direction.rotateRight().rotateRight());
+//		enemyback[6] = r.location.add(r.direction.rotateLeft().rotateLeft(), 2);
+//		enemyback[7] = r.location.add(r.direction.rotateRight().rotateRight(), 2);
+//		enemyback[8] = r.location.add(r.direction.rotateLeft());
+//		enemyback[9] = r.location.add(r.direction.rotateRight());
+//		enemyback[10] = r.location.add(r.direction);
+//		enemyback[11] = r.location.add(r.direction, 2);
+//		
+//		for (MapLocation loc: enemyback) {
+//			if (canJump(loc)) {
+//				try {
+//					controllers.jumper.jump(loc);
+//					return loc;
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//					return null;
+//				}
+//			}
+//		}
+//		return null;
+//	}
 	
 	public boolean moveForward() {
 		updatePosition();

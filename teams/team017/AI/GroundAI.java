@@ -54,22 +54,32 @@ abstract public class GroundAI extends AI {
 	public boolean jumpingNavigateToDestination(MapLocation des, int tolerance){
 		
 		MapLocation currentLoc = controllers.myRC.getLocation();
+		Direction desDir = currentLoc.directionTo(des);
 		int distance = currentLoc.distanceSquaredTo(des);
+		
 		
 		if (distance < tolerance)
 			return true;
 
-		MapLocation jumpLoc = navigator.getNextJumpingLoc(tolerance);
-		
-		if (jumpLoc == null){
-			return walkingNavigateToDestination(des, tolerance);
-		}
-		else if (!controllers.jumper.isActive()){
-			try {
-				controllers.jumper.jump(jumpLoc);
-			} catch (GameActionException e) {
-				e.printStackTrace();
+		controllers.myRC.setIndicatorString(2, "searching for jump location");
+		try{
+			navigator.setDestination(des);
+			MapLocation jumpLoc = navigator.getNextJumpingLoc(tolerance);
+	
+			
+			if (jumpLoc == null){
+				return walkingNavigateToDestination(des, tolerance);
 			}
+			else{
+				if (controllers.myRC.getDirection() != currentLoc.directionTo(jumpLoc))
+					controllers.motor.setDirection(currentLoc.directionTo(jumpLoc));
+				else if (!controllers.jumper.isActive())
+					controllers.jumper.jump(jumpLoc);
+				
+			}
+		} catch (GameActionException e) {
+			e.printStackTrace();
+			return false;
 		}
 		return false;
 	}

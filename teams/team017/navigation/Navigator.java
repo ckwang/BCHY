@@ -108,17 +108,23 @@ public class Navigator {
 	
 	public MapLocation getNextJumpingLoc(int tolerance){
 		MapLocation currentLoc = controllers.myRC.getLocation();
-		MapLocation jumpLoc = currentLoc;
+		MapLocation jumpLoc = controllers.myRC.getLocation();
 		Direction nextDir;
-		
+		controllers.myRC.setIndicatorString(2, "des: " + destination);
 		do{
 			nextDir = jumpLoc.directionTo(destination);
 			jumpLoc = jumpLoc.add( nextDir );
-			if ( jumpLoc.distanceSquaredTo(destination) < tolerance)
+			if ( jumpLoc.distanceSquaredTo(destination) < tolerance && isTraversable(jumpLoc) ){
+				if ( jumpLoc.distanceSquaredTo(currentLoc) > 16 )
+					jumpLoc = jumpLoc.subtract(nextDir);
+				
 				return jumpLoc;
+			}
 		}while( currentLoc.distanceSquaredTo(jumpLoc) < 16 );
 		
 		jumpLoc = jumpLoc.subtract(nextDir);
+		
+		controllers.myRC.setIndicatorString(2, "optimal jump to: " + jumpLoc);
 		
 		// Find alternative jumping location
 		if ( !isTraversable(jumpLoc) ){
@@ -128,7 +134,7 @@ public class Navigator {
 				int distance = currentLoc.distanceSquaredTo(destination);
 				for( int i = 0; i < 8; i++ ){
 					temp = jumpLoc.add(Util.dirs[i]);
-					if ( currentLoc.distanceSquaredTo(temp) <= 25 
+					if ( currentLoc.distanceSquaredTo(temp) <= 16 
 							&& isTraversable(temp) 
 							&& temp.distanceSquaredTo(destination) < distance ){
 						best = temp;
@@ -144,6 +150,8 @@ public class Navigator {
 				}
 			}
 		}
+		
+		controllers.myRC.setIndicatorString(2, "alternative jump to: " + jumpLoc);
 		
 		if (jumpLoc.isAdjacentTo(currentLoc))
 			return null;
