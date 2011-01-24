@@ -10,6 +10,7 @@ import team017.message.UnitReadyMessage;
 import team017.util.Controllers;
 import team017.util.Util;
 import battlecode.common.Chassis;
+import battlecode.common.Clock;
 import battlecode.common.ComponentType;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -155,9 +156,12 @@ public class Builder {
 				controllers.builder.build(com, buildLoc, type.chassis.level);
 			}
 			
+			
 			// turn on if the unit has all the parts
 			if (Util.containsComponent(controllers, buildLoc, type.chassis.level, type)) {
 				rc.turnOn(buildLoc, type.chassis.level);
+				rc.yield();
+
 				GenericMessage msg = new UnitReadyMessage(type);
 				msgHandler.queueMessage(msg);
 				msgHandler.bypass(msg);

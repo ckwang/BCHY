@@ -275,17 +275,35 @@ public class BuildingLocations {
 				emptyLocations[i] = false;
 			} else {
 				try {
-					if (controllers.builder.canBuild(Chassis.LIGHT, loc)) {
-						emptyLocations[i] = true;
-					} else {
-						emptyLocations[i] = false;
-					}
-					
+
 					if (controllers.myRC.senseTerrainTile(loc) != TerrainTile.LAND)
 						emptyLocations[i] = false;
+					else {
+						if (controllers.sensor.canSenseSquare(loc)) {
+							if (controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null)
+								emptyLocations[i] = false;
+							else {
+								Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
+								if (objectOnGround != null) {
+									Chassis chassis = controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis;
+									if ( chassis == Chassis.BUILDING || chassis == Chassis.DEBRIS ) {
+										emptyLocations[i] = false;
+									} else {
+										emptyLocations[i] = true;
+										emptySize++;
+									}
+								}
+							}
+						} else {
+							if (controllers.builder.canBuild(Chassis.LIGHT, loc)) {
+								emptyLocations[i] = true;
+							} else {
+								emptyLocations[i] = false;
+							}
+						}
+					}
 					
-					if (controllers.sensor.canSenseSquare(loc) && controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null)
-						emptyLocations[i] = false;
+					
 					
 //					Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
 //					if (objectOnGround != null) {

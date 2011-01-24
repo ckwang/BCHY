@@ -416,6 +416,7 @@ public class ConstructorAI extends GroundAI {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
 			case NOT_ENOUGH_SPACE_MESSAGE: {
+				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "Not Enough Space");
 				while (!checkFourConsecutiveEmpties()) {
 					navigate();
 					yield();

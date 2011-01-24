@@ -30,16 +30,19 @@ public class RecyclerAI extends BuildingAI {
 	private BuilderController recycler;
 	private BuilderController constructor;
 	
+	private int canSpawnRound = 0;
+	private int spawnThreshold = 0;
+	
 	private boolean buildArmory = false;
 	private boolean buildFactory = false;
 	private boolean buildTower = false;
 	private boolean buildRailgunTower = false;
 	
-	int [] unitRatios = {1, 0, 0, 0, 1};
-	int [] cumulatedRatios = new int[5];
+	int [] unitRatios = {1, 0, 1, 0, 1, 1, 1, 1};
+	int [] cumulatedRatios = new int[8];
 	int total;
 	
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.CHRONO_APOCALYPSE};
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.WAR_MINER, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.CHRONO_APOCALYPSE, UnitType.HAMMER_JUMP, UnitType.BATTLE_FORTRESS};
 	double fluxThresholds = 0.3;
 //	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	double resourceThresholds = 100;
@@ -72,7 +75,7 @@ public class RecyclerAI extends BuildingAI {
 			constructIdleRound = 0;
 		if (inquiryIdleRound != 0)
 			inquiryIdleRound--;
-
+		spawnThreshold = (Clock.getRoundNum() - birthRoundNum) / 200;
 	}
 	
 
@@ -112,10 +115,11 @@ public class RecyclerAI extends BuildingAI {
 		
 		
 		if (birthRoundNum < 200 || myMine == null) {
-			buildFactory = true;
-			buildArmory = true;
+//			buildFactory = true;
+//			buildArmory = true;
 //			buildRailgunTower = true;
 
+			constructingQueue.add(UnitType.CONSTRUCTOR);
 			constructingQueue.add(UnitType.CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
@@ -132,6 +136,9 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
+				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + constructingQueue);
+//				controllers.myRC.setIndicatorString(1, "Done:" + clusterIsDone);
+//				controllers.myRC.setIndicatorString(2, buildingLocs.getConsecutiveEmptySize() + "");
 				if (!clusterIsDone) {
 					clusterIsDone = true;
 					checkAdjacentRecyclers();
@@ -164,6 +171,14 @@ public class RecyclerAI extends BuildingAI {
 						}
 					}	
 				} else if (constructor == null) {
+					buildingLocs.updateEmptyLocations();
+					if (birthRoundNum < 200 && buildingLocs.getConsecutiveEmptySize() < 3) {
+						msgHandler.queueMessage(new NotEnoughSpaceMessage());
+						yield();
+						yield();
+						yield();
+						controllers.myRC.turnOff();
+					}
 					boolean needToBuild = buildFactory | buildArmory | buildTower | buildRailgunTower;
 					if (!recycler.isActive() && 
 							(birthRoundNum < 200 || myMine == null || needToBuild || controllers.myRC.getTeamResources() > 400) &&
@@ -175,6 +190,23 @@ public class RecyclerAI extends BuildingAI {
 						constructor = controllers.builder;
 						controllers.builder = recycler;	
 					}
+				}
+				
+				if (controllers.myRC.getTeamResources() > 400 && getEffectiveFluxRate() > 0.3) {
+					if (canSpawnRound >= spawnThreshold) {
+						canSpawnRound = 0;
+						queueUnitAtRatio();
+					} else {
+						canSpawnRound++;
+					}
+					if (constructingQueue.size() == 0) {
+						if (buildingLocs.factoryLocation == null)
+							buildFactory = true;
+						if (buildingLocs.railgunTowerLocations.size() == 0)
+							buildRailgunTower = true;
+					}
+				} else {
+					canSpawnRound = 0;
 				}
 				
 //				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "Armory:" + buildArmory);
@@ -192,13 +224,13 @@ public class RecyclerAI extends BuildingAI {
 				double fluxRate = getEffectiveFluxRate();
 
 				
-				// Turn off recyclers and factories of cluster size 1				
-				if (Clock.getRoundNum() - birthRoundNum > 100 && buildingLocs.clusterSize == 1 && buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() > 0) {
-					msgHandler.queueMessage(new TurnOffMessage(buildingLocs.factoryLocation));
-					while (msgHandler.getOutQueueSize() > 0)
-						yield();
-					controllers.myRC.turnOff();
-				}
+//				// Turn off recyclers and factories of cluster size 1				
+//				if (Clock.getRoundNum() - birthRoundNum > 100 && buildingLocs.clusterSize == 1 && buildingLocs.factoryLocation != null && buildingLocs.railgunTowerLocations.size() > 0) {
+//					msgHandler.queueMessage(new TurnOffMessage(buildingLocs.factoryLocation));
+//					while (msgHandler.getOutQueueSize() > 0)
+//						yield();
+//					controllers.myRC.turnOff();
+//				}
 					
 				
 				
@@ -536,7 +568,7 @@ public class RecyclerAI extends BuildingAI {
 	}
 	
 	private void constructUnit() {
-//		controllers.myRC.setIndicatorString (2, Clock.getRoundNum() + "" +unitUnderConstruction);
+		controllers.myRC.setIndicatorString (2, Clock.getRoundNum() + "" +unitUnderConstruction);
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
 
@@ -544,7 +576,7 @@ public class RecyclerAI extends BuildingAI {
 //				|| (constructIdleRound == 0 && constructingQueue.size() > 0)) {
 			UnitType unitUnderConstruction = constructingQueue.peek();
 			
-//			controllers.myRC.setIndicatorString(0, unitUnderConstruction + "" + Clock.getRoundNum());
+			controllers.myRC.setIndicatorString(1, unitUnderConstruction + "" + Clock.getRoundNum());
 			
 			ComponentType chassisBuilder = unitUnderConstruction.getChassisBuilder();
 
@@ -570,7 +602,7 @@ public class RecyclerAI extends BuildingAI {
 			} else {
 				if (chassisBuilder == ComponentType.RECYCLER) {
 					//Cannot be built by recycler itself
-					if ((unitUnderConstruction.requiredBuilders ^ Util.RECYCLER_CODE) == 0) {
+					if ((unitUnderConstruction.requiredBuilders ^ ~Util.RECYCLER_CODE) == 0) {
 						if (buildingSystem.constructUnit(unitUnderConstruction)) {
 							++unitConstructed;
 							msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
@@ -578,12 +610,14 @@ public class RecyclerAI extends BuildingAI {
 					} else {
 						
 						MapLocation buildLoc = buildingLocs.constructableLocation(Util.RECYCLER_CODE, unitUnderConstruction.requiredBuilders);
-						if (buildLoc != null) {
+						while (buildLoc == null || !buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs))
+							yield();
+//						if (buildLoc != null) {
 							if (buildingSystem.constructUnit(buildLoc,unitUnderConstruction, buildingLocs)) {
 								++unitConstructed;
 								msgHandler.queueMessage(new UnitReadyMessage(unitUnderConstruction));
 							}
-						}
+//						}
 					}
 				} else {
 
@@ -631,16 +665,16 @@ public class RecyclerAI extends BuildingAI {
 									buildFactory = false;
 								break;
 							default:
-								if (birthRoundNum < 200) {
-									msgHandler.queueMessage(new NotEnoughSpaceMessage());
-									buildFactory = false;
-									buildArmory = false;
-								} else {
+//								if (birthRoundNum < 200) {
+//									msgHandler.queueMessage(new NotEnoughSpaceMessage());
+//									buildFactory = false;
+//									buildArmory = false;
+//								} else {
 									
 									if (constructBuilding(loc, UnitType.FACTORY)) 
 										buildFactory = false;
 									break;
-								}
+//								}
 							}
 							break;
 						}
@@ -765,6 +799,18 @@ public class RecyclerAI extends BuildingAI {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	private void queueUnitAtRatio() {
+		int index;
+		int seed = ((int) (getEffectiveFluxRate()*100) + Clock.getRoundNum()) % total; 
+
+		// Find the production index
+		for (index = 0; seed >= cumulatedRatios[index]; ++index);
+
+//		
+		UnitType type = types[index];
+		constructingQueue.add(type);
 	}
 	
 	private void constructUnitAtRatio() {
