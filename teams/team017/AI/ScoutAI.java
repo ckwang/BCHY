@@ -183,6 +183,10 @@ public class ScoutAI extends AI {
 			
 			navigate();
 			
+			if (Clock.getRoundNum() % 10 == 0){
+				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations) );
+			}
+			
 			yield();
 		}
 	}
@@ -382,6 +386,7 @@ public class ScoutAI extends AI {
 			case CONSTRUCTION_COMPLETE:{
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
+				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations) );
 				break;
 			}
 				

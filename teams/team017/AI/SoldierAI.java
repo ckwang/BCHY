@@ -1,8 +1,12 @@
 package team017.AI;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import team017.combat.CombatSystem;
 import team017.message.FollowMeMessage;
 import team017.message.GridMapMessage;
+import team017.message.MineLocationsMessage;
 import team017.message.PatrolDirectionMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
@@ -19,6 +23,10 @@ import battlecode.common.SensorController;
 
 public class SoldierAI extends GroundAI {
 
+	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
+	
 	private CombatSystem combat;
 	private RobotController rc = controllers.myRC;
 	private MovementController motor = controllers.motor;
@@ -346,6 +354,16 @@ public class SoldierAI extends GroundAI {
 				break;
 			}
 			
+			case MINE_LOCATIONS_MESSAGE: {
+				MineLocationsMessage handler = new MineLocationsMessage(msg);
+				
+				emptyMineLocations.addAll(handler.getEmptyMineLocations());
+				alliedMineLocations.addAll(handler.getAlliedMineLocations());
+				enemyMineLocations.addAll(handler.getEnemyMineLocations());
+
+				break;
+			}
+			
 			}
 		}
 	}
@@ -353,21 +371,45 @@ public class SoldierAI extends GroundAI {
 	private void navigate() throws GameActionException {
 
 		if (!enemyInSight){
-			if ( navigateToDestination(scoutingLocation, 4) ) {
-				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+			if ( navigateToDestination(scoutingLocation, 16) ) {
+				if ( !gridMap.updateScoutLocation(scoutingDir) ) {
 					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 				}
 				scoutingLocation = gridMap.getScoutLocation();
 			}
 		}
 		else {
-			if ( walkingNavigateToDestination(scoutingLocation, 4) ) {
-				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+			if ( walkingNavigateToDestination(scoutingLocation, 16) ) {
+				if ( !gridMap.updateScoutLocation(scoutingDir) ) {
 					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 				}
 				scoutingLocation = gridMap.getScoutLocation();
 			}
 		}
 		
+	}
+	
+	private void getScoutingLoc(Direction scoutingDir){
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		
+		scoutingLocation = null;
+		MapLocation temp = homeLocation;
+		
+		for (MapLocation mineLoc : enemyMineLocations) {
+			
+			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(temp)){
+				if (currentLoc.directionTo(mineLoc) == scoutingDir){
+					scoutingLocation = mineLoc;
+					enemyMineLocations.remove(scoutingLocation);
+				}
+				
+				temp = mineLoc;
+			}
+				
+		}
+		if (scoutingLocation == null){
+			scoutingLocation = temp;
+			enemyMineLocations.remove(scoutingLocation);
+		}
 	}
 }

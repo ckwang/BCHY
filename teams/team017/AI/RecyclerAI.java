@@ -2,7 +2,9 @@ package team017.AI;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import team017.construction.UnitType;
 import team017.message.BuildingLocationResponseMessage;
@@ -11,6 +13,7 @@ import team017.message.ConstructBaseMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GridMapMessage;
+import team017.message.MineLocationsMessage;
 import team017.message.NotEnoughSpaceMessage;
 import team017.message.TurnOffMessage;
 import team017.message.UnitReadyMessage;
@@ -43,12 +46,16 @@ public class RecyclerAI extends BuildingAI {
 	
 	private double totalIncome = 0;
 	
+	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
+	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
+	
 	int [] unitRatios = {1, 0, 1, 0, 1, 1, 1, 1};
 	int [] cumulatedRatios = new int[8];
 	int total;
 	
 	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.WAR_MINER, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.CHRONO_APOCALYPSE, UnitType.MEDIUM_KILLER, UnitType.BATTLE_FORTRESS};
-	double fluxThresholds = 0.3;
+	double fluxThresholds = 0.8;
 //	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	double resourceThresholds = 100;
 	
@@ -411,6 +418,7 @@ public class RecyclerAI extends BuildingAI {
 			}
 			
 			case CONSTRUCTION_COMPLETE: {
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				ConstructionCompleteMessage handler = new ConstructionCompleteMessage(msg);
 				MapLocation buildingLocation = handler.getBuildingLocation();
 				Direction builderDir = currentLoc.directionTo(buildingLocation);
@@ -492,7 +500,7 @@ public class RecyclerAI extends BuildingAI {
 			
 			case UNIT_READY: {
 				UnitReadyMessage handler = new UnitReadyMessage(msg);
-				
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
 //					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + handler.getUnitType());
 					if (handler.getUnitType() == unitUnderConstruction) {
@@ -501,6 +509,16 @@ public class RecyclerAI extends BuildingAI {
 					
 				}
 				
+				break;
+			}
+			
+			case MINE_LOCATIONS_MESSAGE: {
+				MineLocationsMessage handler = new MineLocationsMessage(msg);
+				
+				emptyMineLocations.addAll(handler.getEmptyMineLocations());
+				alliedMineLocations.addAll(handler.getAlliedMineLocations());
+				enemyMineLocations.addAll(handler.getEnemyMineLocations());
+
 				break;
 			}
 
