@@ -68,7 +68,9 @@ public class ScoutAI extends AI {
 		nearbyEnemy.clear();
 		controllers.scoutNearby();
 		controllers.myRC.setIndicatorString(1, controllers.distanceToNearestEnemy+"");
-		if (senseBorder())	destination = gridMap.getScoutLocation();
+		if (senseBorder())	{
+//			destination = gridMap.getScoutLocation();
+		}
 		attacked = controllers.myRC.getHitpoints() < prevHp;
 		prevHp = controllers.myRC.getHitpoints();
 
@@ -90,7 +92,7 @@ public class ScoutAI extends AI {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 
-//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
+			controllers.myRC.setIndicatorString(0, childID + "" + scouted);
 			if ( (controllers.distanceToNearestEnemy < 121 || attacked) )
 				flee();
 			else
@@ -337,14 +339,15 @@ public class ScoutAI extends AI {
 		if (destination == null || (scouted == true && childID == -1)) {
 			watch();
 			return;
-		} 
-		else {
+		} else {
 			desDir = currentLoc.directionTo(destination);
 			// If arrived at scoutLoc
 			if ( desDir == Direction.OMNI ){
 				if (!scouted) {
 					scouted = true;
 					watch();
+					
+					if (childID == -1)	return;
 					
 					if (emptyMineLocations.isEmpty()) {
 						while ( !gridMap.updateScoutLocation(scoutingDir) ) {

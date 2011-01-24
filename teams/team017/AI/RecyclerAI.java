@@ -125,9 +125,9 @@ public class RecyclerAI extends BuildingAI {
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+//			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+//			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+//			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			
 			isInitial = true;
 		}
