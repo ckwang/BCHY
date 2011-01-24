@@ -93,7 +93,7 @@ abstract public class GroundAI extends AI {
 				
 			}
 		} catch (GameActionException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 			return false;
 		}
 		return false;

@@ -60,14 +60,19 @@ public class SoldierAI extends GroundAI {
 //			controllers.myRC.setIndicatorString(0, scoutingDir + "" + controllers.myRC.getLocation() + scoutingLocation);
 //			controllers.myRC.setIndicatorString(1, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
 
-			
+			int aband = 0;
 			while (controllers.mobileEnemyNum() > 0) {
 				target = combat.getMobile();
 				if (target == null) {
-					if (!combat.moveForward()) break;
-					else continue;
-				}
-				attackMobile(target);
+					break;
+//					if (!combat.moveForward()) break;
+//					else continue;
+				} else if (target.robot.getID() == aband)
+					continue;
+				rc.setIndicatorString(0, "attacking mobile");
+				rc.setIndicatorString(1, "target" + target.robot.getID());
+				aband = attackMobile(target);
+				yield();
 			}
 			while (controllers.immobileEnemyNum() > 0) {
 				target = combat.getImmobile();
@@ -77,35 +82,49 @@ public class SoldierAI extends GroundAI {
 				while (!combat.setDirection(edir)) {
 					combat.shoot(target);
 					yield();
+					rc.setIndicatorString(0, "attacing immobile");
+					rc.setIndicatorString(1, "target" + target.robot.getID());
 					if (controllers.mobileEnemyNum() > 0)
 						continue proceed;
 				}
-				for (int i = 0; i < 4 && !combat.primary.withinRange(target.location);) {
-					if (!combat.moveForward())
-						++i;
-					combat.shoot(target);
-					yield();
-					if (controllers.mobileEnemyNum() > 0)
-						continue proceed;
-				}
+//				for (int i = 0; i < 2 && !combat.primary.withinRange(target.location);) {
+////					if (combat.approachTarget(target))
+////						++i;
+////					if (!combat.moveForward())
+////						++i;
+//					combat.shoot(target);
+//					yield();
+//					if (controllers.mobileEnemyNum() > 0)
+//						continue proceed;
+//				}
 				if (!attackImmobile(target))
 					unkilled = target;
 			}
 			
-			if (unkilled != null) {
-				int d = unkilled.location.distanceSquaredTo(rc.getLocation());
-				if (d < 36)	
-					navigator.setDestination(unkilled.location);
-			}
+//			if (unkilled != null) {
+//				rc.setIndicatorString(0, "attacing mobile");
+//				int d = unkilled.location.distanceSquaredTo(rc.getLocation());
+//				if (d < 30)	
+//					navigateToDestination(unkilled.location, 9);
+//			}
+//			
+//			if (attacked && controllers.enemyNum() == 0) {
+//				rc.setIndicatorString(0, "checking surrounding");
+//				Direction dir = rc.getDirection().opposite();
+//				while (!combat.setDirection(dir))
+//					yield();
+//			}
 			
 			if (controllers.debrisNum() > 0 && !attacked) {
 				target = null;
 				for (RobotInfo d: controllers.debris) {
 					if (combat.primary.withinRange(d.location)) {
 						target = d;
+						break;
 					}
 				}
 				if (target != null) {
+					rc.setIndicatorString(0,"attacking debris "+ target.robot.getID());
 					combat.shoot(target);
 					yield();
 				}
@@ -120,7 +139,6 @@ public class SoldierAI extends GroundAI {
 				catch (Exception e) {}
 			}
 			
- 			broadcast();
 			yield();
 
 		}
@@ -144,51 +162,60 @@ public class SoldierAI extends GroundAI {
 	}
 	
 	//return has target
-	public boolean attackMobile(RobotInfo target) {
-		boolean shot = false;
+	public int attackMobile(RobotInfo target) {
 		int i;
-
-		for (i = 0; i < 4 && !combat.primary.withinRange(target.location);) {
+		int round = controllers.motor.roundsUntilIdle() + 1;
+		for (i = 0; i < 3 && !combat.primary.withinRange(target.location);) {
+			try {
+				target = sensor.senseRobotInfo(target.robot);
+				combat.shoot(target);
+			} catch (GameActionException e) {
+				++i;
+			}
 			if (combat.approachTarget(target)) {
 				yield();
-			}
-			try {
-				target = sensor.senseRobotInfo(target.robot);
-				shot = combat.shoot(target);
-			} catch (GameActionException e) {
 				++i;
-				combat.moveForward();
 			}
+			rc.setIndicatorString(2, "approach i: " + i);
+			yield();
 		}
-		if (i == 4 && !shot)
-			return true;
-		for (i = 0; i < 5 && !combat.shoot(target);) {
+		if (i == 3)
+			return target.robot.getID();
+		round = combat.primary.roundsUntilIdle() + 1;
+		yield();
+		for (i = 0; i < 2 && !combat.shoot(target);) {
+			rc.setIndicatorString(2, "shooting i: " + i);
 			try {
 				target = sensor.senseRobotInfo(target.robot);
-				combat.trackTarget(target);
+				if (combat.trackTarget(target))
+					++i;
 			} catch (GameActionException e) {
+				++i; 
 				combat.approachTarget(target);
-				++i;
+					 
 			}
 			yield();
 		}
-		if (i == 5)
-			return false;
-		return true;
+		rc.setIndicatorString(2, " ");
+		if (i == 2)
+			return target.robot.getID();
+		return 0;
 	}
 	
 	
 	public boolean attackImmobile(RobotInfo target) {
 		int i;
-		for (i = 0; i < 6 && !combat.shoot(target); ++i) {
+		for (i = 0; i < 2 && !combat.shoot(target); ++i) {
 			int d = target.location.distanceSquaredTo(rc.getLocation());
-			if (d > combat.optRange)
-				combat.moveForward();
+			if (d > combat.optRange) {
+				if (combat.moveForward())
+					++i;
+			}
 			else if (attacked)
 				combat.moveBackward();
 			yield();
 		}
-		if (i == 6)
+		if (i == 2)
 			return false;
 		return true;
 	}
@@ -292,6 +319,7 @@ public class SoldierAI extends GroundAI {
 	}
 
 	private void navigate() throws GameActionException {
+		rc.setIndicatorString(0, "navigating");
 		if (jumper == null) {
 			if (enemyBaseLoc[0] != null) {
 				if ( navigateToDestination(enemyBaseLoc[0], 9) )

@@ -90,8 +90,8 @@ public class ScoutAI extends AI {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 
-			controllers.myRC.setIndicatorString(1, scoutCount + "," + builtBranch);
-			if (controllers.distanceToNearestEnemy < 121 || attacked )
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
+			if ( (controllers.distanceToNearestEnemy < 121 || attacked) )
 				flee();
 			else
 				navigate();
@@ -440,7 +440,8 @@ public class ScoutAI extends AI {
 			currentDir = controllers.myRC.getDirection();
 			
 			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
-				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.APOCALYPSE , true));
+				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.CHRONO_APOCALYPSE , true));
+				return;
 			}
 			
 		}
