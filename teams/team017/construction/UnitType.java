@@ -38,7 +38,7 @@ public enum UnitType {
 	RHINO_TANK (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.SMG, ComponentType.BLASTER, ComponentType.RAILGUN, ComponentType.SHIELD),
 	MEDIUM_CONSTRUCTOR(Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING),
 	MEDIUM_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.DISH, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
-	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.RADAR, ComponentType.MEDIC, ComponentType.SHIELD, ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG),
+	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.RADAR, ComponentType.REGEN, ComponentType.SHIELD, ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG),
 	APOCALYPSE(Chassis.HEAVY, ComponentType.REGEN, ComponentType.HARDENED, ComponentType.SHIELD, ComponentType.SMG, ComponentType.SMG, ComponentType.RAILGUN, ComponentType.RADAR),
 	CHRONO_APOCALYPSE(Chassis.HEAVY, ComponentType.RAILGUN, ComponentType.RAILGUN, ComponentType.JUMP, ComponentType.RADAR, ComponentType.SHIELD, ComponentType.SMG),
 
