@@ -7,7 +7,11 @@ import java.util.Set;
 
 import team017.construction.UnitType;
 import team017.message.ConstructUnitMessage;
+import team017.message.ConstructionCompleteMessage;
+import team017.message.GoToMessage;
+import team017.message.GreetingMessage;
 import team017.message.GridMapMessage;
+import team017.message.HasArrivedMessage;
 import team017.message.MineInquiryMessage;
 import team017.message.MineLocationsMessage;
 import team017.message.MineResponseMessage;
@@ -39,16 +43,19 @@ public class ScoutAI extends AI {
 
 	private List<RobotInfo> nearbyEnemy = new ArrayList<RobotInfo>();
 	
-	private MapLocation scoutingLocation;
+//	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
 	private boolean leftward;
 	private boolean branch;
+	
+	private int childID = -1;
 	
 	private int inquiryQuota;
 	
 	private double prevHp = 0;
 	private boolean attacked = false;
 	
+	private MapLocation destination = null;
 	private MapLocation neareastRecycler;
 	
 	public ScoutAI(RobotController rc) {
@@ -63,7 +70,7 @@ public class ScoutAI extends AI {
 		nearbyEnemy.clear();
 		controllers.scoutNearby();
 		controllers.myRC.setIndicatorString(1, controllers.distanceToNearestEnemy+"");
-		if (senseBorder())	scoutingLocation = gridMap.getScoutLocation();
+		if (senseBorder())	destination = gridMap.getScoutLocation();
 		attacked = controllers.myRC.getHitpoints() < prevHp;
 		prevHp = controllers.myRC.getHitpoints();
 
@@ -75,7 +82,7 @@ public class ScoutAI extends AI {
 		msgHandler.queueMessage(new ScoutingInquiryMessage(false));
 		while (scoutingDir == null) {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
-			controllers.myRC.setIndicatorString(0, homeLocation + "," + scoutingLocation);
+//			controllers.myRC.setIndicatorString(0, homeLocation + "," + destination);
 			yield();
 		}
 			
@@ -85,7 +92,7 @@ public class ScoutAI extends AI {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 
-			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + destination);
 			if (controllers.distanceToNearestEnemy < 121 || attacked )
 				flee();
 			else
@@ -200,7 +207,7 @@ public class ScoutAI extends AI {
 			
 			case SCOUTING_RESPONSE_MESSAGE: {
 				ScoutingResponseMessage handler = new ScoutingResponseMessage(msg);
-				controllers.myRC.setIndicatorString(2, "received");
+//				controllers.myRC.setIndicatorString(2, "received");
 				if (handler.getTelescoperID() == id && handler.getSourceLocation().isAdjacentTo(controllers.myRC.getLocation())) {
 					scoutingDir = handler.getScoutingDirection();
 					leftward = handler.isLeftward();
@@ -212,7 +219,7 @@ public class ScoutAI extends AI {
 					while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 						scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 					}
-					scoutingLocation = gridMap.getScoutLocation();
+					destination = gridMap.getScoutLocation();
 				}
 				
 				inquiryQuota = 1;
@@ -233,15 +240,65 @@ public class ScoutAI extends AI {
 						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 						}
-						scoutingLocation = gridMap.getScoutLocation();
+						destination = gridMap.getScoutLocation();
 						scouted = false;
 						inquiryQuota = 1;
 					}
 				}
 				
-				controllers.myRC.setIndicatorString(2, "MINE_INQUIRY_MESSAGE " + scoutingLocation);
 				yield();
 				yield();
+				break;
+			}
+			
+			case GREETING_MESSAGE: {
+				if (childID == -1 && scouted) {
+					GreetingMessage handler = new GreetingMessage(msg);
+					
+					if (!handler.getSourceLocation().isAdjacentTo(controllers.myRC.getLocation()))
+						break;
+					
+					if (handler.isConstructor()) {
+						childID = handler.getSourceID();
+					}
+					
+					msgHandler.queueMessage(new GreetingMessage(false));
+					
+					findNearestMine();
+					msgHandler.queueMessage(new GoToMessage(destination, true));
+					controllers.myRC.setIndicatorString(0, "GREETING_MESSAGE " + childID + destination);
+					controllers.myRC.setIndicatorString(2, emptyMineLocations + "");
+				}
+				break;
+			}
+			
+			case HAS_ARRIVED_MESSAGE: {
+				HasArrivedMessage handler = new HasArrivedMessage(msg);
+				
+				if (handler.getSourceID() == childID) {
+					
+					if (handler.isMine()) {
+						alliedMineLocations.add(destination);
+						emptyMineLocations.remove(destination);
+					}
+					
+					// go to next scout location if the empty mine list is empty
+					if (emptyMineLocations.isEmpty()) {
+						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+						}
+						destination = gridMap.getScoutLocation();
+						scouted = false;
+						msgHandler.queueMessage(new GoToMessage(destination, false));
+					} else {
+//						watch();
+						findNearestMine();
+						
+						if (destination != null) {
+							msgHandler.queueMessage(new GoToMessage(destination, true));
+						}
+					}
+				}
 				break;
 			}
 				
@@ -258,17 +315,34 @@ public class ScoutAI extends AI {
 			return;
 		
 		Direction desDir;
-		if (scouted) {
+		if (destination == null || (scouted == true && childID == -1)) {
 			watch();
 			return;
 		} 
 		else {
-			desDir = currentLoc.directionTo(scoutingLocation);
+			desDir = currentLoc.directionTo(destination);
 			// If arrived at scoutLoc
 			if ( desDir == Direction.OMNI ){
-				watch();
+				if (!scouted) {
+					scouted = true;
+					watch();
+					
+					if (emptyMineLocations.isEmpty()) {
+						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+						}
+						destination = gridMap.getScoutLocation();
+						scouted = false;
+						msgHandler.queueMessage(new GoToMessage(destination, false));
+					} else {
+						findNearestMine();
+						
+						if (destination != null) {
+							msgHandler.queueMessage(new GoToMessage(destination, true));
+						}
+					}
+				}
 				gridMap.setScouted(controllers.myRC.getLocation());
-				scouted = true;
 				return;
 			}
 		}
@@ -363,6 +437,25 @@ public class ScoutAI extends AI {
 			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(neareastRecycler))
 				neareastRecycler = mineLoc;
 		}
+
+	}
+	
+	private void findNearestMine() {
+		destination = new MapLocation(0, 0);
+
+		MapLocation currentLoc = controllers.myRC.getLocation();
+		
+		// find a eligible mine
+		for (MapLocation mineLoc : emptyMineLocations) {
+			if (alliedMineLocations.contains(mineLoc) || enemyMineLocations.contains(mineLoc))
+				continue;
+			
+			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(destination))
+				destination = mineLoc;
+		}
+		
+		if (destination.x == 0)
+			destination = null;
 
 	}
 	
