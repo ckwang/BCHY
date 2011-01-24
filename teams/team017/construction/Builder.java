@@ -120,7 +120,10 @@ public class Builder {
 						controllers.builder.build(com, buildLoc, chassis.level);
 					}
 					rc.turnOn(buildLoc, chassis.level);
-					
+					GenericMessage msg = new UnitReadyMessage(type);
+					msgHandler.queueMessage(msg);
+					msgHandler.bypass(msg);
+
 					return true;
 				}
 			}

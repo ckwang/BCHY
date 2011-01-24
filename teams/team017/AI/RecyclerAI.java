@@ -114,7 +114,9 @@ public class RecyclerAI extends BuildingAI {
 		if (birthRoundNum < 200 || myMine == null) {
 			buildFactory = true;
 			buildArmory = true;
-			buildRailgunTower = true;
+//			buildRailgunTower = true;
+
+			constructingQueue.add(UnitType.CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
@@ -130,7 +132,6 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
-				controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + constructingQueue);
 				if (!clusterIsDone) {
 					clusterIsDone = true;
 					checkAdjacentRecyclers();
@@ -227,7 +228,7 @@ public class RecyclerAI extends BuildingAI {
 				recycler.build(ComponentType.ANTENNA, info.location, RobotLevel.ON_GROUND);
 			}
 			Direction dir = Direction.NORTH;
-			for (int i = 0; i < buildingLocs.emptySize; i++) {
+			for (int i = 0; i < buildingLocs.getConsecutiveEmptySize(); i++) {
 				dir = dir.rotateRight();
 			}
 			while (controllers.motor.isActive())
@@ -430,7 +431,7 @@ public class RecyclerAI extends BuildingAI {
 				UnitReadyMessage handler = new UnitReadyMessage(msg);
 				
 				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
-					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + handler.getUnitType());
+//					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + handler.getUnitType());
 					if (handler.getUnitType() == unitUnderConstruction) {
 						unitUnderConstruction = null;
 					}
@@ -465,7 +466,7 @@ public class RecyclerAI extends BuildingAI {
 	private void encodeEmptyNumInDirection () {
 		
 		Direction dir = Direction.NORTH;
-		for (int i = 0; i < buildingLocs.emptySize; i++) {
+		for (int i = 0; i < buildingLocs.getConsecutiveEmptySize(); i++) {
 			dir = dir.rotateRight();
 		}
 		while (controllers.motor.isActive())
@@ -482,7 +483,7 @@ public class RecyclerAI extends BuildingAI {
 	private void checkAdjacentRecyclers() throws GameActionException {
 		Robot[] robots = controllers.sensor.senseNearbyGameObjects(Robot.class);
 		MapLocation maxEmptyLocation = currentLoc;
-		int maxEmptyNum = buildingLocs.emptySize;
+		int maxEmptyNum = buildingLocs.getConsecutiveEmptySize();
 		RobotInfo maxRobotInfo = null;
 		
 		for (Robot r : robots) {
@@ -535,7 +536,7 @@ public class RecyclerAI extends BuildingAI {
 	}
 	
 	private void constructUnit() {
-		controllers.myRC.setIndicatorString (2, Clock.getRoundNum() + "" +unitUnderConstruction);
+//		controllers.myRC.setIndicatorString (2, Clock.getRoundNum() + "" +unitUnderConstruction);
 		if ( constructingQueue.size() == 0 && unitUnderConstruction == null)
 			return;
 
