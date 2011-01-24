@@ -24,6 +24,7 @@ public class RecyclerAI extends BuildingAI {
 	private int birthRoundNum;
 	private int inquiryIdleRound = 0;
 	private int constructIdleRound = 0;
+	private int constructorIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 	private boolean built = false;
 	private boolean clusterIsDone = false;
@@ -128,6 +129,39 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
+				constructorIdleRound++;
+				if (constructorIdleRound > 800){
+					if (Clock.getRoundNum() < 2000) {
+						constructingQueue.add(UnitType.TELESCOPER);
+						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.TELESCOPER);
+						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.TELESCOPER);
+						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+					}
+					else {
+						constructingQueue.add(UnitType.TELESCOPER);
+						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.TELESCOPER);
+						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.TELESCOPER);
+						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+					}
+					
+					constructorIdleRound = 0;
+				}
 				controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + constructingQueue);
 				if (!clusterIsDone) {
 					clusterIsDone = true;

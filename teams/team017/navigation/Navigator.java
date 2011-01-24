@@ -261,7 +261,6 @@ public class Navigator {
 				}
 			}
 		}
-		
 		if (jumpLoc.isAdjacentTo(currentLoc))
 			return null;
 		

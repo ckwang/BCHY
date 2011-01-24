@@ -58,7 +58,9 @@ public class SoldierAI extends GroundAI {
 		
 		proceed:
 		while (true) {
-			controllers.myRC.setIndicatorString(1, scoutingDir + "");
+//			controllers.myRC.setIndicatorString(0, scoutingDir + "" + controllers.myRC.getLocation() + scoutingLocation);
+//			controllers.myRC.setIndicatorString(1, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
+
 			
 			while (controllers.mobileEnemyNum() > 0) {
 				target = combat.getMobile();
@@ -135,11 +137,11 @@ public class SoldierAI extends GroundAI {
 		prevHp = rc.getHitpoints();
 		controllers.senseRobot();
 		combat.heal();
-		senseBorder();
+		if (senseBorder())	scoutingLocation = gridMap.getScoutLocation();
 		navigator.updateMap();
 		processMessages();
 		swarming = controllers.allyMobile.size() > 2;
-		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"");
+//		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"");
 	}
 	
 	//return has target
