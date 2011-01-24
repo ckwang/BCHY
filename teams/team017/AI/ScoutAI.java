@@ -449,7 +449,7 @@ public class ScoutAI extends AI {
 	}
 	
 	private boolean isMyBusiness(MapLocation loc) {
-		return scoutingLocation.distanceSquaredTo(loc) <= 100;
+		return scoutingLocation.distanceSquaredTo(loc) <= 72;
 	}
 	
 	private MapLocation findNearestMine() {

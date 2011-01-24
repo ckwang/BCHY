@@ -287,7 +287,7 @@ public class AirConstructorAI extends AI {
 		if (destination != null) {
 			desDir = currentLoc.directionTo(destination);
 			if (currentLoc.distanceSquaredTo(destination) <= 2) {
-				if (Clock.getRoundNum() - roundSinceLastNotified > 10) {
+				if (Clock.getRoundNum() - roundSinceLastNotified > 20) {
 					try {
 						if (isMine) {
 							buildRecyclers();
