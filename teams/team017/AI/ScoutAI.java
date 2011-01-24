@@ -138,26 +138,41 @@ public class ScoutAI extends AI {
 				}
 			}
 			
+			if ( (controllers.distanceToNearestEnemy < 121 || attacked) ) {
+				isFlee = true;
+				
+				nearbyEnemy.clear();
+				
+				// If the enemy is too faraway, scout nearby first
+				if (!attacked && controllers.distanceToNearestEnemy > 81)
+					watch();
+				
+				destination = nearestRecycler;
+				msgHandler.queueMessage(new GoToMessage(destination, false));
+				childArrived = false;
+				isScout = false;
+			}
+			
 			if (childArrived) {
 				
-				isFlee = false;
+//				isFlee = false;
 				
-				if ( (controllers.distanceToNearestEnemy < 121 || attacked) ) {
-					isFlee = true;
-					
-					nearbyEnemy.clear();
-					
-					// If the enemy is too faraway, scout nearby first
-					if (!attacked && controllers.distanceToNearestEnemy > 81)
-						watch();
-					
-					destination = nearestRecycler;
-					msgHandler.queueMessage(new GoToMessage(destination, false));
-					childArrived = false;
-					isScout = false;
-				}
+//				if ( (controllers.distanceToNearestEnemy < 121 || attacked) ) {
+//					isFlee = true;
+//					
+//					nearbyEnemy.clear();
+//					
+//					// If the enemy is too faraway, scout nearby first
+//					if (!attacked && controllers.distanceToNearestEnemy > 81)
+//						watch();
+//					
+//					destination = nearestRecycler;
+//					msgHandler.queueMessage(new GoToMessage(destination, false));
+//					childArrived = false;
+//					isScout = false;
+//				}
 				
-				if (!isFlee) {
+//				if (!isFlee) {
 					destination = findNearestMine();
 					
 					if (destination == null) {
@@ -179,7 +194,7 @@ public class ScoutAI extends AI {
 						parentArrived = false;
 						isScout = false;
 					}
-				}
+//				}
 			}
 			
 			navigate();
@@ -383,10 +398,6 @@ public class ScoutAI extends AI {
 					watch();
 					if (!parentArrived) {
 						gridMap.setScouted(controllers.myRC.getLocation());
-					}
-					if (childID == -1) {
-						parentArrived = true;
-						return;
 					}
 				}
 				

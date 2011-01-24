@@ -134,18 +134,20 @@ public class Controllers {
 				rinfo = sensor.senseRobotInfo((Robot)o);
 				if (o.getTeam() == myRC.getTeam().opponent()) {
 					boolean mobile = rinfo.on && rinfo.chassis != Chassis.BUILDING && rinfo.chassis != Chassis.DUMMY;
-					int d = myloc.distanceSquaredTo(rinfo.location);
-					if (d < distanceToNearestEnemy)
-						distanceToNearestEnemy = d;
+					
 					ComponentType[] coms = rinfo.components;
 					for (ComponentType c: coms) {
 						if (c.componentClass == ComponentClass.WEAPON) {
+							int d = myloc.distanceSquaredTo(rinfo.location);
+							if (d < distanceToNearestEnemy)
+								distanceToNearestEnemy = d;
+							
 							if (mobile) {
 								enemyMobile.add(rinfo);
 							} else {
 								enemyImmobile.add(rinfo);
 							}
-							continue;
+							break;
 						}
 					}
 				}
