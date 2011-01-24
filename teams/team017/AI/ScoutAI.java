@@ -185,6 +185,10 @@ public class ScoutAI extends AI {
 			
 			navigate();
 			
+			if (Clock.getRoundNum() % 10 == 0){
+				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations) );
+			}
+			
 			nearbyEnemy.clear();
 			yield();
 		}
@@ -284,6 +288,10 @@ public class ScoutAI extends AI {
 			switch (msgHandler.getMessageType(msg)) {
 			
 			case GRID_MAP_MESSAGE: {
+				
+				if (childID != -1)
+					break;
+				
 				GridMapMessage handler = new GridMapMessage(msg);
 				// update the borders
 				int[] newBorders = handler.getBorders();
@@ -300,6 +308,8 @@ public class ScoutAI extends AI {
 				computeEnemyBaseLocation();
 				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 
+				if (!gridMap.currentIsInbound())
+					gridMap.updateScoutLocation(controllers.myRC.getLocation());
 				break;
 			}
 			
@@ -368,6 +378,7 @@ public class ScoutAI extends AI {
 			case CONSTRUCTION_COMPLETE:{
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
+				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations) );
 				break;
 			}
 				
