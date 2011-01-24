@@ -107,33 +107,33 @@ public class ScoutAI extends AI {
 				if ( controllers.myRC.getLocation().distanceSquaredTo(nearestRecycler) < 36 ){
 					if (nearbyEnemy.size() > 0) {
 						List<UnitType> types = new ArrayList<UnitType>();
-						for (RobotInfo info: nearbyEnemy) {
-							switch(info.chassis) {
-							case HEAVY:
-							case MEDIUM:
-								// Check if it contains harden
-								boolean hasHarden = false;
-								for (ComponentType com: info.components) {
-									if (com.equals(ComponentType.HARDENED)) {
-										hasHarden = true;
-										break;
-									}
-								}
-								if (hasHarden)
-									types.add(UnitType.BATTLE_FORTRESS);
-								else 
-									types.add(UnitType.APOCALYPSE);
-								break;
-							case LIGHT:
-								types.add(UnitType.RHINO_TANK);
-								break;
-							case FLYING:
-								types.add(UnitType.GRIZZLY);
-								break;
-							}
-						}
+//						for (RobotInfo info: nearbyEnemy) {
+//							switch(info.chassis) {
+//							case HEAVY:
+//							case MEDIUM:
+//								// Check if it contains harden
+//								boolean hasHarden = false;
+//								for (ComponentType com: info.components) {
+//									if (com.equals(ComponentType.HARDENED)) {
+//										hasHarden = true;
+//										break;
+//									}
+//								}
+//								if (hasHarden)
+//									types.add(UnitType.BATTLE_FORTRESS);
+//								else 
+//									types.add(UnitType.APOCALYPSE);
+//								break;
+//							case LIGHT:
+//								types.add(UnitType.RHINO_TANK);
+//								break;
+//							case FLYING:
+//								types.add(UnitType.GRIZZLY);
+//								break;
+//							}
+//						}
 						msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
-						msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, types , true));
+						msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, UnitType.APOCALYPSE , true));
 					}
 				}
 			}
@@ -293,6 +293,10 @@ public class ScoutAI extends AI {
 			switch (msgHandler.getMessageType(msg)) {
 			
 			case GRID_MAP_MESSAGE: {
+				
+				if (childID != -1)
+					break;
+				
 				GridMapMessage handler = new GridMapMessage(msg);
 				// update the borders
 				int[] newBorders = handler.getBorders();
@@ -309,6 +313,8 @@ public class ScoutAI extends AI {
 				computeEnemyBaseLocation();
 				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 
+				if (!gridMap.currentIsInbound())
+					gridMap.updateScoutLocation(controllers.myRC.getLocation());
 				break;
 			}
 			

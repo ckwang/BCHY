@@ -1,5 +1,6 @@
 package team017.navigation;
 
+import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 
@@ -269,6 +270,7 @@ public class GridMap {
 	
 	public boolean updateScoutLocation(Direction dir) {
 		Grid newGrid = currentScoutGrid.add(dir.dx, dir.dy);
+//		System.out.println(Clock.getRoundNum());
 		if (isInbound(newGrid) /*&& !isScouted(newGrid)*/) {
 			currentScoutGrid = newGrid;
 			return true;
