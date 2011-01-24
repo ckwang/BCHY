@@ -36,6 +36,8 @@ public class RecyclerAI extends BuildingAI {
 	private boolean buildTower = false;
 	private boolean buildRailgunTower = false;
 	
+	private boolean isInitial = false;
+	
 	int [] unitRatios = {1, 0, 0, 0, 1};
 	int [] cumulatedRatios = new int[5];
 	int total;
@@ -116,6 +118,7 @@ public class RecyclerAI extends BuildingAI {
 			buildFactory = true;
 			buildArmory = true;
 			buildRailgunTower = true;
+			
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
@@ -125,43 +128,13 @@ public class RecyclerAI extends BuildingAI {
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			
+			isInitial = true;
 		}
 		
 		while (true) {
 			try {
-				constructorIdleRound++;
-				if (constructorIdleRound > 800){
-					if (Clock.getRoundNum() < 2000) {
-						constructingQueue.add(UnitType.TELESCOPER);
-						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.TELESCOPER);
-						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.TELESCOPER);
-						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-					}
-					else {
-						constructingQueue.add(UnitType.TELESCOPER);
-						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.TELESCOPER);
-						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.TELESCOPER);
-						constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-						constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-					}
-					
-					constructorIdleRound = 0;
-				}
+				
 				controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + constructingQueue);
 				if (!clusterIsDone) {
 					clusterIsDone = true;
@@ -240,6 +213,9 @@ public class RecyclerAI extends BuildingAI {
 				// turn off when the mine is depleted
 				if (myMine != null && controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingLocs.clusterSize == 1)
 					controllers.myRC.turnOff();
+				
+				if (Clock.getRoundNum() % 200 == 0)
+					constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 
 				yield();
 			} catch (Exception e) {
