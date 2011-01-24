@@ -38,6 +38,7 @@ public class AirConstructorAI extends AI {
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 	
 	private int roundSinceLastInquired = 0;
+	private int roundSinceLastNotified = 0;
 	private int builtIdleRound = 0;
 	
 	private int parentID = -1;
@@ -285,12 +286,14 @@ public class AirConstructorAI extends AI {
 		
 		if (destination != null) {
 			desDir = currentLoc.directionTo(destination);
-			if (currentLoc.distanceSquaredTo(destination) <= 2) {
+			if (currentLoc.distanceSquaredTo(destination) <= 2 &&
+					Clock.getRoundNum() - roundSinceLastNotified > 10) {
 				try {
 					if (isMine) {
 						buildRecyclers();
-						msgHandler.queueMessage(new HasArrivedMessage(isMine));
 					}
+					msgHandler.queueMessage(new HasArrivedMessage(isMine));
+					roundSinceLastNotified = Clock.getRoundNum();
 				} catch (GameActionException e) {
 					e.printStackTrace();
 				}

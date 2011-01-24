@@ -92,7 +92,8 @@ public class ScoutAI extends AI {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 
-			controllers.myRC.setIndicatorString(0, childID + "" + scouted);
+			controllers.myRC.setIndicatorString(0, emptyMineLocations + "");
+			
 			if ( (controllers.distanceToNearestEnemy < 121 || attacked) )
 				flee();
 			else
@@ -293,6 +294,7 @@ public class ScoutAI extends AI {
 					if (handler.isMine()) {
 						alliedMineLocations.add(destination);
 						emptyMineLocations.remove(destination);
+						controllers.myRC.setIndicatorString(2, emptyMineLocations + "");
 						
 						final UnitType[] constructingQueue = {UnitType.TELESCOPER, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.FLYING_CONSTRUCTOR};
 						if (branch && !builtBranch && !blockedMineLocations.contains(destination)) {
@@ -349,22 +351,22 @@ public class ScoutAI extends AI {
 					
 					if (childID == -1)	return;
 					
-					if (emptyMineLocations.isEmpty()) {
-						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
-							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
-						}
-						destination = gridMap.getScoutLocation();
-						scouted = false;
-						scoutCount++;
-						if (scoutCount % 2 == 0)	builtBranch = false;
-						msgHandler.queueMessage(new GoToMessage(destination, false));
-					} else {
-						findNearestMine();
-						
-						if (destination != null) {
-							msgHandler.queueMessage(new GoToMessage(destination, true));
-						}
-					}
+//					if (emptyMineLocations.isEmpty()) {
+//						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+//							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+//						}
+//						destination = gridMap.getScoutLocation();
+//						scouted = false;
+//						scoutCount++;
+//						if (scoutCount % 2 == 0)	builtBranch = false;
+//						msgHandler.queueMessage(new GoToMessage(destination, false));
+//					} else {
+//						findNearestMine();
+//						
+//						if (destination != null) {
+//							msgHandler.queueMessage(new GoToMessage(destination, true));
+//						}
+//					}
 				}
 				gridMap.setScouted(controllers.myRC.getLocation());
 				return;

@@ -214,8 +214,8 @@ public class RecyclerAI extends BuildingAI {
 				if (myMine != null && controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingLocs.clusterSize == 1)
 					controllers.myRC.turnOff();
 				
-				if (Clock.getRoundNum() % 200 == 0)
-					constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+//				if (Clock.getRoundNum() % 200 == 0)
+//					constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 
 				yield();
 			} catch (Exception e) {
