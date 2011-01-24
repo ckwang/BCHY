@@ -286,18 +286,18 @@ public class AirConstructorAI extends AI {
 		
 		if (destination != null) {
 			desDir = currentLoc.directionTo(destination);
-			if (currentLoc.distanceSquaredTo(destination) <= 2 &&
-					Clock.getRoundNum() - roundSinceLastNotified > 10) {
-				try {
-					if (isMine) {
-						buildRecyclers();
+			if (currentLoc.distanceSquaredTo(destination) <= 2) {
+				if (Clock.getRoundNum() - roundSinceLastNotified > 10) {
+					try {
+						if (isMine) {
+							buildRecyclers();
+						}
+						msgHandler.queueMessage(new HasArrivedMessage(isMine));
+						roundSinceLastNotified = Clock.getRoundNum();
+					} catch (GameActionException e) {
+						e.printStackTrace();
 					}
-					msgHandler.queueMessage(new HasArrivedMessage(isMine));
-					roundSinceLastNotified = Clock.getRoundNum();
-				} catch (GameActionException e) {
-					e.printStackTrace();
 				}
-				
 				return;
 			}
 		} else {

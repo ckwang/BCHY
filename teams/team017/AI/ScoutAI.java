@@ -289,7 +289,7 @@ public class ScoutAI extends AI {
 			case HAS_ARRIVED_MESSAGE: {
 				HasArrivedMessage handler = new HasArrivedMessage(msg);
 				
-				if (handler.getSourceID() == childID) {
+				if (handler.getSourceID() == childID && scouted) {
 					
 					if (handler.isMine()) {
 						alliedMineLocations.add(destination);
