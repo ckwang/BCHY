@@ -8,6 +8,8 @@ import battlecode.common.RobotController;
 
 abstract public class GroundAI extends AI {
 
+	private MapLocation jumpLoc;
+	
 	public GroundAI(RobotController rc) {
 		super(rc);
 	}
@@ -76,22 +78,26 @@ abstract public class GroundAI extends AI {
 		controllers.myRC.setIndicatorString(2, "searching for jump location");
 		try{
 			navigator.setDestination(des);
-			MapLocation jumpLoc = navigator.getNextJumpingLoc(tolerance);
-	
-			controllers.myRC.setIndicatorString(2, "jump location: " + jumpLoc);
+			
+			if (jumpLoc == null)
+				jumpLoc = navigator.getNextJumpingLoc(tolerance);
 			
 			if (jumpLoc == null){
 				return walkingNavigateToDestination(des, tolerance);
 			}
 			else{
-				if (controllers.myRC.getDirection() != currentLoc.directionTo(jumpLoc))
-					controllers.motor.setDirection(currentLoc.directionTo(jumpLoc));
-				else if (!controllers.jumper.isActive())
+				if (controllers.myRC.getDirection() != controllers.myRC.getLocation().directionTo(jumpLoc))
+					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(jumpLoc));
+				else if (!controllers.jumper.isActive()) {
+					controllers.myRC.setIndicatorString(2, "JumpLoc: " + jumpLoc);
 					controllers.jumper.jump(jumpLoc);
+					jumpLoc = null;
+				}
 				
 			}
 		} catch (GameActionException e) {
 			e.printStackTrace();
+			jumpLoc = null;
 			return false;
 		}
 		return false;

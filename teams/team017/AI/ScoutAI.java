@@ -341,9 +341,9 @@ public class ScoutAI extends AI {
 			currentLoc = controllers.myRC.getLocation();
 			currentDir = controllers.myRC.getDirection();
 			
-			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
-				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.APOCALYPSE , true));
-			}
+//			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
+//				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.APOCALYPSE , true));
+//			}
 			
 		}
 		
