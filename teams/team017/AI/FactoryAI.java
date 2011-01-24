@@ -1,8 +1,10 @@
 package team017.AI;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
@@ -26,6 +28,7 @@ import battlecode.common.GameObject;
 import battlecode.common.MapLocation;
 import battlecode.common.Message;
 import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
 import battlecode.common.RobotLevel;
 
 public class FactoryAI extends BuildingAI {
@@ -44,6 +47,7 @@ public class FactoryAI extends BuildingAI {
 	private Direction[] toExplore = new Direction[3];
 	private int toExploreIndex;
 	
+	
 	private Direction birthDir;
 	private Direction previousWatchingDir;
 	
@@ -55,6 +59,7 @@ public class FactoryAI extends BuildingAI {
 	public void yield() {
 		super.yield();
 		controllers.senseMine();
+		controllers.senseRobot();
 	}
 
 	@Override
@@ -158,6 +163,38 @@ public class FactoryAI extends BuildingAI {
 			tempEmpty.addAll(controllers.emptyMines);
 			tempAllied.addAll(controllers.allyMines);
 			tempEnemy.addAll(controllers.enemyMines);
+			
+			
+			if (controllers.enemyMobile.size() > 0) {
+					List<UnitType> types = new ArrayList<UnitType>();
+					for (RobotInfo info: controllers.enemyMobile) {
+						switch(info.chassis) {
+						case HEAVY:
+						case MEDIUM:
+//							Check if it contains harden
+							boolean hasHarden = false;
+							for (ComponentType com: info.components) {
+								if (com.equals(ComponentType.HARDENED)) {
+									hasHarden = true;
+									break;
+								}
+							}
+							if (hasHarden)
+								types.add(UnitType.BATTLE_FORTRESS);
+							else 
+								types.add(UnitType.APOCALYPSE);
+							break;
+						case LIGHT:
+							types.add(UnitType.RHINO_TANK);
+							break;
+						case FLYING:
+							types.add(UnitType.GRIZZLY);
+							break;
+						}
+					}
+					msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.recyclerLocation, types, true));
+				
+			}
 			
 			if ( !controllers.motor.isActive() ) {
 				previousWatchingDir = controllers.myRC.getDirection().rotateRight();

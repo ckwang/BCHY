@@ -38,6 +38,8 @@ public class ScoutAI extends AI {
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
+	
+
 
 	private List<RobotInfo> nearbyEnemy = new ArrayList<RobotInfo>();
 	
@@ -56,6 +58,7 @@ public class ScoutAI extends AI {
 	private boolean branch;
 	
 	private int scoutCount = 1;
+	private boolean arrived = false;
 	private boolean builtBranch = true;
 	
 	public ScoutAI(RobotController rc) {
@@ -133,6 +136,8 @@ public class ScoutAI extends AI {
 							blockedMineLocations.add(m);
 					}
 				}
+				
+				nearbyEnemy.addAll(controllers.enemyMobile);
 				
 				emptyMineLocations.addAll(controllers.emptyMines);
 				emptyMineLocations.removeAll(controllers.allyMines);
@@ -289,7 +294,9 @@ public class ScoutAI extends AI {
 			case HAS_ARRIVED_MESSAGE: {
 				HasArrivedMessage handler = new HasArrivedMessage(msg);
 				
-				if (handler.getSourceID() == childID && scouted) {
+				if (handler.getSourceID() == childID && scouted && handler.getArrivedLoc().equals(destination)) {
+					
+					arrived = true;
 					
 					if (handler.isMine()) {
 						alliedMineLocations.add(destination);
@@ -313,9 +320,12 @@ public class ScoutAI extends AI {
 						scouted = false;
 						scoutCount++;
 						if (scoutCount % 2 == 0)	builtBranch = false;
+						
 						msgHandler.queueMessage(new GoToMessage(destination, false));
+						arrived = false;
 					} else {
 						msgHandler.queueMessage(new GoToMessage(destination, true));
+						arrived = false;
 					}
 				}
 				break;
@@ -385,6 +395,8 @@ public class ScoutAI extends AI {
 		MapLocation currentLoc = controllers.myRC.getLocation();
 		Direction currentDir = controllers.myRC.getDirection();
 		
+		nearbyEnemy.clear();
+		
 		// If the enemy is too faraway, scout nearby first
 		if (!attacked && controllers.distanceToNearestEnemy > 81)
 			watch();
@@ -425,8 +437,36 @@ public class ScoutAI extends AI {
 			currentDir = controllers.myRC.getDirection();
 			
 			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
-				msgHandler.queueMessage(new ConstructBaseMessage(neareastRecycler, UnitType.RAILGUN_TOWER));
-				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.APOCALYPSE , true));
+				if (nearbyEnemy.size() > 0) {
+					List<UnitType> types = new ArrayList<UnitType>();
+					for (RobotInfo info: nearbyEnemy) {
+						switch(info.chassis) {
+						case HEAVY:
+						case MEDIUM:
+//							Check if it contains harden
+							boolean hasHarden = false;
+							for (ComponentType com: info.components) {
+								if (com.equals(ComponentType.HARDENED)) {
+									hasHarden = true;
+									break;
+								}
+							}
+							if (hasHarden)
+								types.add(UnitType.BATTLE_FORTRESS);
+							else 
+								types.add(UnitType.APOCALYPSE);
+							break;
+						case LIGHT:
+							types.add(UnitType.RHINO_TANK);
+							break;
+						case FLYING:
+							types.add(UnitType.GRIZZLY);
+							break;
+						}
+					}
+					msgHandler.queueMessage(new ConstructBaseMessage(neareastRecycler, UnitType.RAILGUN_TOWER));
+					msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, types , true));
+				}
 				return;
 			}
 			
