@@ -30,6 +30,7 @@ public class ScoutAI extends AI {
 	private int id;
 	
 	private boolean scouted = false;
+
 	
 	private Set<MapLocation> blockedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
@@ -85,8 +86,8 @@ public class ScoutAI extends AI {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 
-			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
-			if (controllers.distanceToNearestEnemy < 121 || attacked )
+//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + scoutingLocation);
+			if ( (controllers.distanceToNearestEnemy < 121 || attacked) )
 				flee();
 			else
 				navigate();
@@ -345,7 +346,8 @@ public class ScoutAI extends AI {
 			currentDir = controllers.myRC.getDirection();
 			
 			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
-				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.APOCALYPSE , true));
+				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.CHRONO_APOCALYPSE , true));
+				return;
 			}
 			
 		}
