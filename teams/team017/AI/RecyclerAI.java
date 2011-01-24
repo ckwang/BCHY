@@ -120,9 +120,9 @@ public class RecyclerAI extends BuildingAI {
 		if (birthRoundNum < 200 || myMine == null) {
 
 
-			buildFactory = true;
-			buildArmory = true;
-			buildRailgunTower = true;
+//			buildFactory = true;
+//			buildArmory = true;
+//			buildRailgunTower = true;
 
 			constructingQueue.add(UnitType.CONSTRUCTOR);
 			constructingQueue.add(UnitType.CONSTRUCTOR);
