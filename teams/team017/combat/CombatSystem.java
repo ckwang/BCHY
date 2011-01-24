@@ -31,7 +31,7 @@ public class CombatSystem {
 	
 	public int minRange = 100;
 	public int maxRange = 0;
-	public int optRange;
+	public int optRange = maxRange;
 	
 //	public Direction nextDir = Direction.NONE;
 //	RobotInfo lastAttacked = null;
@@ -46,18 +46,23 @@ public class CombatSystem {
 			switch (type) {
 			case RAILGUN:
 				primary = w;
-				optRange = w.type().range;
 				break;
 			case HAMMER:
 				primary = w;
-				optRange = w.type().range;
 				break;
+			case BEAM:
+				primary = w;
+				break;
+			default:
+				w = controllers.weapons.get(0);
 			}
 			if (type.range > maxRange)
 				maxRange = type.range;
 			else if (type.range < minRange)
 				minRange = type.range;
 		}
+		if (primary!= null)
+			optRange = primary.type().range;
 //		if (c.weapons.size() > 0) {
 //			primary = controllers.weapons.get(0);
 //			optRange = primary.type().range;
@@ -296,7 +301,12 @@ public class CombatSystem {
 		MapLocation myloc = controllers.myRC.getLocation();
 		Direction mydir = controllers.myRC.getDirection();
 		Direction edir = myloc.directionTo(r.location);
-		setDirection(edir);
+//		Direction leftedir = edir.rotateLeft();
+//		Direction rightedir = edir.rotateRight();
+//		MapLocation front = myloc.add(edir);
+//		MapLocation left = myloc.add(edir.rotateLeft());
+//		MapLocation right = myloc.add(edir.rotateRight());
+//		setDirection(edir);
 		if (controllers.motor.canMove(edir)) {
 			if (mydir == edir) {
 				try {controllers.motor.moveForward();
@@ -335,10 +345,10 @@ public class CombatSystem {
 				catch (Exception e) {}
 			}
 		}
-//		else {
-//			try {controllers.motor.setDirection(edir);} 
-//			catch (GameActionException e) {return false;}
-//		}
+		else {
+			try {controllers.motor.setDirection(edir);} 
+			catch (GameActionException e) {}
+		}
 		return false;
 	}
 	
@@ -361,10 +371,10 @@ public class CombatSystem {
 	public RobotInfo getMobile() {
 		Util.sortHp(controllers.enemyMobile);
 		for (RobotInfo r: controllers.enemyMobile) {
-//			if (primary.withinRange(r.location)) {
+			if (primary.withinRange(r.location)) {
 				controllers.enemyMobile.remove(r);
 				return r;
-//			}
+			}
 		}
 		int dis = maxRange;
 		RobotInfo target = null;
@@ -376,9 +386,9 @@ public class CombatSystem {
 				break;
 			}
 		}
-		if (target != null) {
-			controllers.enemyMobile.remove(target);
-		}
+//		if (target != null) {
+//			controllers.enemyMobile.remove(target);
+//		}
 		return target;
 //		return controllers.enemyMobile.get(0);
 	}

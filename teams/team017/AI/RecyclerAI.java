@@ -143,10 +143,10 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
-				if (totalIncome > controllers.sensor.senseIncome(controllers.myRC.getRobot())){
-					constructingQueue.addFirst(UnitType.TELESCOPER);
-					constructingQueue.addFirst(UnitType.FLYING_CONSTRUCTOR);
-				}
+//				if (totalIncome > controllers.sensor.senseIncome(controllers.myRC.getRobot())){
+//					constructingQueue.addFirst(UnitType.TELESCOPER);
+//					constructingQueue.addFirst(UnitType.FLYING_CONSTRUCTOR);
+//				}
 				
 				totalIncome = controllers.sensor.senseIncome(controllers.myRC.getRobot());
 				

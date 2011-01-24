@@ -6,6 +6,7 @@ import team017.message.GridMapMessage;
 import team017.message.PatrolDirectionMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
+import team017.util.Util;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -75,6 +76,12 @@ public class SoldierAI extends GroundAI {
 				
 				target = combat.getMobile();
 				if (target == null) {
+					target = controllers.enemyMobile.get(0);
+					Direction edir = rc.getLocation().directionTo(target.location);
+					if (Util.isFacing(rc.getDirection(), edir))
+						combat.moveForward();
+					else
+						combat.setDirection(edir);
 					break;
 //					if (!combat.moveForward()) break;
 //					else continue;
