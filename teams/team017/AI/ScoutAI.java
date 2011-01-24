@@ -33,30 +33,28 @@ public class ScoutAI extends AI {
 
 	private int id;
 	
-	private boolean scouted = false;
-	
 	private Set<MapLocation> blockedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> emptyMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> alliedMineLocations = new HashSet<MapLocation>();
 	private Set<MapLocation> enemyMineLocations = new HashSet<MapLocation>();
-	
 
 	private List<RobotInfo> nearbyEnemy = new ArrayList<RobotInfo>();
 	
-//	private MapLocation scoutingLocation;
-	private Direction scoutingDir;
-	private boolean leftward;
-	private boolean branch;
-	
 	private int childID = -1;
-	
-	private int inquiryQuota;
 	
 	private double prevHp = 0;
 	private boolean attacked = false;
 	
+	private boolean scouted = false;
 	private MapLocation destination = null;
 	private MapLocation neareastRecycler;
+	
+	private Direction scoutingDir;
+	private boolean leftward;
+	private boolean branch;
+	
+	private int scoutCount = 1;
+	private boolean builtBranch = true;
 	
 	public ScoutAI(RobotController rc) {
 		super(rc);
@@ -92,7 +90,7 @@ public class ScoutAI extends AI {
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
 
-//			controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"," + homeLocation + "," + destination);
+			controllers.myRC.setIndicatorString(1, scoutCount + "," + builtBranch);
 			if (controllers.distanceToNearestEnemy < 121 || attacked )
 				flee();
 			else
@@ -222,34 +220,32 @@ public class ScoutAI extends AI {
 					destination = gridMap.getScoutLocation();
 				}
 				
-				inquiryQuota = 1;
-				
 				break;
 			}
 			
-			case MINE_INQUIRY_MESSAGE: {
-				MineInquiryMessage handler = new MineInquiryMessage(msg);
-				
-				if ( scouted ){
-					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
-					yield();
-					msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations, blockedMineLocations));
-					inquiryQuota--;
-					
-					if ( inquiryQuota == 0 ) {
-						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
-							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
-						}
-						destination = gridMap.getScoutLocation();
-						scouted = false;
-						inquiryQuota = 1;
-					}
-				}
-				
-				yield();
-				yield();
-				break;
-			}
+//			case MINE_INQUIRY_MESSAGE: {
+//				MineInquiryMessage handler = new MineInquiryMessage(msg);
+//				
+//				if ( scouted ){
+//					msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+//					yield();
+//					msgHandler.queueMessage(new MineResponseMessage(handler.getSourceID(), emptyMineLocations, blockedMineLocations));
+//					inquiryQuota--;
+//					
+//					if ( inquiryQuota == 0 ) {
+//						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+//							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+//						}
+//						destination = gridMap.getScoutLocation();
+//						scouted = false;
+//						inquiryQuota = 1;
+//					}
+//				}
+//				
+//				yield();
+//				yield();
+//				break;
+//			}
 			
 			case GREETING_MESSAGE: {
 				if (childID == -1 && scouted) {
@@ -264,10 +260,25 @@ public class ScoutAI extends AI {
 					
 					msgHandler.queueMessage(new GreetingMessage(false));
 					
-					findNearestMine();
-					msgHandler.queueMessage(new GoToMessage(destination, true));
-					controllers.myRC.setIndicatorString(0, "GREETING_MESSAGE " + childID + destination);
-					controllers.myRC.setIndicatorString(2, emptyMineLocations + "");
+					if (emptyMineLocations.isEmpty()) {
+						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+						}
+						destination = gridMap.getScoutLocation();
+						scouted = false;
+						scoutCount++;
+						if (scoutCount % 2 == 0)	builtBranch = false;
+						msgHandler.queueMessage(new GoToMessage(destination, false));
+					} else {
+						findNearestMine();
+						
+						if (destination != null) {
+							msgHandler.queueMessage(new GoToMessage(destination, true));
+						}
+					}
+					
+//					controllers.myRC.setIndicatorString(0, "GREETING_MESSAGE " + childID + destination);
+//					controllers.myRC.setIndicatorString(2, emptyMineLocations + "");
 				}
 				break;
 			}
@@ -280,6 +291,12 @@ public class ScoutAI extends AI {
 					if (handler.isMine()) {
 						alliedMineLocations.add(destination);
 						emptyMineLocations.remove(destination);
+						
+						final UnitType[] constructingQueue = {UnitType.TELESCOPER, UnitType.FLYING_CONSTRUCTOR, UnitType.TELESCOPER, UnitType.FLYING_CONSTRUCTOR};
+						if (branch && !builtBranch && !blockedMineLocations.contains(destination)) {
+							msgHandler.queueMessage(new ConstructUnitMessage(destination, constructingQueue, false));
+							builtBranch = true;
+						}
 					}
 					
 					// go to next scout location if the empty mine list is empty
@@ -289,6 +306,8 @@ public class ScoutAI extends AI {
 						}
 						destination = gridMap.getScoutLocation();
 						scouted = false;
+						scoutCount++;
+						if (scoutCount % 2 == 0)	builtBranch = false;
 						msgHandler.queueMessage(new GoToMessage(destination, false));
 					} else {
 //						watch();
@@ -333,6 +352,8 @@ public class ScoutAI extends AI {
 						}
 						destination = gridMap.getScoutLocation();
 						scouted = false;
+						scoutCount++;
+						if (scoutCount % 2 == 0)	builtBranch = false;
 						msgHandler.queueMessage(new GoToMessage(destination, false));
 					} else {
 						findNearestMine();
