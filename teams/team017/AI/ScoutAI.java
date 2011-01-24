@@ -58,6 +58,7 @@ public class ScoutAI extends AI {
 	private boolean branch;
 	
 	private int scoutCount = 1;
+	private boolean arrived = false;
 	private boolean builtBranch = true;
 	
 	public ScoutAI(RobotController rc) {
@@ -293,7 +294,9 @@ public class ScoutAI extends AI {
 			case HAS_ARRIVED_MESSAGE: {
 				HasArrivedMessage handler = new HasArrivedMessage(msg);
 				
-				if (handler.getSourceID() == childID && scouted) {
+				if (handler.getSourceID() == childID && scouted && handler.getArrivedLoc().equals(destination)) {
+					
+					arrived = true;
 					
 					if (handler.isMine()) {
 						alliedMineLocations.add(destination);
@@ -317,9 +320,12 @@ public class ScoutAI extends AI {
 						scouted = false;
 						scoutCount++;
 						if (scoutCount % 2 == 0)	builtBranch = false;
+						
 						msgHandler.queueMessage(new GoToMessage(destination, false));
+						arrived = false;
 					} else {
 						msgHandler.queueMessage(new GoToMessage(destination, true));
+						arrived = false;
 					}
 				}
 				break;

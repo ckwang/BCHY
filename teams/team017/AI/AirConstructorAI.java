@@ -76,7 +76,7 @@ public class AirConstructorAI extends AI {
 			
 			try {processMessages();} catch (Exception e) {e.printStackTrace();}
 			
-			if ( parentID == -1 && controllers.myRC.getLocation().distanceSquaredTo(destination) <= 2 && Clock.getRoundNum() - roundSinceLastInquired > 10) {
+			if ( parentID == -1 && destination != null && controllers.myRC.getLocation().distanceSquaredTo(destination) <= 2 && Clock.getRoundNum() - roundSinceLastInquired > 10) {
 				msgHandler.queueMessage(new GreetingMessage(true));
 				roundSinceLastInquired = Clock.getRoundNum();
 			}
@@ -207,7 +207,6 @@ public class AirConstructorAI extends AI {
 			} else {
 				recyclerLocations.add(destination);
 			}
-			destination = null;
 		}
 
 		return false;
@@ -288,15 +287,17 @@ public class AirConstructorAI extends AI {
 			desDir = currentLoc.directionTo(destination);
 			if (currentLoc.distanceSquaredTo(destination) <= 2) {
 				if (Clock.getRoundNum() - roundSinceLastNotified > 20) {
-					try {
+
 						if (isMine) {
-							buildRecyclers();
+							try {
+								buildRecyclers();
+							} catch (GameActionException e) {
+								e.printStackTrace();
+							}
 						}
-						msgHandler.queueMessage(new HasArrivedMessage(isMine));
+						msgHandler.queueMessage(new HasArrivedMessage(destination, isMine));
 						roundSinceLastNotified = Clock.getRoundNum();
-					} catch (GameActionException e) {
-						e.printStackTrace();
-					}
+					
 				}
 				return;
 			}
