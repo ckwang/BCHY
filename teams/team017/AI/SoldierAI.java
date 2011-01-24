@@ -6,6 +6,7 @@ import team017.message.GridMapMessage;
 import team017.message.PatrolDirectionMessage;
 import team017.message.ScoutingInquiryMessage;
 import team017.message.ScoutingResponseMessage;
+import team017.util.Util;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -51,6 +52,7 @@ public class SoldierAI extends GroundAI {
 		super(rc);
 		combat = new CombatSystem(controllers);
 		navigator.updateMap();
+		scoutingDir = controllers.myRC.getDirection();
 	}
 
 	public void proceed() {
@@ -75,6 +77,12 @@ public class SoldierAI extends GroundAI {
 				
 				target = combat.getMobile();
 				if (target == null) {
+					target = controllers.enemyMobile.get(0);
+					Direction edir = rc.getLocation().directionTo(target.location);
+					if (Util.isFacing(rc.getDirection(), edir))
+						combat.moveForward();
+					else
+						combat.setDirection(edir);
 					break;
 //					if (!combat.moveForward()) break;
 //					else continue;
@@ -350,21 +358,7 @@ public class SoldierAI extends GroundAI {
 	}
 
 	private void navigate() throws GameActionException {
-//		rc.setIndicatorString(0, "navigating");
-//		if (jumper == null) {
-//			if (enemyBaseLoc[0] != null) {
-//				if ( navigateToDestination(enemyBaseLoc[0], 9) )
-//					enemyBaseLoc[0] = null;
-//			} else if (enemyBaseLoc[1] != null) {
-//				if ( navigateToDestination(enemyBaseLoc[1], 9) )
-//					enemyBaseLoc[1] = null;
-//			} else if (enemyBaseLoc[2] != null) {
-//				if ( navigateToDestination(enemyBaseLoc[2], 9) )
-//					enemyBaseLoc[2] = null;
-//			} else {
-//				roachNavigate();
-//			}
-//		} else {
+
 		if (!enemyInSight){
 			if ( navigateToDestination(scoutingLocation, 4) ) {
 				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
@@ -381,7 +375,6 @@ public class SoldierAI extends GroundAI {
 				scoutingLocation = gridMap.getScoutLocation();
 			}
 		}
-			
-//		}
+		
 	}
 }

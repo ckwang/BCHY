@@ -369,6 +369,13 @@ public class ScoutAI extends AI {
 				}
 				break;
 			}
+			
+			case CONSTRUCTION_COMPLETE:{
+				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
+				yield();
+				break;
+			}
+				
 				
 			}
 		}

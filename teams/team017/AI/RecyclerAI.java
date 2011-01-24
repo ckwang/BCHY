@@ -143,10 +143,11 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
-				if (isInitial && totalIncome > controllers.sensor.senseIncome(controllers.myRC.getRobot())){
-					constructingQueue.addFirst(UnitType.TELESCOPER);
-					constructingQueue.addFirst(UnitType.FLYING_CONSTRUCTOR);
-				}
+//				if (totalIncome > controllers.sensor.senseIncome(controllers.myRC.getRobot())){
+//				if (isInitial & totalIncome > controllers.sensor.senseIncome(controllers.myRC.getRobot())){
+//					constructingQueue.addFirst(UnitType.TELESCOPER);
+//					constructingQueue.addFirst(UnitType.FLYING_CONSTRUCTOR);
+//				}
 				
 				totalIncome = controllers.sensor.senseIncome(controllers.myRC.getRobot());
 				
@@ -204,16 +205,16 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 				
-				if (controllers.myRC.getTeamResources() > 800 && getEffectiveFluxRate() > 0.3) {
-					if (canSpawnRound >= spawnThreshold) {
-						canSpawnRound = 0;
-						queueUnitAtRatio();
-					} else {
-						canSpawnRound++;
-					}
-				} else {
-					canSpawnRound = 0;
-				}
+//				if (controllers.myRC.getTeamResources() > 800 && getEffectiveFluxRate() > 0.3) {
+//					if (canSpawnRound >= spawnThreshold) {
+//						canSpawnRound = 0;
+//						queueUnitAtRatio();
+//					} else {
+//						canSpawnRound++;
+//					}
+//				} else {
+//					canSpawnRound = 0;
+//				}
 
 				
 				if (controllers.myRC.getTeamResources() > 300) {
@@ -260,7 +261,7 @@ public class RecyclerAI extends BuildingAI {
 					constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 				}
 				
-				if ( !isInitial && Clock.getRoundNum()%1000 == 0){
+				if ( !isInitial && (Clock.getRoundNum()-birthRoundNum)%1000 == 0){
 					constructingQueue.addFirst(UnitType.CONSTRUCTOR);
 				}
 				
