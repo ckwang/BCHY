@@ -51,6 +51,7 @@ public class SoldierAI extends GroundAI {
 		super(rc);
 		combat = new CombatSystem(controllers);
 		navigator.updateMap();
+		scoutingDir = controllers.myRC.getDirection();
 	}
 
 	public void proceed() {
