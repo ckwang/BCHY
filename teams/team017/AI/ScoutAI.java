@@ -64,6 +64,7 @@ public class ScoutAI extends AI {
 	private boolean builtBranch = true;
 	
 	private boolean isFlee = false;
+	private int roundSinceLastAhh;
 	
 	public ScoutAI(RobotController rc) {
 		super(rc);
@@ -74,7 +75,6 @@ public class ScoutAI extends AI {
 	@Override
 	public void yield() {
 		super.yield();
-		nearbyEnemy.clear();
 		controllers.scoutNearby();
 		controllers.myRC.setIndicatorString(1, controllers.distanceToNearestEnemy+"");
 		if (senseBorder())	{
@@ -103,98 +103,85 @@ public class ScoutAI extends AI {
 
 			controllers.myRC.setIndicatorString(0, childArrived +"," + parentArrived + "," + isScout);
 			
-			if (isFlee) {
-//				if ( controllers.myRC.getLocation().distanceSquaredTo(nearestRecycler) < 36 ){
-//					if (nearbyEnemy.size() > 0) {
-//						List<UnitType> types = new ArrayList<UnitType>();
-//						for (RobotInfo info: nearbyEnemy) {
-//							switch(info.chassis) {
-//							case HEAVY:
-//							case MEDIUM:
-//								// Check if it contains harden
-//								boolean hasHarden = false;
-//								for (ComponentType com: info.components) {
-//									if (com.equals(ComponentType.HARDENED)) {
-//										hasHarden = true;
-//										break;
-//									}
-//								}
-//								if (hasHarden)
-//									types.add(UnitType.BATTLE_FORTRESS);
-//								else 
-//									types.add(UnitType.APOCALYPSE);
-//								break;
-//							case LIGHT:
-//								types.add(UnitType.RHINO_TANK);
-//								break;
-//							case FLYING:
-//								types.add(UnitType.GRIZZLY);
-//								break;
-//							}
-//						}
-//						msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
-//						msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, UnitType.APOCALYPSE , true));
-//					}
-//				}
-			}
-			
-			if ( (controllers.distanceToNearestEnemy < 121 || attacked) ) {
+
+			if ( !isFlee && (controllers.distanceToNearestEnemy < 121 || attacked) && !(!isScout && !childArrived)) {
 				isFlee = true;
-				
-				nearbyEnemy.clear();
 				
 				// If the enemy is too faraway, scout nearby first
 				if (!attacked && controllers.distanceToNearestEnemy > 81)
 					watch();
 				
+				if (isScout) {
+					while ( !gridMap.updateScoutLocation(scoutingDir.opposite()) ) {
+						scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+					}
+					scoutCount--;
+				}
+				
 				destination = nearestRecycler;
 				msgHandler.queueMessage(new GoToMessage(destination, false));
 				childArrived = false;
+				parentArrived = false;
 				isScout = false;
 			}
 			
-			if (childArrived) {
-				
-//				isFlee = false;
-				
-//				if ( (controllers.distanceToNearestEnemy < 121 || attacked) ) {
-//					isFlee = true;
-//					
-//					nearbyEnemy.clear();
-//					
-//					// If the enemy is too faraway, scout nearby first
-//					if (!attacked && controllers.distanceToNearestEnemy > 81)
-//						watch();
-//					
-//					destination = nearestRecycler;
-//					msgHandler.queueMessage(new GoToMessage(destination, false));
-//					childArrived = false;
-//					isScout = false;
-//				}
-				
-//				if (!isFlee) {
-					destination = findNearestMine();
-					
-					if (destination == null) {
-						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
-							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+			if (isFlee) {
+				if ( Clock.getRoundNum() - roundSinceLastAhh > 10 ){
+						List<UnitType> types = new ArrayList<UnitType>();
+						for (RobotInfo info: nearbyEnemy) {
+							switch(info.chassis) {
+							case HEAVY:
+							case MEDIUM:
+								// Check if it contains harden
+								boolean hasHarden = false;
+								for (ComponentType com: info.components) {
+									if (com.equals(ComponentType.HARDENED)) {
+										hasHarden = true;
+										break;
+									}
+								}
+								if (hasHarden)
+									types.add(UnitType.BATTLE_FORTRESS);
+								else 
+									types.add(UnitType.APOCALYPSE);
+								break;
+							case LIGHT:
+								types.add(UnitType.RHINO_TANK);
+								break;
+							case FLYING:
+								types.add(UnitType.GRIZZLY);
+								break;
+							}
 						}
-						scoutingLocation = destination = gridMap.getScoutLocation();
-						
-						scoutCount++;
-						if (scoutCount % 2 == 0)	builtBranch = false;
-						
-						msgHandler.queueMessage(new GoToMessage(destination, false));
-						childArrived = false;
-						parentArrived = false;
-						isScout = true;
-					} else {
-						msgHandler.queueMessage(new GoToMessage(destination, true));
-						childArrived = false;
-						parentArrived = false;
-						isScout = false;
+//						msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
+						msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, UnitType.APOCALYPSE , true));
+						roundSinceLastAhh = Clock.getRoundNum();
+				}
+			}
+			
+			if (childArrived) {
+
+				destination = findNearestMine();
+				
+				if (destination == null) {
+					while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+						scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 					}
-//				}
+					scoutingLocation = destination = gridMap.getScoutLocation();
+					
+					scoutCount++;
+					if (scoutCount % 2 == 0)	builtBranch = false;
+					
+					msgHandler.queueMessage(new GoToMessage(destination, false));
+					childArrived = false;
+					parentArrived = false;
+					isScout = true;
+				} else {
+					msgHandler.queueMessage(new GoToMessage(destination, true));
+					childArrived = false;
+					parentArrived = false;
+					isScout = false;
+				}
 			}
 			
 			navigate();
@@ -203,6 +190,7 @@ public class ScoutAI extends AI {
 				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations) );
 			}
 			
+			nearbyEnemy.clear();
 			yield();
 		}
 	}
@@ -227,6 +215,7 @@ public class ScoutAI extends AI {
 		while (controllers.motor.isActive())
 			yield();
 		
+		nearbyEnemy.clear();
 		for (int i = 0; i < 8; i++) {
 			try {
 				if (branch) {
@@ -236,14 +225,21 @@ public class ScoutAI extends AI {
 					}
 				}
 				
+				List<MapLocation> emptyMines = controllers.emptyMines;
+				List<MapLocation> allyMines = controllers.allyMines;
+				List<MapLocation> enemyMines = controllers.enemyMines;
+				
 				nearbyEnemy.addAll(controllers.enemyMobile);
 				
-				emptyMineLocations.addAll(controllers.emptyMines);
-				emptyMineLocations.removeAll(controllers.allyMines);
-				emptyMineLocations.removeAll(controllers.enemyMines);
+				emptyMineLocations.addAll(emptyMines);
+				emptyMineLocations.removeAll(allyMines);
+				emptyMineLocations.removeAll(enemyMines);
 				
-				alliedMineLocations.addAll(controllers.allyMines);
-				enemyMineLocations.addAll(controllers.enemyMines);
+				alliedMineLocations.removeAll(emptyMines);
+				alliedMineLocations.addAll(allyMines);
+
+				enemyMineLocations.removeAll(emptyMines);
+				enemyMineLocations.addAll(enemyMines);
 
 				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
 				yield();
@@ -410,6 +406,7 @@ public class ScoutAI extends AI {
 			if ( desDir == Direction.OMNI ){
 				if (isFlee) {
 					watch();
+					isFlee = false;
 				}
 				
 				if (isScout) {
@@ -455,92 +452,6 @@ public class ScoutAI extends AI {
 		} catch (GameActionException e){
 			
 		}
-		
-	}
-	
-	private void flee(){
-		MapLocation currentLoc = controllers.myRC.getLocation();
-		Direction currentDir = controllers.myRC.getDirection();
-		
-		nearbyEnemy.clear();
-		
-		// If the enemy is too faraway, scout nearby first
-		if (!attacked && controllers.distanceToNearestEnemy > 81)
-			watch();
-		
-		
-		while ( !currentLoc.equals(nearestRecycler) ){
-
-			
-			Direction desDir = currentLoc.directionTo(nearestRecycler);
-			
-			desDir = desDir.opposite();
-			
-			try{
-				if ( controllers.motor.canMove(desDir ) ){
-					if (currentDir == desDir)
-						controllers.motor.moveBackward();
-					else
-						controllers.motor.setDirection(desDir);
-				} 
-				// if can go to the 
-				else if ( controllers.motor.canMove(desDir.rotateLeft()) ){
-					if (currentDir == desDir.rotateLeft())
-						controllers.motor.moveBackward();
-					else
-						controllers.motor.setDirection(desDir.rotateLeft());
-				}
-				else if ( controllers.motor.canMove(desDir.rotateRight()) ){
-					if (currentDir == desDir.rotateRight())
-						controllers.motor.moveBackward();
-					else
-						controllers.motor.setDirection(desDir.rotateRight());
-				}
-			} catch (GameActionException e){
-				
-			}
-			
-			yield();
-			currentLoc = controllers.myRC.getLocation();
-			currentDir = controllers.myRC.getDirection();
-			
-			if ( currentLoc.distanceSquaredTo(nearestRecycler) < 36 ){
-				if (nearbyEnemy.size() > 0) {
-					List<UnitType> types = new ArrayList<UnitType>();
-					for (RobotInfo info: nearbyEnemy) {
-						switch(info.chassis) {
-						case HEAVY:
-						case MEDIUM:
-//							Check if it contains harden
-							boolean hasHarden = false;
-							for (ComponentType com: info.components) {
-								if (com.equals(ComponentType.HARDENED)) {
-									hasHarden = true;
-									break;
-								}
-							}
-							if (hasHarden)
-								types.add(UnitType.BATTLE_FORTRESS);
-							else 
-								types.add(UnitType.APOCALYPSE);
-							break;
-						case LIGHT:
-							types.add(UnitType.RHINO_TANK);
-							break;
-						case FLYING:
-							types.add(UnitType.GRIZZLY);
-							break;
-						}
-					}
-					msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
-					msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, types , true));
-				}
-				return;
-			}
-			
-		}
-		
-		watch();
 		
 	}
 	
