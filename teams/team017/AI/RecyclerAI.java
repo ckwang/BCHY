@@ -150,6 +150,8 @@ public class RecyclerAI extends BuildingAI {
 		
 		while (true) {
 			try {
+				
+				
 				if (!clusterIsDone) {
 					clusterIsDone = true;
 					checkAdjacentRecyclers();
@@ -182,6 +184,13 @@ public class RecyclerAI extends BuildingAI {
 						}
 					}	
 				} else if (constructor == null) {
+					if (birthRoundNum < 200 && buildingLocs.consecutiveEmpties(3) == null) {
+						msgHandler.queueMessage(new NotEnoughSpaceMessage());
+						yield();
+						yield();
+						yield();
+						controllers.myRC.turnOff();
+					}
 					boolean needToBuild = buildFactory | buildArmory | buildTower | buildRailgunTower;
 					if (!recycler.isActive() && 
 							(birthRoundNum < 200 || myMine == null || needToBuild || controllers.myRC.getTeamResources() > 400) &&
@@ -690,19 +699,19 @@ public class RecyclerAI extends BuildingAI {
 									buildFactory = false;
 								break;
 							default:
-								if (birthRoundNum < 200) {
-									msgHandler.queueMessage(new NotEnoughSpaceMessage());
-									buildFactory = false;
-									buildArmory = false;
-									for (int j = 0; j < 10; ++j)
-										yield();
-									controllers.myRC.turnOff();
-								} else {
+//								if (birthRoundNum < 200) {
+//									msgHandler.queueMessage(new NotEnoughSpaceMessage());
+//									buildFactory = false;
+//									buildArmory = false;
+//									for (int j = 0; j < 10; ++j)
+//										yield();
+//									controllers.myRC.turnOff();
+//								} else {
 									
 									if (constructBuilding(loc, UnitType.FACTORY)) 
 										buildFactory = false;
 									break;
-								}
+//								}
 							}
 							break;
 						}
