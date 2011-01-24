@@ -47,7 +47,6 @@ public class FactoryAI extends BuildingAI {
 	private Direction[] toExplore = new Direction[3];
 	private int toExploreIndex;
 	
-	private int lastTimeQueue = 0;
 	
 	private Direction birthDir;
 	private Direction previousWatchingDir;
@@ -167,8 +166,6 @@ public class FactoryAI extends BuildingAI {
 			
 			
 			if (controllers.enemyMobile.size() > 0) {
-				if ((Clock.getRoundNum() - lastTimeQueue) > 50) {
-					lastTimeQueue = Clock.getRoundNum();
 					List<UnitType> types = new ArrayList<UnitType>();
 					for (RobotInfo info: controllers.enemyMobile) {
 						switch(info.chassis) {
@@ -196,7 +193,7 @@ public class FactoryAI extends BuildingAI {
 						}
 					}
 					msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.recyclerLocation, types, true));
-				}
+				
 			}
 			
 			if ( !controllers.motor.isActive() ) {

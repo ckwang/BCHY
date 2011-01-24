@@ -197,22 +197,28 @@ public class RecyclerAI extends BuildingAI {
 					}
 				}
 				
-				if (controllers.myRC.getTeamResources() > 400 && getEffectiveFluxRate() > 0.3) {
+				if (controllers.myRC.getTeamResources() > 800 && getEffectiveFluxRate() > 0.3) {
 					if (canSpawnRound >= spawnThreshold) {
 						canSpawnRound = 0;
 						queueUnitAtRatio();
 					} else {
 						canSpawnRound++;
 					}
+				} else {
+					canSpawnRound = 0;
+				}
+
+				
+				if (controllers.myRC.getTeamResources() > 300) {
 					if (constructingQueue.size() == 0) {
 						if (buildingLocs.factoryLocation == null)
 							buildFactory = true;
 						if (buildingLocs.railgunTowerLocations.size() == 0)
 							buildRailgunTower = true;
-					}
-				} else {
-					canSpawnRound = 0;
+					}	
 				}
+				
+
 				
 //				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "Armory:" + buildArmory);
 				if (constructor != null) {
@@ -321,19 +327,21 @@ public class RecyclerAI extends BuildingAI {
 			case CONSTRUCT_UNIT_MESSAGE: {
 				ConstructUnitMessage handler = new ConstructUnitMessage(msg);
 				if (handler.getBuilderLocation().equals(currentLoc)) {
-//					controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "received!");
-					if (handler.isList()) {
-						if (handler.isUrgent()) {
-							for (int i = handler.getTypes().size() - 1; i >= 0; i--)
-								constructingQueue.addFirst(handler.getTypes().get(i));
+//					Don't overqueue
+					if (constructingQueue.size() < 5) {
+						if (handler.isList()) {
+							if (handler.isUrgent()) {
+								for (int i = handler.getTypes().size() - 1; i >= 0; i--)
+									constructingQueue.addFirst(handler.getTypes().get(i));
+							} else {
+								constructingQueue.addAll(handler.getTypes());
+							}	
 						} else {
-							constructingQueue.addAll(handler.getTypes());
+							if (handler.isUrgent())
+								constructingQueue.addFirst(handler.getType());
+							else
+								constructingQueue.addLast(handler.getType());
 						}	
-					} else {
-						if (handler.isUrgent())
-							constructingQueue.addFirst(handler.getType());
-						else
-							constructingQueue.addLast(handler.getType());
 					}
 				}
 			}
@@ -724,31 +732,47 @@ public class RecyclerAI extends BuildingAI {
 		}
 		
 		if (buildTower) {
-			loc = buildingLocs.consecutiveEmpties(1);
-			if (loc != null) {
-				if (constructBuilding(loc, UnitType.TOWER)) 
+			if (buildingLocs.towerLocations.size() < 2) {
+				loc = buildingLocs.consecutiveEmpties(1);
+				if (loc != null) {
+					if (constructBuilding(loc, UnitType.TOWER)) 
+						buildTower = false;
+				} else {
 					buildTower = false;
+				}	
 			} else {
 				buildTower = false;
 			}
+			
 		}
 		
 		if (buildRailgunTower) {
-			if (buildingLocs.factoryLocation != null) {
-				MapLocation loc1 = buildingLocs.rotateLeft(buildingLocs.factoryLocation);
-				MapLocation loc2 = buildingLocs.rotateRight(buildingLocs.factoryLocation);
-				if (constructor.canBuild(Chassis.BUILDING, loc1)) {
-					if (constructBuilding(loc1, UnitType.RAILGUN_TOWER)) 
+			if (buildingLocs.railgunTowerLocations.size() == 0) {
+				if (buildingLocs.factoryLocation != null) {
+					MapLocation loc1 = buildingLocs.rotateLeft(buildingLocs.factoryLocation);
+					MapLocation loc2 = buildingLocs.rotateRight(buildingLocs.factoryLocation);
+					if (buildingLocs.armoryLocation != null) {
+						if (loc1.isAdjacentTo(buildingLocs.armoryLocation))
+							loc1 = null;
+						if (loc2.isAdjacentTo(buildingLocs.armoryLocation))
+							loc2 = null;
+					}
+					if (loc1 != null && constructor.canBuild(Chassis.BUILDING, loc1)) {
+						if (constructBuilding(loc1, UnitType.RAILGUN_TOWER)) 
+							buildRailgunTower = false;
+					} else if (loc2 != null && constructor.canBuild(Chassis.BUILDING, loc2)) {
+						if (constructBuilding(loc1, UnitType.RAILGUN_TOWER)) 
+							buildRailgunTower = false;
+					} else {
 						buildRailgunTower = false;
-				} else if (constructor.canBuild(Chassis.BUILDING, loc2)) {
-					if (constructBuilding(loc1, UnitType.RAILGUN_TOWER)) 
-						buildRailgunTower = false;
+					}
 				} else {
 					buildRailgunTower = false;
-				}
+				}	
 			} else {
 				buildRailgunTower = false;
 			}
+			
 		}
 	}
 	
