@@ -5,9 +5,12 @@ import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
+import battlecode.common.RobotLevel;
 
 abstract public class GroundAI extends AI {
 
+	private MapLocation jumpLoc = null;
+	
 	public GroundAI(RobotController rc) {
 		super(rc);
 	}
@@ -73,12 +76,14 @@ abstract public class GroundAI extends AI {
 			}
 		}
 
-		controllers.myRC.setIndicatorString(2, "searching for jump location");
+		controllers.myRC.setIndicatorString(1, "destination location: " + des);
 		try{
 			navigator.setDestination(des);
-			MapLocation jumpLoc = navigator.getNextJumpingLoc(tolerance);
+			
+			if (jumpLoc == null)
+				jumpLoc = navigator.getNextJumpingLoc(tolerance);
 	
-			controllers.myRC.setIndicatorString(2, "jump location: " + jumpLoc);
+			controllers.myRC.setIndicatorString(1, "destination location: " + des + "jump location: " + jumpLoc);
 			
 			if (jumpLoc == null){
 				return walkingNavigateToDestination(des, tolerance);
@@ -88,12 +93,26 @@ abstract public class GroundAI extends AI {
 					if (!controllers.motor.isActive())
 						controllers.motor.setDirection(currentLoc.directionTo(jumpLoc));
 				}
-				else if (!controllers.jumper.isActive())
-					controllers.jumper.jump(jumpLoc);
+				else if (!controllers.jumper.isActive()){
+					
+					if (controllers.sensor.canSenseSquare(jumpLoc)){
+						if (controllers.sensor.senseObjectAtLocation(jumpLoc, RobotLevel.ON_GROUND) == null){
+							controllers.jumper.jump(jumpLoc);
+							jumpLoc = null;
+						}
+						else {
+							if(!controllers.motor.isActive())
+								controllers.motor.moveForward();
+						}
+					}
+					
+					
+				}
 				
 			}
 		} catch (GameActionException e) {
 //			e.printStackTrace();
+			jumpLoc = null;
 			return false;
 		}
 		return false;
