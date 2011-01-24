@@ -45,7 +45,7 @@ public class RecyclerAI extends BuildingAI {
 	int [] cumulatedRatios = new int[8];
 	int total;
 	
-	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.WAR_MINER, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.CHRONO_APOCALYPSE, UnitType.HAMMER_JUMP, UnitType.BATTLE_FORTRESS};
+	private UnitType [] types = { UnitType.CONSTRUCTOR, UnitType.FLYING_CONSTRUCTOR, UnitType.WAR_MINER, UnitType.TELESCOPER, UnitType.APOCALYPSE, UnitType.CHRONO_APOCALYPSE, UnitType.MEDIUM_KILLER, UnitType.BATTLE_FORTRESS};
 	double fluxThresholds = 0.3;
 //	double resourceThresholds = UnitType.TOWER.totalCost + UnitType.RECYCLER.totalCost;
 	double resourceThresholds = 100;

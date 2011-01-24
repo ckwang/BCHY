@@ -23,17 +23,19 @@ public enum UnitType {
 	FLYING_CONSTRUCTOR (Chassis.FLYING, ComponentType.CONSTRUCTOR, ComponentType.ANTENNA),
 	NETWORK_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.NETWORK, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
 	MEDIUM_BEAM (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.JUMP, ComponentType.BEAM, ComponentType.SMG, ComponentType.SHIELD),
+	HAMMER_JUMP(Chassis.MEDIUM, ComponentType.HAMMER, ComponentType.HAMMER, ComponentType.HAMMER, ComponentType.RADAR, ComponentType.JUMP),
 	
 //	Factory + Recycler + Armory
 	TELESCOPER (Chassis.FLYING, ComponentType.TELESCOPE, ComponentType.ANTENNA),
 	HEAVY_CONSTRUCTOR(Chassis.HEAVY, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.DISH, ComponentType.REGEN),
-
+	MEDIUM_KILLER (Chassis.MEDIUM, ComponentType.RAILGUN, ComponentType.RADAR, ComponentType.JUMP, ComponentType.SHIELD),
+	
 // Factory
 	TANK_KILLER (Chassis.MEDIUM, ComponentType.RAILGUN, ComponentType.TELESCOPE),
 	
-	HAMMER_JUMP(Chassis.MEDIUM, ComponentType.HAMMER, ComponentType.HAMMER, ComponentType.HAMMER, ComponentType.RADAR, ComponentType.JUMP),
 
 // Factory + Recycler	
+	RHINO_TANK (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.SMG, ComponentType.BLASTER, ComponentType.RAILGUN, ComponentType.SHIELD),
 	MEDIUM_CONSTRUCTOR(Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING),
 	MEDIUM_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.DISH, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
 	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.RADAR, ComponentType.MEDIC, ComponentType.SHIELD, ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG),
