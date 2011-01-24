@@ -361,10 +361,10 @@ public class CombatSystem {
 	public RobotInfo getMobile() {
 		Util.sortHp(controllers.enemyMobile);
 		for (RobotInfo r: controllers.enemyMobile) {
-			if (primary.withinRange(r.location)) {
+//			if (primary.withinRange(r.location)) {
 				controllers.enemyMobile.remove(r);
 				return r;
-			}
+//			}
 		}
 		int dis = maxRange;
 		RobotInfo target = null;

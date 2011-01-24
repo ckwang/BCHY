@@ -148,6 +148,7 @@ public class RecyclerAI extends BuildingAI {
 					constructingQueue.addFirst(UnitType.FLYING_CONSTRUCTOR);
 				}
 				
+				totalIncome = controllers.sensor.senseIncome(controllers.myRC.getRobot());
 				
 				controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + constructingQueue);
 				if (!clusterIsDone) {
@@ -249,8 +250,12 @@ public class RecyclerAI extends BuildingAI {
 					constructUnit();
 				}
 				
-				if (controllers.myRC.getTeamResources() > 400){
+				if (isInitial && controllers.myRC.getTeamResources() > resourceThresholds && fluxRate > 3){
 					constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+				}
+				
+				if ( !isInitial && Clock.getRoundNum()%1000 == 0){
+					constructingQueue.addFirst(UnitType.CONSTRUCTOR);
 				}
 				
 				// turn off when the mine is depleted

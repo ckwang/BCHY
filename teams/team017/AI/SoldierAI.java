@@ -44,6 +44,8 @@ public class SoldierAI extends GroundAI {
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
 	private boolean leftward;
+	
+	private boolean enemyInSight = false;
 
 	public SoldierAI(RobotController rc) {
 		super(rc);
@@ -60,8 +62,17 @@ public class SoldierAI extends GroundAI {
 //			controllers.myRC.setIndicatorString(0, scoutingDir + "" + controllers.myRC.getLocation() + scoutingLocation);
 //			controllers.myRC.setIndicatorString(1, borders[0] + "," + borders[1] + "," + borders[2] + "," + borders[3]);
 
+			if (controllers.enemyNum() > 0){
+				enemyInSight = true;
+			}
+			else {
+				enemyInSight = false;
+			}
+			
+			
 			int aband = 0;
 			while (controllers.mobileEnemyNum() > 0) {
+				
 				target = combat.getMobile();
 				if (target == null) {
 					break;
@@ -72,6 +83,11 @@ public class SoldierAI extends GroundAI {
 //				rc.setIndicatorString(0, "attacking mobile");
 //				rc.setIndicatorString(1, "target" + target.robot.getID());
 				aband = attackMobile(target);
+				scoutingDir = controllers.myRC.getLocation().directionTo(target.location);
+				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+				}
+				scoutingLocation = gridMap.getScoutLocation();
 				yield();
 			}
 			while (controllers.immobileEnemyNum() > 0) {
@@ -79,6 +95,13 @@ public class SoldierAI extends GroundAI {
 				if (target == null)
 					break;
 				Direction edir = rc.getLocation().directionTo(target.location);
+				
+				scoutingDir = controllers.myRC.getLocation().directionTo(target.location);
+				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+				}
+				scoutingLocation = gridMap.getScoutLocation();
+				
 				while (!combat.setDirection(edir)) {
 					combat.shoot(target);
 					yield();
@@ -129,6 +152,15 @@ public class SoldierAI extends GroundAI {
 					yield();
 				}
 
+			}
+			
+			// If attacked and enemy not in sight, turn around
+			if (attacked && controllers.enemyNum() == 0){
+				scoutingDir = scoutingDir.opposite();
+				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+				}
+				scoutingLocation = gridMap.getScoutLocation();
 			}
 			
 			if (Clock.getRoundNum() < 1000 || Clock.getRoundNum() - birthRound > 100) {
@@ -319,20 +351,21 @@ public class SoldierAI extends GroundAI {
 
 	private void navigate() throws GameActionException {
 //		rc.setIndicatorString(0, "navigating");
-		if (jumper == null) {
-			if (enemyBaseLoc[0] != null) {
-				if ( navigateToDestination(enemyBaseLoc[0], 9) )
-					enemyBaseLoc[0] = null;
-			} else if (enemyBaseLoc[1] != null) {
-				if ( navigateToDestination(enemyBaseLoc[1], 9) )
-					enemyBaseLoc[1] = null;
-			} else if (enemyBaseLoc[2] != null) {
-				if ( navigateToDestination(enemyBaseLoc[2], 9) )
-					enemyBaseLoc[2] = null;
-			} else {
-				roachNavigate();
-			}
-		} else {
+//		if (jumper == null) {
+//			if (enemyBaseLoc[0] != null) {
+//				if ( navigateToDestination(enemyBaseLoc[0], 9) )
+//					enemyBaseLoc[0] = null;
+//			} else if (enemyBaseLoc[1] != null) {
+//				if ( navigateToDestination(enemyBaseLoc[1], 9) )
+//					enemyBaseLoc[1] = null;
+//			} else if (enemyBaseLoc[2] != null) {
+//				if ( navigateToDestination(enemyBaseLoc[2], 9) )
+//					enemyBaseLoc[2] = null;
+//			} else {
+//				roachNavigate();
+//			}
+//		} else {
+		if (!enemyInSight){
 			if ( navigateToDestination(scoutingLocation, 4) ) {
 				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
@@ -340,5 +373,15 @@ public class SoldierAI extends GroundAI {
 				scoutingLocation = gridMap.getScoutLocation();
 			}
 		}
+		else {
+			if ( walkingNavigateToDestination(scoutingLocation, 4) ) {
+				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+				}
+				scoutingLocation = gridMap.getScoutLocation();
+			}
+		}
+			
+//		}
 	}
 }
