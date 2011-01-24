@@ -41,6 +41,8 @@ public class RecyclerAI extends BuildingAI {
 	
 	private boolean isInitial = false;
 	
+	private double totalIncome = 0;
+	
 	int [] unitRatios = {1, 0, 1, 0, 1, 1, 1, 1};
 	int [] cumulatedRatios = new int[8];
 	int total;
@@ -125,7 +127,6 @@ public class RecyclerAI extends BuildingAI {
 //			buildRailgunTower = true;
 
 			constructingQueue.add(UnitType.CONSTRUCTOR);
-			constructingQueue.add(UnitType.CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
@@ -136,13 +137,18 @@ public class RecyclerAI extends BuildingAI {
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-			constructingQueue.add(UnitType.WAR_MINER);
 			
 			isInitial = true;
 		}
 		
 		while (true) {
 			try {
+				if (totalIncome > controllers.sensor.senseIncome(controllers.myRC.getRobot())){
+					constructingQueue.addFirst(UnitType.TELESCOPER);
+					constructingQueue.addFirst(UnitType.FLYING_CONSTRUCTOR);
+				}
+				
+				
 				controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + constructingQueue);
 				if (!clusterIsDone) {
 					clusterIsDone = true;
@@ -241,6 +247,10 @@ public class RecyclerAI extends BuildingAI {
 				
 				if (controllers.myRC.getTeamResources() > resourceThresholds && fluxRate > fluxThresholds ) {
 					constructUnit();
+				}
+				
+				if (controllers.myRC.getTeamResources() > 400){
+					constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 				}
 				
 				// turn off when the mine is depleted

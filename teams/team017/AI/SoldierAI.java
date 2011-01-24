@@ -69,8 +69,8 @@ public class SoldierAI extends GroundAI {
 //					else continue;
 				} else if (target.robot.getID() == aband)
 					continue;
-				rc.setIndicatorString(0, "attacking mobile");
-				rc.setIndicatorString(1, "target" + target.robot.getID());
+//				rc.setIndicatorString(0, "attacking mobile");
+//				rc.setIndicatorString(1, "target" + target.robot.getID());
 				aband = attackMobile(target);
 				yield();
 			}
@@ -82,8 +82,8 @@ public class SoldierAI extends GroundAI {
 				while (!combat.setDirection(edir)) {
 					combat.shoot(target);
 					yield();
-					rc.setIndicatorString(0, "attacing immobile");
-					rc.setIndicatorString(1, "target" + target.robot.getID());
+//					rc.setIndicatorString(0, "attacing immobile");
+//					rc.setIndicatorString(1, "target" + target.robot.getID());
 					if (controllers.mobileEnemyNum() > 0)
 						continue proceed;
 				}
@@ -130,11 +130,10 @@ public class SoldierAI extends GroundAI {
 				}
 
 			}
-
+			
 			if (Clock.getRoundNum() < 1000 || Clock.getRoundNum() - birthRound > 100) {
 				try {
 					navigate();
-					yield();
 				}
 				catch (Exception e) {}
 			}
@@ -158,7 +157,7 @@ public class SoldierAI extends GroundAI {
 		navigator.updateMap();
 		processMessages();
 		swarming = controllers.allyMobile.size() > 2;
-//		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"");
+		controllers.myRC.setIndicatorString(0, controllers.myRC.getLocation()+"");
 	}
 	
 	//return has target
@@ -176,7 +175,7 @@ public class SoldierAI extends GroundAI {
 				yield();
 				++i;
 			}
-			rc.setIndicatorString(2, "approach i: " + i);
+//			rc.setIndicatorString(2, "approach i: " + i);
 			yield();
 		}
 		if (i == 3)
@@ -184,7 +183,7 @@ public class SoldierAI extends GroundAI {
 		round = combat.primary.roundsUntilIdle() + 1;
 		yield();
 		for (i = 0; i < 2 && !combat.shoot(target);) {
-			rc.setIndicatorString(2, "shooting i: " + i);
+//			rc.setIndicatorString(2, "shooting i: " + i);
 			try {
 				target = sensor.senseRobotInfo(target.robot);
 				if (combat.trackTarget(target))
@@ -196,7 +195,7 @@ public class SoldierAI extends GroundAI {
 			}
 			yield();
 		}
-		rc.setIndicatorString(2, " ");
+//		rc.setIndicatorString(2, " ");
 		if (i == 2)
 			return target.robot.getID();
 		return 0;
@@ -319,7 +318,7 @@ public class SoldierAI extends GroundAI {
 	}
 
 	private void navigate() throws GameActionException {
-		rc.setIndicatorString(0, "navigating");
+//		rc.setIndicatorString(0, "navigating");
 		if (jumper == null) {
 			if (enemyBaseLoc[0] != null) {
 				if ( navigateToDestination(enemyBaseLoc[0], 9) )

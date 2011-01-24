@@ -1,8 +1,5 @@
 package team017.navigation;
 
-import java.util.Comparator;
-import java.util.PriorityQueue;
-
 import team017.util.*;
 import battlecode.common.*;
 
@@ -28,10 +25,6 @@ public class Navigator {
 	private boolean isTracing;
 	private boolean jumpingTracing;
 	private boolean isCW;
-
-	MapLocation [] tracingLoc = new MapLocation [2];
-	Direction [] tracingDir = new Direction [2];
-	int [] tracingcost = new int [2];
 
 	public Navigator(Controllers cs) {
 		controllers = cs;
@@ -106,134 +99,22 @@ public class Navigator {
 		}
 	}
 	
-	public MapLocation getNextJumpingScoutLoc(Direction scoutingDir){
-		MapLocation currentLoc = controllers.myRC.getLocation();
-		MapLocation jumpLoc = controllers.myRC.getLocation();
-		MapLocation nextLoc = jumpLoc;
-		MapLocation imaginaryDes = jumpLoc.add(scoutingDir, 10);
-		
-		while ( currentLoc.distanceSquaredTo(nextLoc) <= 16 ) {
-			jumpLoc = nextLoc;
-			nextLoc = nextLoc.add(scoutingDir);
-		}
-		
-		// Find alternative jumping location
-		if ( !isTraversable(jumpLoc) ){
-			while( !jumpLoc.isAdjacentTo(currentLoc) ){
-				MapLocation temp = jumpLoc;
-				MapLocation best = null;
-				int distance = currentLoc.distanceSquaredTo(imaginaryDes);
-				for( int i = 0; i < 8; i++ ){
-					temp = jumpLoc.add(Util.dirs[i]);
-					if ( currentLoc.distanceSquaredTo(temp) <= 16 
-							&& isTraversable(temp) 
-							&& temp.distanceSquaredTo(imaginaryDes) < distance ){
-						best = temp;
-						distance = temp.distanceSquaredTo(imaginaryDes);
-					}
-				}
-				
-				if (best != null){
-					return best;
-				}
-				else {
-					jumpLoc = jumpLoc.subtract( scoutingDir );
-				}
-			}
-		}
-		
-		if (jumpLoc.isAdjacentTo(currentLoc))
-			return null;
-		
-		return jumpLoc;
-		
-	}
-	
-	public MapLocation getScoutingLoc (Direction scoutingDir){
-		MapLocation jumpLoc = controllers.myRC.getLocation();
-		MapLocation currentLoc = controllers.myRC.getLocation();
-		
-		if (jumpingTracing){
-			controllers.myRC.setIndicatorString(2, "tracing");
-			MapLocation nextLoc = controllers.myRC.getLocation();
-			Direction nextDir = controllers.myRC.getDirection();
-			
-			
-			Direction startTracingDir = isCW? nextDir.rotateRight().rotateRight(): nextDir.rotateLeft().rotateLeft();
-			
-			nextLoc = currentLoc.add(startTracingDir,2);
-			do {
-				if (isTraversable(nextLoc))
-					jumpLoc = nextLoc;
-				
-				nextLoc = nextLoc.add(startTracingDir);
-			} while (currentLoc.distanceSquaredTo(nextLoc) < 16);
-			
-			if ( !jumpLoc.equals(currentLoc) ){
-				jumpingTracing = false;
-				controllers.myRC.setIndicatorString(2, "Find good jumpLoc: " + jumpLoc);
-				return jumpLoc;
-			}
-			
-			nextLoc = currentLoc;
-			nextDir = controllers.myRC.getDirection();
-			
-			if( controllers.myRC.senseTerrainTile(currentLoc.add(startTracingDir)) == TerrainTile.OFF_MAP ){
-				isCW = !isCW;
-				nextDir = nextDir.opposite();
-			}
-			
-			controllers.myRC.setIndicatorString(2, "Do the bugging");
-			
-			Direction faceDir;
-			
-			do{
-				jumpLoc = nextLoc;
-				faceDir = nextDir;
-				startTracingDir = isCW? nextDir.rotateRight().rotateRight(): nextDir.rotateLeft().rotateLeft();
-				nextLoc = traceNext(jumpLoc, startTracingDir, isCW);
-				nextDir = jumpLoc.directionTo(nextLoc);
-				
-				if (isOpen(jumpLoc, faceDir, nextDir, scoutingDir, isCW) 
-						&& isTraversable(jumpLoc.add(scoutingDir)) ){
-					controllers.myRC.setIndicatorString(2, "Open");
-					jumpingTracing = false;
-					return jumpLoc;
-				}
-				
-			}	while (currentLoc.distanceSquaredTo(nextLoc) < 16);
-			
-			return jumpLoc;
-			
-			
-		}
-		else{
-			controllers.myRC.setIndicatorString(2, "go");
-			jumpLoc = getNextJumpingScoutLoc(scoutingDir);
-			if (jumpLoc == null)
-				jumpingTracing = true;
-		}
-		
-		return jumpLoc;
-	}
-	
 	public MapLocation getNextJumpingLocTowardDes (int tolerance){
 		MapLocation currentLoc = controllers.myRC.getLocation();
 		MapLocation jumpLoc = controllers.myRC.getLocation();
+		MapLocation nextLoc = jumpLoc;
 		Direction nextDir;
 		
 		do{
-			nextDir = jumpLoc.directionTo(destination);
-			jumpLoc = jumpLoc.add( nextDir );
+			jumpLoc = nextLoc;
 			if ( jumpLoc.distanceSquaredTo(destination) < tolerance && isTraversable(jumpLoc) ){
-				if ( jumpLoc.distanceSquaredTo(currentLoc) > 16 )
-					jumpLoc = jumpLoc.subtract(nextDir);
-				
 				return jumpLoc;
 			}
-		}while( currentLoc.distanceSquaredTo(jumpLoc) < 16 );
+			nextDir = jumpLoc.directionTo(destination);
+			nextLoc = nextLoc.add( nextDir );
+			
+		}while( currentLoc.distanceSquaredTo(nextLoc) <= 16 );
 		
-		jumpLoc = jumpLoc.subtract(nextDir);
 		
 //		controllers.myRC.setIndicatorString(2, "optimal jump to: " + jumpLoc);
 		
@@ -271,14 +152,14 @@ public class Navigator {
 		MapLocation jumpLoc = controllers.myRC.getLocation();
 		MapLocation currentLoc = controllers.myRC.getLocation();
 		Direction desDir = currentLoc.directionTo(destination);
+		MapLocation nextLoc = controllers.myRC.getLocation();
+		Direction nextDir = controllers.myRC.getDirection();
+		Direction startTracingDir;
 		
 		if (jumpingTracing){
 			controllers.myRC.setIndicatorString(2, "tracing");
-			MapLocation nextLoc = controllers.myRC.getLocation();
-			Direction nextDir = controllers.myRC.getDirection();
 			
-			
-			Direction startTracingDir = isCW? nextDir.rotateRight().rotateRight(): nextDir.rotateLeft().rotateLeft();
+			startTracingDir = isCW? nextDir.rotateRight().rotateRight(): nextDir.rotateLeft().rotateLeft();
 			
 			nextLoc = currentLoc.add(startTracingDir,2);
 			do {
@@ -297,12 +178,12 @@ public class Navigator {
 			nextLoc = currentLoc;
 			nextDir = controllers.myRC.getDirection();
 			
-			if( controllers.myRC.senseTerrainTile(currentLoc.add(startTracingDir)) == TerrainTile.OFF_MAP ){
-				isCW = !isCW;
-				nextDir = nextDir.opposite();
-			}
+//			if( controllers.myRC.senseTerrainTile(currentLoc.add(startTracingDir)) == TerrainTile.OFF_MAP ){
+//				isCW = !isCW;
+//				nextDir = nextDir.opposite();
+//			}
 			
-			controllers.myRC.setIndicatorString(2, "Do the bugging");
+//			controllers.myRC.setIndicatorString(2, "Do the bugging");
 			
 			Direction faceDir;
 			
@@ -312,6 +193,7 @@ public class Navigator {
 				startTracingDir = isCW? nextDir.rotateRight().rotateRight(): nextDir.rotateLeft().rotateLeft();
 				nextLoc = traceNext(jumpLoc, startTracingDir, isCW);
 				nextDir = jumpLoc.directionTo(nextLoc);
+				desDir = jumpLoc.directionTo(destination);
 				
 				if (isOpen(jumpLoc, faceDir, nextDir, desDir, isCW) 
 						&& isTraversable(jumpLoc.add(desDir)) ){
@@ -320,7 +202,7 @@ public class Navigator {
 					return jumpLoc;
 				}
 				
-			}	while (currentLoc.distanceSquaredTo(nextLoc) < 16);
+			}	while (currentLoc.distanceSquaredTo(nextLoc) <= 16);
 			
 			return jumpLoc;
 			
@@ -329,8 +211,14 @@ public class Navigator {
 		else{
 			controllers.myRC.setIndicatorString(2, "go");
 			jumpLoc = getNextJumpingLocTowardDes(tolerance);
-			if (jumpLoc == null)
+			if (jumpLoc == null) {
+				controllers.myRC.setIndicatorString(2, "No way to go");
+				if ( isTraversable(currentLoc.add(desDir)) )
+					isCW = betterTracingWay(currentLoc.add(desDir), destination);
+				else
+					isCW = betterTracingWay(currentLoc, destination);
 				jumpingTracing = true;
+			}
 		}
 		
 		return jumpLoc;
@@ -372,8 +260,6 @@ public class Navigator {
 			nextLoc = traceNext(s, startTracingDir, isCW);
 			nextDir = s.directionTo(nextLoc);
 			
-//			controllers.myRC.setIndicatorString(1, "TRACING to des:"+modifiedDes.toString()+" next: "+nextLoc.toString() );
-			
 			// The way is open
 			if ( isOpen(s, faceDir, nextDir, desDir, isCW) && isTraversable(s.add(desDir) ) ){
 				isTracing = false;
@@ -383,64 +269,72 @@ public class Navigator {
 			return nextDir;
 		
 		} else {
-//			controllers.myRC.setIndicatorString(1, "NT "+modifiedDes.toString());
 			if ( isTraversable(s.add(desDir)) ) {
-//				controllers.myRC.setIndicatorString(1, "RECKONING to "+modifiedDes.toString());
 				return desDir;
 			}
 			else {
-//				controllers.myRC.setIndicatorString(1, "TRACE to "+modifiedDes.toString() + isCW);
-				
 				isTracing = true;
-
-				MapLocation nextCW = traceNext(s, desDir, true);
-				MapLocation nextCCW = traceNext(s, desDir, false);
+				isCW = betterTracingWay(s, t);
+				nextLoc = traceNext(s, desDir, isCW);
 				
-				tracingLoc[0] = new MapLocation(nextCW.x, nextCW.y);
-				tracingLoc[1] = new MapLocation(nextCCW.x, nextCCW.y);
-				
-				tracingDir[0] = s.directionTo(nextCW);
-				tracingDir[1] = s.directionTo(nextCCW);
-				
-				tracingcost[0] = computeCost(0, faceDir, tracingDir[0]);
-				tracingcost[1] = computeCost(0, faceDir,  tracingDir[1]);
-				
-				int tracingIndex;
-				Direction startTracingDir;
-				
-				do{
-					if ( tracingcost[0] <= tracingcost[1] ){
-						tracingIndex = 0;
-						startTracingDir = tracingDir[0].rotateRight().rotateRight();
-						
-						nextLoc = traceNext(tracingLoc[0], startTracingDir, true);
-					}
-					else {
-						tracingIndex = 1;
-						startTracingDir = tracingDir[1].rotateLeft().rotateLeft();
-						
-						nextLoc = traceNext(tracingLoc[1], startTracingDir, false);
-					}
-					
-					
-					nextDir = tracingLoc[tracingIndex].directionTo(nextLoc);
-					desDir = tracingLoc[tracingIndex].directionTo(t);;
-					
-					if ( isOpen(tracingLoc[tracingIndex], tracingDir[tracingIndex], nextDir, desDir, tracingIndex == 0) 
-							&& isTraversable(tracingLoc[tracingIndex].add(desDir) )  ){
-						isCW = tracingIndex == 0;
-//						controllers.myRC.setIndicatorString(1,"TRACING DIR: " + (isCW? "CW" : "CCW") + modifiedDes.toString());
-						return s.directionTo( isCW? nextCW:nextCCW );
-					} else {
-						tracingcost[tracingIndex] = computeCost(tracingcost[tracingIndex], tracingDir[tracingIndex], nextDir);
-						tracingDir[tracingIndex] = nextDir;
-						tracingLoc[tracingIndex] = nextLoc;
-					}
-					
-				}while ( true );
+				return s.directionTo(nextLoc);
 			}
 		}
 		
+	}
+	
+	private boolean betterTracingWay(MapLocation s, MapLocation t){
+		
+		MapLocation [] tracingLoc = new MapLocation [2];
+		Direction [] tracingDir = new Direction [2];
+		int [] tracingcost = new int [2];
+		
+		int tracingIndex;
+		Direction nextDir, startTracingDir;
+		MapLocation nextLoc;
+		
+		Direction faceDir = controllers.myRC.getDirection();
+		Direction desDir = s.directionTo(t);
+		
+		tracingLoc[0] = traceNext(s, desDir, true);
+		tracingLoc[1] = traceNext(s, desDir, false);
+		
+		tracingDir[0] = s.directionTo(tracingLoc[0]);
+		tracingDir[1] = s.directionTo(tracingLoc[0]);
+		
+		tracingcost[0] = computeCost(0, faceDir, tracingDir[0]);
+		tracingcost[1] = computeCost(0, faceDir,  tracingDir[1]);
+		
+		
+		
+		do{
+			if ( tracingcost[0] <= tracingcost[1] ){
+				tracingIndex = 0;
+				startTracingDir = tracingDir[0].rotateRight().rotateRight();
+				
+				nextLoc = traceNext(tracingLoc[0], startTracingDir, true);
+			}
+			else {
+				tracingIndex = 1;
+				startTracingDir = tracingDir[1].rotateLeft().rotateLeft();
+				
+				nextLoc = traceNext(tracingLoc[1], startTracingDir, false);
+			}
+			
+			
+			nextDir = tracingLoc[tracingIndex].directionTo(nextLoc);
+			desDir = tracingLoc[tracingIndex].directionTo(t);;
+			
+			if ( isOpen(tracingLoc[tracingIndex], tracingDir[tracingIndex], nextDir, desDir, tracingIndex == 0) 
+					&& isTraversable(tracingLoc[tracingIndex].add(desDir) )  ){
+				return tracingIndex == 0;
+			} else {
+				tracingcost[tracingIndex] = computeCost(tracingcost[tracingIndex], tracingDir[tracingIndex], nextDir);
+				tracingDir[tracingIndex] = nextDir;
+				tracingLoc[tracingIndex] = nextLoc;
+			}
+			
+		}while ( true );
 	}
 	
 	
@@ -479,10 +373,6 @@ public class Navigator {
 	
 	
 	private Direction detour(Direction faceDir, boolean cw){
-
-		// Put isTraversable first so that the second while loop will rotate the
-		// direction to walkable position
-		// Try code reuse in the future
 
 		if (cw) {
 			while ( controllers.motor.canMove(faceDir) ) {
