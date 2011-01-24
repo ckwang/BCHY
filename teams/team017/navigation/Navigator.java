@@ -120,7 +120,7 @@ public class Navigator {
 		
 		// Find alternative jumping location
 		if ( !isTraversable(jumpLoc) ){
-			while( !jumpLoc.isAdjacentTo(currentLoc) && !jumpLoc.equals(currentLoc) ){
+			while( !jumpLoc.isAdjacentTo(currentLoc) /*&& !jumpLoc.equals(currentLoc)*/ ){
 				MapLocation temp = jumpLoc;
 				MapLocation best = null;
 				int distance = currentLoc.distanceSquaredTo(destination);

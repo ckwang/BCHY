@@ -379,7 +379,7 @@ public class SoldierAI extends GroundAI {
 
 		if (!enemyInSight){
 			if ( navigateToDestination(scoutingLocation, 16) ) {
-				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+				if ( !gridMap.updateScoutLocation(scoutingDir) ) {
 					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 				}
 				scoutingLocation = gridMap.getScoutLocation();
@@ -387,7 +387,7 @@ public class SoldierAI extends GroundAI {
 		}
 		else {
 			if ( walkingNavigateToDestination(scoutingLocation, 16) ) {
-				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+				if ( !gridMap.updateScoutLocation(scoutingDir) ) {
 					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 				}
 				scoutingLocation = gridMap.getScoutLocation();
