@@ -220,14 +220,21 @@ public class ScoutAI extends AI {
 					}
 				}
 				
+				List<MapLocation> emptyMines = controllers.emptyMines;
+				List<MapLocation> allyMines = controllers.allyMines;
+				List<MapLocation> enemyMines = controllers.enemyMines;
+				
 				nearbyEnemy.addAll(controllers.enemyMobile);
 				
-				emptyMineLocations.addAll(controllers.emptyMines);
-				emptyMineLocations.removeAll(controllers.allyMines);
-				emptyMineLocations.removeAll(controllers.enemyMines);
+				emptyMineLocations.addAll(emptyMines);
+				emptyMineLocations.removeAll(allyMines);
+				emptyMineLocations.removeAll(enemyMines);
 				
-				alliedMineLocations.addAll(controllers.allyMines);
-				enemyMineLocations.addAll(controllers.enemyMines);
+				alliedMineLocations.removeAll(emptyMines);
+				alliedMineLocations.addAll(allyMines);
+
+				enemyMineLocations.removeAll(emptyMines);
+				enemyMineLocations.addAll(enemyMines);
 
 				controllers.motor.setDirection(controllers.myRC.getDirection().rotateRight());
 				yield();
