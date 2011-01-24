@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import team017.construction.UnitType;
+import team017.message.ConstructBaseMessage;
 import team017.message.ConstructUnitMessage;
 import team017.message.ConstructionCompleteMessage;
 import team017.message.GoToMessage;
@@ -445,7 +446,8 @@ public class ScoutAI extends AI {
 			currentDir = controllers.myRC.getDirection();
 			
 			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
-				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.CHRONO_APOCALYPSE , true));
+				msgHandler.queueMessage(new ConstructBaseMessage(neareastRecycler, UnitType.RAILGUN_TOWER));
+				msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, UnitType.APOCALYPSE , true));
 				return;
 			}
 			

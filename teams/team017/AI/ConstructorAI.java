@@ -298,12 +298,26 @@ public class ConstructorAI extends GroundAI {
 			yield();
 		}
 
+		if (buildLoc.equals(controllers.myRC.getLocation())) {
+			while (controllers.motor.isActive())
+				yield();
+			
+			Direction mydir = controllers.myRC.getDirection();
+			if (controllers.motor.canMove(mydir))
+				controllers.motor.moveForward();
+			else if (controllers.motor.canMove(mydir.opposite()))
+				controllers.motor.moveBackward();
+			
+			yield();
+		}
+		
+		
+		
 		// face the building site
 		Direction buildDir = controllers.myRC.getLocation().directionTo(buildLoc);
 		if (controllers.myRC.getDirection() != buildDir) {
 			while (controllers.motor.isActive())
 				yield();
-
 			controllers.motor.setDirection(buildDir);
 			yield();
 		}
@@ -416,6 +430,7 @@ public class ConstructorAI extends GroundAI {
 			Message msg = msgHandler.nextMessage();
 			switch (msgHandler.getMessageType(msg)) {
 			case NOT_ENOUGH_SPACE_MESSAGE: {
+				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "Not Enough Space");
 				while (!checkFourConsecutiveEmpties()) {
 					navigate();
 					yield();

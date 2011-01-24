@@ -78,6 +78,7 @@ public class BuildingLocations {
 		currentLoc = controllers.myRC.getLocation();
 		for (int i = 0; i < 8; i++)
 			locationMapping[i] = currentLoc.add(directionMapping[i]);
+
 		updateEmptyLocations();
 		updateBuildingLocs();
 	}
@@ -274,15 +275,35 @@ public class BuildingLocations {
 				emptyLocations[i] = false;
 			} else {
 				try {
-					if (controllers.builder.canBuild(Chassis.LIGHT, loc)) {
-						emptyLocations[i] = true;
-						emptySize++;
-					} else {
+
+					if (controllers.myRC.senseTerrainTile(loc) != TerrainTile.LAND)
 						emptyLocations[i] = false;
+					else {
+						if (controllers.sensor.canSenseSquare(loc)) {
+							if (controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null)
+								emptyLocations[i] = false;
+							else {
+								Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
+								if (objectOnGround != null) {
+									Chassis chassis = controllers.sensor.senseRobotInfo((Robot) objectOnGround).chassis;
+									if ( chassis == Chassis.BUILDING || chassis == Chassis.DEBRIS ) {
+										emptyLocations[i] = false;
+									} else {
+										emptyLocations[i] = true;
+										emptySize++;
+									}
+								}
+							}
+						} else {
+							if (controllers.builder.canBuild(Chassis.LIGHT, loc)) {
+								emptyLocations[i] = true;
+							} else {
+								emptyLocations[i] = false;
+							}
+						}
 					}
 					
-					if (controllers.sensor.canSenseSquare(loc) && controllers.sensor.senseObjectAtLocation(loc, RobotLevel.MINE) != null)
-						emptyLocations[i] = false;
+					
 					
 //					Object objectOnGround = controllers.sensor.senseObjectAtLocation(loc, RobotLevel.ON_GROUND); 
 //					if (objectOnGround != null) {
@@ -307,6 +328,11 @@ public class BuildingLocations {
 				}
 			}
 		}
+		for (int i = 0; i < 8; i++) {
+			if (emptyLocations[i])
+				emptySize++;
+		}
+			
 	}
 	
 
@@ -397,4 +423,14 @@ public class BuildingLocations {
 			dir = dir.rotateLeft();
 		return currentLoc.add(dir);
 	}
+	
+	public int getConsecutiveEmptySize() {
+		updateEmptyLocations();
+		for (int i = 8; i >0; i--) {
+			if (consecutiveEmpties(i) != null)
+				return i;
+		}
+		return 0;
+	}
+	
 }
