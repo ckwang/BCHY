@@ -48,6 +48,7 @@ public class ScoutAI extends AI {
 	
 	private boolean scouted = false;
 	private MapLocation destination = null;
+	private MapLocation scoutingLocation = null;
 	private MapLocation neareastRecycler;
 	
 	private Direction scoutingDir;
@@ -70,7 +71,7 @@ public class ScoutAI extends AI {
 		controllers.scoutNearby();
 		controllers.myRC.setIndicatorString(1, controllers.distanceToNearestEnemy+"");
 		if (senseBorder())	{
-//			destination = gridMap.getScoutLocation();
+			scoutingLocation = gridMap.getScoutLocation();
 		}
 		attacked = controllers.myRC.getHitpoints() < prevHp;
 		prevHp = controllers.myRC.getHitpoints();
@@ -221,7 +222,7 @@ public class ScoutAI extends AI {
 					while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 						scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 					}
-					destination = gridMap.getScoutLocation();
+					scoutingLocation = destination = gridMap.getScoutLocation();
 				}
 				
 				break;
@@ -264,21 +265,19 @@ public class ScoutAI extends AI {
 					
 					msgHandler.queueMessage(new GreetingMessage(false));
 					
-					if (emptyMineLocations.isEmpty()) {
+					destination = findNearestMine();
+					
+					if (destination == null) {
 						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 						}
-						destination = gridMap.getScoutLocation();
+						scoutingLocation = destination = gridMap.getScoutLocation();
 						scouted = false;
 						scoutCount++;
 						if (scoutCount % 2 == 0)	builtBranch = false;
 						msgHandler.queueMessage(new GoToMessage(destination, false));
 					} else {
-						findNearestMine();
-						
-						if (destination != null) {
-							msgHandler.queueMessage(new GoToMessage(destination, true));
-						}
+						msgHandler.queueMessage(new GoToMessage(destination, true));
 					}
 					
 //					controllers.myRC.setIndicatorString(0, "GREETING_MESSAGE " + childID + destination);
@@ -304,23 +303,19 @@ public class ScoutAI extends AI {
 						}
 					}
 					
-					// go to next scout location if the empty mine list is empty
-					if (emptyMineLocations.isEmpty()) {
+					destination = findNearestMine();
+					
+					if (destination == null) {
 						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 						}
-						destination = gridMap.getScoutLocation();
+						scoutingLocation = destination = gridMap.getScoutLocation();
 						scouted = false;
 						scoutCount++;
 						if (scoutCount % 2 == 0)	builtBranch = false;
 						msgHandler.queueMessage(new GoToMessage(destination, false));
 					} else {
-//						watch();
-						findNearestMine();
-						
-						if (destination != null) {
-							msgHandler.queueMessage(new GoToMessage(destination, true));
-						}
+						msgHandler.queueMessage(new GoToMessage(destination, true));
 					}
 				}
 				break;
@@ -352,22 +347,6 @@ public class ScoutAI extends AI {
 					
 					if (childID == -1)	return;
 					
-//					if (emptyMineLocations.isEmpty()) {
-//						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
-//							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
-//						}
-//						destination = gridMap.getScoutLocation();
-//						scouted = false;
-//						scoutCount++;
-//						if (scoutCount % 2 == 0)	builtBranch = false;
-//						msgHandler.queueMessage(new GoToMessage(destination, false));
-//					} else {
-//						findNearestMine();
-//						
-//						if (destination != null) {
-//							msgHandler.queueMessage(new GoToMessage(destination, true));
-//						}
-//					}
 				}
 				gridMap.setScouted(controllers.myRC.getLocation());
 				return;
@@ -469,23 +448,28 @@ public class ScoutAI extends AI {
 
 	}
 	
-	private void findNearestMine() {
-		destination = new MapLocation(0, 0);
+	private boolean isMyBusiness(MapLocation loc) {
+		return scoutingLocation.distanceSquaredTo(loc) <= 100;
+	}
+	
+	private MapLocation findNearestMine() {
+		MapLocation result = new MapLocation(0, 0);
 
 		MapLocation currentLoc = controllers.myRC.getLocation();
 		
 		// find a eligible mine
 		for (MapLocation mineLoc : emptyMineLocations) {
-			if (alliedMineLocations.contains(mineLoc) || enemyMineLocations.contains(mineLoc))
+			if (alliedMineLocations.contains(mineLoc) || enemyMineLocations.contains(mineLoc) || !isMyBusiness(mineLoc))
 				continue;
 			
-			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(destination))
-				destination = mineLoc;
+			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(result))
+				result = mineLoc;
 		}
 		
-		if (destination.x == 0)
-			destination = null;
-
+		if (result.x == 0)
+			result = null;
+		
+		return result;
 	}
 	
 }
