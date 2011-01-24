@@ -51,7 +51,7 @@ public class ScoutAI extends AI {
 	private boolean scouted = false;
 	private MapLocation destination = null;
 	private MapLocation scoutingLocation = null;
-	private MapLocation neareastRecycler;
+	private MapLocation nearestRecycler;
 	
 	private Direction scoutingDir;
 	private boolean leftward;
@@ -61,10 +61,12 @@ public class ScoutAI extends AI {
 	private boolean arrived = false;
 	private boolean builtBranch = true;
 	
+	private boolean isFlee = false;
+	
 	public ScoutAI(RobotController rc) {
 		super(rc);
 		id = rc.getRobot().getID();
-		neareastRecycler = homeLocation;
+		nearestRecycler = homeLocation;
 	}
 	
 	@Override
@@ -99,10 +101,87 @@ public class ScoutAI extends AI {
 
 			controllers.myRC.setIndicatorString(0, emptyMineLocations + "");
 			
-			if ( (controllers.distanceToNearestEnemy < 121 || attacked) )
-				flee();
-			else
-				navigate();
+//			if ( (controllers.distanceToNearestEnemy < 121 || attacked) ) {
+//				isFlee = true;
+//				setFleeDestination();
+//			}
+//			
+			if (isFlee) {
+				if ( controllers.myRC.getLocation().distanceSquaredTo(nearestRecycler) < 36 ){
+					if (nearbyEnemy.size() > 0) {
+						List<UnitType> types = new ArrayList<UnitType>();
+						for (RobotInfo info: nearbyEnemy) {
+							switch(info.chassis) {
+							case HEAVY:
+							case MEDIUM:
+								// Check if it contains harden
+								boolean hasHarden = false;
+								for (ComponentType com: info.components) {
+									if (com.equals(ComponentType.HARDENED)) {
+										hasHarden = true;
+										break;
+									}
+								}
+								if (hasHarden)
+									types.add(UnitType.BATTLE_FORTRESS);
+								else 
+									types.add(UnitType.APOCALYPSE);
+								break;
+							case LIGHT:
+								types.add(UnitType.RHINO_TANK);
+								break;
+							case FLYING:
+								types.add(UnitType.GRIZZLY);
+								break;
+							}
+						}
+						msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
+						msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, types , true));
+					}
+				}
+			}
+//				flee();
+			
+			if (arrived) {
+				
+				isFlee = false;
+				
+				if ( (controllers.distanceToNearestEnemy < 121 || attacked) ) {
+					isFlee = true;
+					
+					nearbyEnemy.clear();
+					
+					// If the enemy is too faraway, scout nearby first
+					if (!attacked && controllers.distanceToNearestEnemy > 81)
+						watch();
+					
+					destination = nearestRecycler;
+					msgHandler.queueMessage(new GoToMessage(destination, false));
+					arrived = false;
+				}
+				
+				if (!isFlee) {
+					destination = findNearestMine();
+					
+					if (destination == null) {
+						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
+							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
+						}
+						scoutingLocation = destination = gridMap.getScoutLocation();
+						scouted = false;
+						scoutCount++;
+						if (scoutCount % 2 == 0)	builtBranch = false;
+						
+						msgHandler.queueMessage(new GoToMessage(destination, false));
+						arrived = false;
+					} else {
+						msgHandler.queueMessage(new GoToMessage(destination, true));
+						arrived = false;
+					}
+				}
+			}
+			
+			navigate();
 			
 			yield();
 		}
@@ -270,20 +349,7 @@ public class ScoutAI extends AI {
 					
 					msgHandler.queueMessage(new GreetingMessage(false));
 					
-					destination = findNearestMine();
-					
-					if (destination == null) {
-						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
-							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
-						}
-						scoutingLocation = destination = gridMap.getScoutLocation();
-						scouted = false;
-						scoutCount++;
-						if (scoutCount % 2 == 0)	builtBranch = false;
-						msgHandler.queueMessage(new GoToMessage(destination, false));
-					} else {
-						msgHandler.queueMessage(new GoToMessage(destination, true));
-					}
+					arrived = true;
 					
 //					controllers.myRC.setIndicatorString(0, "GREETING_MESSAGE " + childID + destination);
 //					controllers.myRC.setIndicatorString(2, emptyMineLocations + "");
@@ -308,24 +374,6 @@ public class ScoutAI extends AI {
 							msgHandler.queueMessage(new ConstructUnitMessage(destination, constructingQueue, false));
 							builtBranch = true;
 						}
-					}
-					
-					destination = findNearestMine();
-					
-					if (destination == null) {
-						while ( !gridMap.updateScoutLocation(scoutingDir) ) {
-							scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
-						}
-						scoutingLocation = destination = gridMap.getScoutLocation();
-						scouted = false;
-						scoutCount++;
-						if (scoutCount % 2 == 0)	builtBranch = false;
-						
-						msgHandler.queueMessage(new GoToMessage(destination, false));
-						arrived = false;
-					} else {
-						msgHandler.queueMessage(new GoToMessage(destination, true));
-						arrived = false;
 					}
 				}
 				break;
@@ -354,11 +402,10 @@ public class ScoutAI extends AI {
 				if (!scouted) {
 					scouted = true;
 					watch();
+					gridMap.setScouted(controllers.myRC.getLocation());
 					
 					if (childID == -1)	return;
-					
 				}
-				gridMap.setScouted(controllers.myRC.getLocation());
 				return;
 			}
 		}
@@ -401,10 +448,11 @@ public class ScoutAI extends AI {
 		if (!attacked && controllers.distanceToNearestEnemy > 81)
 			watch();
 		
-		while ( !currentLoc.equals(neareastRecycler) ){
+		
+		while ( !currentLoc.equals(nearestRecycler) ){
 
 			
-			Direction desDir = currentLoc.directionTo(neareastRecycler);
+			Direction desDir = currentLoc.directionTo(nearestRecycler);
 			
 			desDir = desDir.opposite();
 			
@@ -436,7 +484,7 @@ public class ScoutAI extends AI {
 			currentLoc = controllers.myRC.getLocation();
 			currentDir = controllers.myRC.getDirection();
 			
-			if ( currentLoc.distanceSquaredTo(neareastRecycler) < 36 ){
+			if ( currentLoc.distanceSquaredTo(nearestRecycler) < 36 ){
 				if (nearbyEnemy.size() > 0) {
 					List<UnitType> types = new ArrayList<UnitType>();
 					for (RobotInfo info: nearbyEnemy) {
@@ -464,8 +512,8 @@ public class ScoutAI extends AI {
 							break;
 						}
 					}
-					msgHandler.queueMessage(new ConstructBaseMessage(neareastRecycler, UnitType.RAILGUN_TOWER));
-					msgHandler.queueMessage(new ConstructUnitMessage(neareastRecycler, types , true));
+					msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
+					msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, types , true));
 				}
 				return;
 			}
@@ -478,12 +526,12 @@ public class ScoutAI extends AI {
 	
 	private void findNearestRecycler() {
 		MapLocation currentLoc = controllers.myRC.getLocation();
-		neareastRecycler = homeLocation;
+		nearestRecycler = homeLocation;
 		
 		for (MapLocation mineLoc : alliedMineLocations) {
 			
-			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(neareastRecycler))
-				neareastRecycler = mineLoc;
+			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(nearestRecycler))
+				nearestRecycler = mineLoc;
 		}
 
 	}
