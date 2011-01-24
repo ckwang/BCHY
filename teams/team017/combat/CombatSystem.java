@@ -218,6 +218,8 @@ public class CombatSystem {
 	
 	public boolean shoot(RobotInfo r) {
 		double hp = r.hitpoints;
+		if (hp <= 0)
+			return true;
 		for (WeaponController w: controllers.weapons) {
 			if (!w.isActive() && w.withinRange(r.location)) {
 				try {
@@ -250,34 +252,35 @@ public class CombatSystem {
 			System.out.println("attack self");
 		}
 		int dis = myloc.distanceSquaredTo(r.location);
-		if (dis > 0.9 * optRange) {
-			moveForward();
-			return false;
-		}
+//		if (dis > 0.9 * optRange) {
+//			moveForward();
+//			return false;
+//		}
 		//enemy facing, retreat back
-		if (Util.isFacing(r.direction, edir.opposite())) {
+		if (Util.isFacing(r.direction, edir.opposite()) && dis < optRange * 0.7 ) {
 //			if (controllers.myRC.getHitpoints() < 3.5)
 				moveBackward();
-				return true;
+				return false;
 		}
 		//behind enemy, chase forward
 		else if (Util.isFacing(r.direction, edir)) {
-			if (Util.isFacing(mydir, edir) && dis > 0.85*minRange) {
-				moveForward();
+			if (Util.isFacing(mydir, edir) && dis > 0.9*minRange) {
+				if (moveForward())
+					return true;
 			}
 			return false;
 		}
 		else {
 			if (mydir != edir) {
 				setDirection(edir);
-				return true;
+				return false;
 			}
 		}
 		return false;
 		
 	}
 	
-	//return true if need yield
+	//return true if moved forward
 	public boolean approachTarget(RobotInfo r) {
 //		updatePosition();
 //		if (controllers.jumper != null) {
@@ -289,25 +292,54 @@ public class CombatSystem {
 //			}
 //		}
 		if (controllers.motor.isActive())
-			return true;
+			return false;
 		MapLocation myloc = controllers.myRC.getLocation();
 		Direction mydir = controllers.myRC.getDirection();
 		Direction edir = myloc.directionTo(r.location);
-		if (mydir == edir && controllers.motor.canMove(mydir)) {
-			try {controllers.motor.moveForward();} 
-			catch (Exception e) {return false;}
-		}
-		if (myloc.distanceSquaredTo(r.location) >= maxRange) {
-			if (mydir == edir.rotateLeft() || mydir == edir.rotateRight()) {
-				try {controllers.motor.moveForward();} 
-				catch (Exception e) {return false;}
+		setDirection(edir);
+		if (controllers.motor.canMove(edir)) {
+			if (mydir == edir) {
+				try {controllers.motor.moveForward();
+					return true;
+				} 
+				catch (Exception e) {}
+			}
+			else {
+				try {controllers.motor.setDirection(edir);} 
+				catch (Exception e) {}
 			}
 		}
-		else {
-			try {controllers.motor.setDirection(edir);} 
-			catch (GameActionException e) {return false;}
+		else if (controllers.motor.canMove(edir.rotateLeft())) {
+			Direction left = edir.rotateLeft();
+			if (mydir == left) {
+				try {controllers.motor.moveForward();
+					return true;
+				} 
+				catch (Exception e) {}
+			}
+			else {
+				try {controllers.motor.setDirection(left);} 
+				catch (Exception e) {}
+			}
 		}
-		return true;
+		else if (controllers.motor.canMove(edir.rotateRight())) {
+			Direction right = edir.rotateRight();
+			if (mydir == right) {
+				try {controllers.motor.moveForward();
+					return true;
+				} 
+				catch (Exception e) {}
+			}
+			else {
+				try {controllers.motor.setDirection(right);} 
+				catch (Exception e) {}
+			}
+		}
+//		else {
+//			try {controllers.motor.setDirection(edir);} 
+//			catch (GameActionException e) {return false;}
+//		}
+		return false;
 	}
 	
 	public RobotInfo getImmobile() {
@@ -330,6 +362,7 @@ public class CombatSystem {
 		Util.sortHp(controllers.enemyMobile);
 		for (RobotInfo r: controllers.enemyMobile) {
 			if (primary.withinRange(r.location)) {
+				controllers.enemyMobile.remove(r);
 				return r;
 			}
 		}
@@ -343,9 +376,11 @@ public class CombatSystem {
 				break;
 			}
 		}
-		if (target != null)
-			return target;
-		return controllers.enemyMobile.get(0);
+		if (target != null) {
+			controllers.enemyMobile.remove(target);
+		}
+		return target;
+//		return controllers.enemyMobile.get(0);
 	}
 
 //	public MapLocation teleport(RobotInfo r) {
