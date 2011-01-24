@@ -108,6 +108,7 @@ public class Navigator {
 		do{
 			jumpLoc = nextLoc;
 			if ( jumpLoc.distanceSquaredTo(destination) < tolerance && isTraversable(jumpLoc) ){
+//				controllers.myRC.setIndicatorString(2, "here: " + jumpLoc + ", des" + destination);
 				return jumpLoc;
 			}
 			nextDir = jumpLoc.directionTo(destination);
@@ -120,7 +121,7 @@ public class Navigator {
 		
 		// Find alternative jumping location
 		if ( !isTraversable(jumpLoc) ){
-			while( !jumpLoc.isAdjacentTo(currentLoc) /*&& !jumpLoc.equals(currentLoc)*/ ){
+			while( !jumpLoc.isAdjacentTo(currentLoc) ){
 				MapLocation temp = jumpLoc;
 				MapLocation best = null;
 				int distance = currentLoc.distanceSquaredTo(destination);
@@ -157,7 +158,7 @@ public class Navigator {
 		Direction startTracingDir;
 		
 		if (jumpingTracing){
-			controllers.myRC.setIndicatorString(2, "tracing");
+//			controllers.myRC.setIndicatorString(2, "tracing");
 			
 			startTracingDir = isCW? nextDir.rotateRight().rotateRight(): nextDir.rotateLeft().rotateLeft();
 			
@@ -167,11 +168,11 @@ public class Navigator {
 					jumpLoc = nextLoc;
 				
 				nextLoc = nextLoc.add(startTracingDir);
-			} while (currentLoc.distanceSquaredTo(nextLoc) < 16);
+			} while (currentLoc.distanceSquaredTo(nextLoc) <= 16);
 			
-			if ( !jumpLoc.equals(currentLoc) ){
+			if ( currentLoc.distanceSquaredTo(currentLoc) > 2 ){
 				jumpingTracing = false;
-				controllers.myRC.setIndicatorString(2, "Find good jumpLoc: " + jumpLoc);
+//				controllers.myRC.setIndicatorString(2, "Find good jumpLoc: " + jumpLoc);
 				return jumpLoc;
 			}
 			
@@ -197,22 +198,28 @@ public class Navigator {
 				
 				if (isOpen(jumpLoc, faceDir, nextDir, desDir, isCW) 
 						&& isTraversable(jumpLoc.add(desDir)) ){
-					controllers.myRC.setIndicatorString(2, "Open");
+//					controllers.myRC.setIndicatorString(2, "Open");
 					jumpingTracing = false;
+					nextLoc = jumpLoc;
+					if (jumpLoc.distanceSquaredTo(currentLoc) <= 2)
+						return null;
 					return jumpLoc;
 				}
 				
 			}	while (currentLoc.distanceSquaredTo(nextLoc) <= 16);
+			
+			if (jumpLoc.distanceSquaredTo(currentLoc) <= 2)
+				return null;
 			
 			return jumpLoc;
 			
 			
 		}
 		else{
-			controllers.myRC.setIndicatorString(2, "go");
+//			controllers.myRC.setIndicatorString(2, "go");
 			jumpLoc = getNextJumpingLocTowardDes(tolerance);
 			if (jumpLoc == null) {
-				controllers.myRC.setIndicatorString(2, "No way to go");
+//				controllers.myRC.setIndicatorString(2, "No way to go");
 				if ( isTraversable(currentLoc.add(desDir)) )
 					isCW = betterTracingWay(currentLoc.add(desDir), destination);
 				else

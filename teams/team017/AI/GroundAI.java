@@ -59,7 +59,7 @@ abstract public class GroundAI extends AI {
 		MapLocation currentLoc = controllers.myRC.getLocation();
 		Direction desDir = currentLoc.directionTo(des);
 		int distance = currentLoc.distanceSquaredTo(des);
-		
+		navigator.setDestination(des);
 		
 		if (distance < tolerance)
 			return true;
@@ -78,7 +78,7 @@ abstract public class GroundAI extends AI {
 
 		controllers.myRC.setIndicatorString(1, "destination location: " + des);
 		try{
-			navigator.setDestination(des);
+			
 			
 			if (jumpLoc == null)
 				jumpLoc = navigator.getNextJumpingLoc(tolerance);

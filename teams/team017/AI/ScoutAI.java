@@ -104,9 +104,9 @@ public class ScoutAI extends AI {
 			controllers.myRC.setIndicatorString(0, childArrived +"," + parentArrived + "," + isScout);
 			
 			if (isFlee) {
-				if ( controllers.myRC.getLocation().distanceSquaredTo(nearestRecycler) < 36 ){
-					if (nearbyEnemy.size() > 0) {
-						List<UnitType> types = new ArrayList<UnitType>();
+//				if ( controllers.myRC.getLocation().distanceSquaredTo(nearestRecycler) < 36 ){
+//					if (nearbyEnemy.size() > 0) {
+//						List<UnitType> types = new ArrayList<UnitType>();
 //						for (RobotInfo info: nearbyEnemy) {
 //							switch(info.chassis) {
 //							case HEAVY:
@@ -132,10 +132,10 @@ public class ScoutAI extends AI {
 //								break;
 //							}
 //						}
-						msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
-						msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, UnitType.APOCALYPSE , true));
-					}
-				}
+//						msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
+//						msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, UnitType.APOCALYPSE , true));
+//					}
+//				}
 			}
 			
 			if ( (controllers.distanceToNearestEnemy < 121 || attacked) ) {

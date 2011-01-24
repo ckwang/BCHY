@@ -341,6 +341,8 @@ public class SoldierAI extends GroundAI {
 				computeEnemyBaseLocation();
 				gridMap.merge(homeLocation, handler.getBorders(), handler.getInternalRecords());
 
+				if (!gridMap.currentIsInbound())
+					gridMap.updateScoutLocation(controllers.myRC.getLocation());
 				break;
 			}
 			
