@@ -52,6 +52,7 @@ public class SoldierAI extends GroundAI {
 		super(rc);
 		combat = new CombatSystem(controllers);
 		navigator.updateMap();
+		scoutingDir = controllers.myRC.getDirection();
 	}
 
 	public void proceed() {
@@ -357,21 +358,7 @@ public class SoldierAI extends GroundAI {
 	}
 
 	private void navigate() throws GameActionException {
-//		rc.setIndicatorString(0, "navigating");
-//		if (jumper == null) {
-//			if (enemyBaseLoc[0] != null) {
-//				if ( navigateToDestination(enemyBaseLoc[0], 9) )
-//					enemyBaseLoc[0] = null;
-//			} else if (enemyBaseLoc[1] != null) {
-//				if ( navigateToDestination(enemyBaseLoc[1], 9) )
-//					enemyBaseLoc[1] = null;
-//			} else if (enemyBaseLoc[2] != null) {
-//				if ( navigateToDestination(enemyBaseLoc[2], 9) )
-//					enemyBaseLoc[2] = null;
-//			} else {
-//				roachNavigate();
-//			}
-//		} else {
+
 		if (!enemyInSight){
 			if ( navigateToDestination(scoutingLocation, 4) ) {
 				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
@@ -388,7 +375,6 @@ public class SoldierAI extends GroundAI {
 				scoutingLocation = gridMap.getScoutLocation();
 			}
 		}
-			
-//		}
+		
 	}
 }

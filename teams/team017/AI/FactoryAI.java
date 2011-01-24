@@ -165,36 +165,36 @@ public class FactoryAI extends BuildingAI {
 			tempEnemy.addAll(controllers.enemyMines);
 			
 			
-			if (controllers.enemyMobile.size() > 0) {
-					List<UnitType> types = new ArrayList<UnitType>();
-					for (RobotInfo info: controllers.enemyMobile) {
-						switch(info.chassis) {
-						case HEAVY:
-						case MEDIUM:
-//							Check if it contains harden
-							boolean hasHarden = false;
-							for (ComponentType com: info.components) {
-								if (com.equals(ComponentType.HARDENED)) {
-									hasHarden = true;
-									break;
-								}
-							}
-							if (hasHarden)
-								types.add(UnitType.BATTLE_FORTRESS);
-							else 
-								types.add(UnitType.APOCALYPSE);
-							break;
-						case LIGHT:
-							types.add(UnitType.RHINO_TANK);
-							break;
-						case FLYING:
-							types.add(UnitType.GRIZZLY);
-							break;
-						}
-					}
-					msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.recyclerLocation, types, true));
-				
-			}
+//			if (controllers.enemyMobile.size() > 0) {
+//					List<UnitType> types = new ArrayList<UnitType>();
+//					for (RobotInfo info: controllers.enemyMobile) {
+//						switch(info.chassis) {
+//						case HEAVY:
+//						case MEDIUM:
+////							Check if it contains harden
+//							boolean hasHarden = false;
+//							for (ComponentType com: info.components) {
+//								if (com.equals(ComponentType.HARDENED)) {
+//									hasHarden = true;
+//									break;
+//								}
+//							}
+//							if (hasHarden)
+//								types.add(UnitType.BATTLE_FORTRESS);
+//							else 
+//								types.add(UnitType.APOCALYPSE);
+//							break;
+//						case LIGHT:
+//							types.add(UnitType.RHINO_TANK);
+//							break;
+//						case FLYING:
+//							types.add(UnitType.GRIZZLY);
+//							break;
+//						}
+//					}
+//					msgHandler.queueMessage(new ConstructUnitMessage(buildingLocs.recyclerLocation, types, true));
+//				
+//			}
 			
 			if ( !controllers.motor.isActive() ) {
 				previousWatchingDir = controllers.myRC.getDirection().rotateRight();
