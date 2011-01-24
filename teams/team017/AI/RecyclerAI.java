@@ -24,6 +24,7 @@ public class RecyclerAI extends BuildingAI {
 	private int birthRoundNum;
 	private int inquiryIdleRound = 0;
 	private int constructIdleRound = 0;
+	private int constructorIdleRound = 0;
 	private MapLocation currentLoc = controllers.myRC.getLocation();
 	private boolean built = false;
 	private boolean clusterIsDone = false;
@@ -37,6 +38,8 @@ public class RecyclerAI extends BuildingAI {
 	private boolean buildFactory = false;
 	private boolean buildTower = false;
 	private boolean buildRailgunTower = false;
+	
+	private boolean isInitial = false;
 	
 	int [] unitRatios = {1, 0, 1, 0, 1, 1, 1, 1};
 	int [] cumulatedRatios = new int[8];
@@ -115,9 +118,11 @@ public class RecyclerAI extends BuildingAI {
 		
 		
 		if (birthRoundNum < 200 || myMine == null) {
-//			buildFactory = true;
-//			buildArmory = true;
-//			buildRailgunTower = true;
+
+
+			buildFactory = true;
+			buildArmory = true;
+			buildRailgunTower = true;
 
 			constructingQueue.add(UnitType.CONSTRUCTOR);
 			constructingQueue.add(UnitType.CONSTRUCTOR);
@@ -132,13 +137,12 @@ public class RecyclerAI extends BuildingAI {
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.WAR_MINER);
 			
+			isInitial = true;
 		}
 		
 		while (true) {
 			try {
-				controllers.myRC.setIndicatorString(0, Clock.getRoundNum() + "" + constructingQueue);
-//				controllers.myRC.setIndicatorString(1, "Done:" + clusterIsDone);
-//				controllers.myRC.setIndicatorString(2, buildingLocs.getConsecutiveEmptySize() + "");
+				controllers.myRC.setIndicatorString(1, Clock.getRoundNum() + "" + constructingQueue);
 				if (!clusterIsDone) {
 					clusterIsDone = true;
 					checkAdjacentRecyclers();
@@ -241,6 +245,9 @@ public class RecyclerAI extends BuildingAI {
 				// turn off when the mine is depleted
 				if (myMine != null && controllers.sensor.senseMineInfo(myMine).roundsLeft == 0 && buildingLocs.clusterSize == 1)
 					controllers.myRC.turnOff();
+				
+//				if (Clock.getRoundNum() % 200 == 0)
+//					constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 
 				yield();
 			} catch (Exception e) {

@@ -43,6 +43,7 @@ public class SoldierAI extends GroundAI {
 	
 	private MapLocation scoutingLocation;
 	private Direction scoutingDir;
+	private Direction enemyDir;
 	private boolean leftward;
 
 	public SoldierAI(RobotController rc) {
@@ -63,11 +64,15 @@ public class SoldierAI extends GroundAI {
 			
 			while (controllers.mobileEnemyNum() > 0) {
 				target = combat.getMobile();
-				if (target == null) {
-					if (!combat.moveForward()) break;
-					else continue;
+				if (target != null){
+					scoutingDir = controllers.myRC.getLocation().directionTo(target.location);
+					attackMobile(target);
 				}
-				attackMobile(target);
+//				if (target != null) {
+//					if (!combat.moveForward()) break;
+//					else continue;
+//				}
+				
 			}
 			while (controllers.immobileEnemyNum() > 0) {
 				target = combat.getImmobile();
@@ -276,6 +281,7 @@ public class SoldierAI extends GroundAI {
 				
 				if (scoutingDir == null) {
 					scoutingDir = handler.getPatrolDirection();
+//					tempScoutingDir = scoutingDir;
 					leftward = handler.isLeftward();
 					if (homeLocation.distanceSquaredTo(controllers.myRC.getLocation()) > 16) {
 						gridMap.setScoutLocation(handler.getSourceLocation());
@@ -306,12 +312,41 @@ public class SoldierAI extends GroundAI {
 				roachNavigate();
 			}
 		} else {
-			if ( navigateToDestination(scoutingLocation, 4) ) {
+			if(navigateToDestination(scoutingLocation, 10)){
 				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
 				}
 				scoutingLocation = gridMap.getScoutLocation();
 			}
+			
 		}
 	}
+	
+//	public void jumpingScout(){
+//		MapLocation currentLoc = controllers.myRC.getLocation();
+//		MapLocation jumpLoc;
+//		try{
+//			
+//			jumpLoc = navigator.getNextJumpingScoutLoc(tempScoutingDir);
+//			
+//			if (jumpLoc == null){
+//				tempScoutingDir = tempScoutingDir.rotateLeft();
+//				walkingNavigateToDestination(currentLoc.add(tempScoutingDir), 10);
+//			}
+//			else{
+////				tempScoutingDir = scoutingDir;
+//				if (controllers.myRC.getDirection() != controllers.myRC.getLocation().directionTo(jumpLoc))
+//					controllers.motor.setDirection(controllers.myRC.getLocation().directionTo(jumpLoc));
+//				else if (!controllers.jumper.isActive()) {
+//					controllers.myRC.setIndicatorString(2, "JumpLoc: " + jumpLoc);
+//					controllers.jumper.jump(jumpLoc);
+//					jumpLoc = null;
+//				}
+//				
+//			}
+//		} catch (GameActionException e) {
+//			e.printStackTrace();
+//			jumpLoc = null;
+//		}
+//	}
 }
