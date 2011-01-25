@@ -398,20 +398,21 @@ public class SoldierAI extends GroundAI {
 		
 	}
 	
-	private void getScoutingLoc(Direction scoutingDir){
+	private boolean getScoutingLoc(Direction scoutingDir){
+		if (enemyMineLocations.size() == 0)
+			return false;
+		
 		MapLocation currentLoc = controllers.myRC.getLocation();
 		
-		scoutingLocation = null;
 		MapLocation temp = homeLocation;
+		scoutingLocation = null;
 		
 		for (MapLocation mineLoc : enemyMineLocations) {
 			
 			if (currentLoc.distanceSquaredTo(mineLoc) < currentLoc.distanceSquaredTo(temp)){
 				if (currentLoc.directionTo(mineLoc) == scoutingDir){
 					scoutingLocation = mineLoc;
-					enemyMineLocations.remove(scoutingLocation);
 				}
-				
 				temp = mineLoc;
 			}
 				
@@ -420,5 +421,9 @@ public class SoldierAI extends GroundAI {
 			scoutingLocation = temp;
 			enemyMineLocations.remove(scoutingLocation);
 		}
+		
+		enemyMineLocations.remove(scoutingLocation);
+		return true;
+
 	}
 }
