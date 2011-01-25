@@ -18,7 +18,6 @@ public enum UnitType {
 	HAMMER_TANK (Chassis.LIGHT, ComponentType.HAMMER,ComponentType.HAMMER, ComponentType.PLATING, ComponentType.SIGHT),//weak!!!
 
 // Armory + Recycler
-	WAR_MINER (Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.JUMP, ComponentType.RADAR, ComponentType.SMG, ComponentType.SHIELD),
 	JUMPING_CONSTRUCTOR (Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.JUMP, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.SHIELD),
 	FLYING_CONSTRUCTOR (Chassis.FLYING, ComponentType.CONSTRUCTOR, ComponentType.ANTENNA),
 	NETWORK_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.NETWORK, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
@@ -26,6 +25,7 @@ public enum UnitType {
 	HAMMER_JUMP(Chassis.MEDIUM, ComponentType.HAMMER, ComponentType.HAMMER, ComponentType.HAMMER, ComponentType.RADAR, ComponentType.JUMP),
 	
 //	Factory + Recycler + Armory
+	WAR_MINER (Chassis.HEAVY, ComponentType.CONSTRUCTOR, ComponentType.JUMP, ComponentType.BEAM, ComponentType.RADAR, ComponentType.SHIELD, ComponentType.SHIELD, ComponentType.SHIELD, ComponentType.SHIELD),
 	TELESCOPER (Chassis.FLYING, ComponentType.TELESCOPE, ComponentType.ANTENNA),
 	HEAVY_CONSTRUCTOR(Chassis.HEAVY, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.DISH, ComponentType.REGEN),
 	MEDIUM_KILLER (Chassis.MEDIUM, ComponentType.RAILGUN, ComponentType.RADAR, ComponentType.JUMP, ComponentType.SHIELD),
@@ -35,13 +35,13 @@ public enum UnitType {
 	
 
 // Factory + Recycler	
-	RHINO_TANK (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.SMG, ComponentType.BLASTER, ComponentType.RAILGUN, ComponentType.SHIELD),
+	RHINO_TANK (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.BLASTER, ComponentType.SMG, ComponentType.SMG, ComponentType.SHIELD, ComponentType.SHIELD, ComponentType.SHIELD, ComponentType.SHIELD, ComponentType.SHIELD),
 	MEDIUM_CONSTRUCTOR(Chassis.MEDIUM, ComponentType.CONSTRUCTOR, ComponentType.RADAR, ComponentType.ANTENNA, ComponentType.PLATING),
 	MEDIUM_COMMANDER (Chassis.MEDIUM, ComponentType.RADAR, ComponentType.DISH, ComponentType.PROCESSOR, ComponentType.PROCESSOR),
 	BATTLE_FORTRESS(Chassis.HEAVY, ComponentType.RADAR, ComponentType.REGEN, ComponentType.SHIELD, ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG,ComponentType.SMG),
 	APOCALYPSE(Chassis.HEAVY, ComponentType.REGEN, ComponentType.HARDENED, ComponentType.SHIELD, ComponentType.SMG, ComponentType.SMG, ComponentType.RAILGUN, ComponentType.RADAR),
-	CHRONO_APOCALYPSE(Chassis.HEAVY, ComponentType.RAILGUN, ComponentType.RAILGUN, ComponentType.JUMP, ComponentType.RADAR, ComponentType.SHIELD, ComponentType.SMG),
-
+	CHRONO_APOCALYPSE(Chassis.HEAVY, ComponentType.RAILGUN, ComponentType.REGEN, ComponentType.JUMP, ComponentType.RADAR, ComponentType.SHIELD, ComponentType.SHIELD, ComponentType.SMG),
+	BEAMER (Chassis.HEAVY, ComponentType.PLASMA, ComponentType.PLASMA, ComponentType.PLASMA, ComponentType.JUMP, ComponentType.RADAR, ComponentType.BEAM, ComponentType.SMG, ComponentType.SMG),
 // Buildings
 	RECYCLER (Chassis.BUILDING, ComponentType.RECYCLER),
 	ARMORY(Chassis.BUILDING, ComponentType.ARMORY, ComponentType.ANTENNA),

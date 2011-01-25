@@ -135,11 +135,20 @@ public class RecyclerAI extends BuildingAI {
 
 			boolean noBorders = borders[0] == -1 && borders[1] == -1 && borders[2] == -1 && borders[3] == -1;
 			
+			
+			constructingQueue.add(UnitType.BEAMER);
 			constructingQueue.add(UnitType.CONSTRUCTOR);
+			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			constructingQueue.add(UnitType.CONSTRUCTOR);
+			constructingQueue.add(UnitType.BEAMER);
+			constructingQueue.add(UnitType.CONSTRUCTOR);
+			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+			constructingQueue.add(UnitType.BEAMER);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			if (noBorders) {
@@ -148,7 +157,7 @@ public class RecyclerAI extends BuildingAI {
 			}
 
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
-			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			constructingQueue.add(UnitType.BEAMER);
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			if (noBorders) {
 				constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
@@ -636,6 +645,9 @@ public class RecyclerAI extends BuildingAI {
 		else if ( unitUnderConstruction == null){
 //				|| (constructIdleRound == 0 && constructingQueue.size() > 0)) {
 			UnitType unitUnderConstruction = constructingQueue.peek();
+			
+			if (controllers.myRC.getTeamResources() < unitUnderConstruction.totalCost + UnitType.RECYCLER.totalCost)
+				return;
 			
 			controllers.myRC.setIndicatorString(1, unitUnderConstruction + "" + Clock.getRoundNum());
 			
