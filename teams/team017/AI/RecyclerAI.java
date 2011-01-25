@@ -133,6 +133,8 @@ public class RecyclerAI extends BuildingAI {
 //			buildArmory = true;
 //			buildRailgunTower = true;
 
+			boolean noBorders = borders[0] == -1 && borders[1] == -1 && borders[2] == -1 && borders[3] == -1;
+			
 			constructingQueue.add(UnitType.CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
@@ -140,10 +142,17 @@ public class RecyclerAI extends BuildingAI {
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
 			constructingQueue.add(UnitType.TELESCOPER);
 			constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+			if (noBorders) {
+				constructingQueue.add(UnitType.TELESCOPER);
+				constructingQueue.add(UnitType.FLYING_CONSTRUCTOR);
+			}
 
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
 			constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			if (noBorders) {
+				constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+			}
 			
 			isInitial = true;
 		}
