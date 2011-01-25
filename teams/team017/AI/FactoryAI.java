@@ -46,6 +46,7 @@ public class FactoryAI extends BuildingAI {
 	private Direction enemyBase; //direction to enemy base
 	private Direction[] toExplore = new Direction[3];
 	private int toExploreIndex;
+	private int toPatrolIndex = 0;
 	
 	
 	private Direction birthDir;
@@ -383,9 +384,11 @@ public class FactoryAI extends BuildingAI {
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				
 				if (handler.getUnitType() == UnitType.CHRONO_APOCALYPSE) {
-					msgHandler.queueMessage(new PatrolDirectionMessage(toExplore[toExploreIndex], toExploreIndex == 2));
-					toExploreIndex = (toExploreIndex+1)%3;
+					msgHandler.queueMessage(new PatrolDirectionMessage(toExplore[toPatrolIndex], toPatrolIndex == 2));
+					toPatrolIndex = (toPatrolIndex+1)%3;
 				}
+				
+				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations) );
 				
 				break;
 			}
