@@ -48,7 +48,7 @@ public class CombatSystem {
 				primary = w;
 				optRange = w.type().range;
 				break;
-			case HAMMER:
+			case BEAM:
 				primary = w;
 				optRange = w.type().range;
 				break;
@@ -294,7 +294,7 @@ public class CombatSystem {
 		MapLocation myloc = controllers.myRC.getLocation();
 		Direction mydir = controllers.myRC.getDirection();
 		Direction edir = myloc.directionTo(r.location);
-		setDirection(edir);
+//		setDirection(edir);
 		if (controllers.motor.canMove(edir)) {
 			if (mydir == edir) {
 				try {controllers.motor.moveForward();
@@ -333,10 +333,10 @@ public class CombatSystem {
 				catch (Exception e) {}
 			}
 		}
-//		else {
-//			try {controllers.motor.setDirection(edir);} 
-//			catch (GameActionException e) {return false;}
-//		}
+		else {
+			try {controllers.motor.setDirection(edir);} 
+			catch (GameActionException e) {return false;}
+		}
 		return false;
 	}
 	

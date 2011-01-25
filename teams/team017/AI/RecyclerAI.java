@@ -283,7 +283,7 @@ public class RecyclerAI extends BuildingAI {
 				}
 				
 				if (isInitial && controllers.myRC.getTeamResources() > resourceThresholds && fluxRate > 3){
-					constructingQueue.add(UnitType.CHRONO_APOCALYPSE);
+					constructingQueue.add(UnitType.BEAMER);
 				}
 				
 				if ( !isInitial && (Clock.getRoundNum()-birthRoundNum)%1000 == 0){
