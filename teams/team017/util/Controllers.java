@@ -82,26 +82,26 @@ public class Controllers {
 	}
 	
 	public int enemyNum() {
-//		if (lastUpdateRobot < Clock.getRoundNum())
-//			senseAll();
+		if (lastUpdateRobot < Clock.getRoundNum())
+			senseRobot();
 		return enemyMobile.size() + enemyImmobile.size();
 	}
 	
 	public int debrisNum() {
 		if (lastUpdateRobot < Clock.getRoundNum())
-			senseAll();
+			senseRobot();
 		return debris.size();
 	}
 	
 	public int mobileEnemyNum() {
 		if (lastUpdateRobot < Clock.getRoundNum())
-			senseAll();
+			senseRobot();
 		return enemyMobile.size();
 	}
 	
 	public int immobileEnemyNum() {
 		if (lastUpdateRobot < Clock.getRoundNum())
-			senseAll();
+			senseRobot();
 		return enemyImmobile.size();
 	}
 	

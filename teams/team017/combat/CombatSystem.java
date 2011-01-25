@@ -58,10 +58,8 @@ public class CombatSystem {
 			else if (type.range < minRange)
 				minRange = type.range;
 		}
-//		if (c.weapons.size() > 0) {
-//			primary = controllers.weapons.get(0);
-//			optRange = primary.type().range;
-//		}
+		if (primary == null)
+			primary = controllers.weapons.get(0);
 	}
 
 	public boolean chase(Robot r) {

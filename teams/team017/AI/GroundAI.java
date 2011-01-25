@@ -76,14 +76,14 @@ abstract public class GroundAI extends AI {
 			}
 		}
 
-		controllers.myRC.setIndicatorString(1, "destination location: " + des);
+//		controllers.myRC.setIndicatorString(1, "destination location: " + des);
 		try{
 			
 			
 			if (jumpLoc == null)
 				jumpLoc = navigator.getNextJumpingLoc(tolerance);
 	
-			controllers.myRC.setIndicatorString(1, "destination location: " + des + "jump location: " + jumpLoc);
+//			controllers.myRC.setIndicatorString(1, "destination location: " + des + "jump location: " + jumpLoc);
 			
 			if (jumpLoc == null){
 				return walkingNavigateToDestination(des, tolerance);
