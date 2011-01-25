@@ -510,6 +510,7 @@ public class RecyclerAI extends BuildingAI {
 			}
 			
 			case UNIT_READY: {
+				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations) );
 				UnitReadyMessage handler = new UnitReadyMessage(msg);
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				if (controllers.myRC.getLocation().distanceSquaredTo(handler.getSourceLocation()) <= 2) {
