@@ -70,14 +70,12 @@ public class BattleConstructorAI extends GroundAI {
 
 	public void proceed() {
 		birthRound = Clock.getRoundNum();
-		RobotInfo target;
-		proceed:
 		while (true) {
 
-			
+			attack();
 			
 			// If attacked and enemy not in sight, turn around
-			if (attacked && controllers.enemyNum() == 0){
+			if (attacked && enemyNum() == 0){
 				scoutingDir = scoutingDir.opposite();
 				while ( !gridMap.updateScoutLocation(scoutingDir) ) {
 					scoutingDir = leftward ? scoutingDir.rotateLeft() : scoutingDir.rotateRight();
@@ -85,12 +83,8 @@ public class BattleConstructorAI extends GroundAI {
 				scoutingLocation = gridMap.getScoutLocation();
 			}
 			
-			if (Clock.getRoundNum() < 1000 || Clock.getRoundNum() - birthRound > 100) {
-				try {
-					navigate();
-				}
-				catch (Exception e) {}
-			}
+			try {navigate();}
+			catch (Exception e) {}
 			
 			yield();
 
@@ -98,53 +92,123 @@ public class BattleConstructorAI extends GroundAI {
 	}
 	
 	public void attack() {
+		if (combat.primary.isActive())
+			return;
 		if (target != null) {
 			try {
 				target = sensor.senseRobotInfo(target.robot);
-				if (combat.primary.withinRange(target.location))
-					combat.primary.attackSquare(target.location, target.robot.getRobotLevel());
+				if (target.hitpoints <= 0)
+					target = null;
 			} catch (Exception e) {
 				target = null;
 			}
-
-
-
+		}
+		
+		if (target != null) {
+			if (combat.primary.withinRange(target.location))
+				try {
+					combat.primary.attackSquare(target.location, target.robot.getRobotLevel());
+					return;
+				} catch (GameActionException e) {
+					e.printStackTrace();
+					target = null;
+				}
+			else if (!motor.isActive()) {
+				Direction edir = rc.getLocation().directionTo(target.location);
+				try {
+					motor.setDirection(edir);
+				} catch (GameActionException e) {
+					e.printStackTrace();
+				}
+				if (combat.primary.withinRange(target.location)) {
+					try {
+						combat.primary.attackSquare(target.location, target.robot.getRobotLevel());
+						return;
+					} catch (GameActionException e) {
+						e.printStackTrace();
+						target = null;
+					}
+				} 
+			} 
 		}
 		
 		if (motor.isActive()) {
 			Util.sortHp(mytypes);
 			for (RobotInfo r: mytypes) {
 				if (combat.primary.withinRange(r.location)) {
-					combat.primary.attackSquare(r.location, r.robot.getRobotLevel());
-					if ()
+					try {
+						combat.primary.attackSquare(r.location, r.robot.getRobotLevel());
+						target = r;
+					} catch (GameActionException e) {
+						e.printStackTrace();
+					}
 					return;
 				}
 			}
 			Util.sortHp(others);
 			for (RobotInfo r: others) {
 				if (combat.primary.withinRange(r.location)) {
-					combat.primary.attackSquare(r.location, r.robot.getRobotLevel());
+					try {
+						combat.primary.attackSquare(r.location, r.robot.getRobotLevel());
+						target = r;
+					} catch (GameActionException e) {
+						e.printStackTrace();
+					}
 					return;
 				}
 			}
 		} else {
 			Util.sortHp(mytypes);
-			int d, dis = combat.maxRange;
+			int d = combat.maxRange;
 			MapLocation myloc = rc.getLocation();
 			for (RobotInfo r: mytypes) {
 				d = myloc.distanceSquaredTo(r.location);
 				if (d < combat.maxRange) {
-					combat.primary.attackSquare(r.location, r.robot.getRobotLevel());
-					return;
+					Direction edir = rc.getLocation().directionTo(target.location);
+					try {
+						motor.setDirection(edir);
+					} catch (GameActionException e) {
+						e.printStackTrace();
+					}
+					if (combat.primary.withinRange(target.location)) {
+						try {
+							combat.primary.attackSquare(target.location, target.robot.getRobotLevel());
+							target = null;
+							return;
+						} catch (GameActionException e) {
+							e.printStackTrace();
+							target = null;
+						}
+					} 
 				}
 			}
-			
+			Util.sortHp(others);
+			for (RobotInfo r: mytypes) {
+				d = myloc.distanceSquaredTo(r.location);
+				if (d < combat.maxRange) {
+					Direction edir = rc.getLocation().directionTo(target.location);
+					try {
+						motor.setDirection(edir);
+					} catch (GameActionException e) {
+						e.printStackTrace();
+					}
+					if (combat.primary.withinRange(target.location)) {
+						try {
+							combat.primary.attackSquare(target.location, target.robot.getRobotLevel());
+							target = null;
+							return;
+						} catch (GameActionException e) {
+							e.printStackTrace();
+							target = null;
+						}
+					} 
+				}
+			}
 		}
 	}
 	
 	
 	public void senseNearby() {
-//		int before = Clock.getBytecodesLeft();
 		int roundNum = Clock.getRoundNum();
 		if (roundNum == lastUpdate)
 			return;
@@ -191,9 +255,6 @@ public class BattleConstructorAI extends GroundAI {
 			}
 		}
 		lastUpdate = roundNum;
-//		int after = Clock.getBytecodesLeft();
-//		if ((before-after) > 1100 || (before-after) < -1100)
-//			System.out.println("used bytecode: "+ String.valueOf(before - after));
 	}
 
 	public void yield() {
@@ -201,8 +262,6 @@ public class BattleConstructorAI extends GroundAI {
 		super.yield();
 //		int before = Clock.getBytecodesLeft();
 		attacked = rc.getHitpoints() < prevHp;
-//		if ((rc.getHitpoints() - prevHp) < -0.4 * rc.getMaxHp())
-//			combat.moveBackward();
 		prevHp = rc.getHitpoints();
 		controllers.senseRobot();
 		if (senseBorder())	scoutingLocation = gridMap.getScoutLocation();
