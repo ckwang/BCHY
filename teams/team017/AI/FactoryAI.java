@@ -102,6 +102,8 @@ public class FactoryAI extends BuildingAI {
 				toExplore[2] = enemyBase.rotateRight().rotateRight();
 			}
 
+		} else {
+			toExplore[1] = Direction.NORTH;
 		}
 		
 		// Main Loop
@@ -352,15 +354,24 @@ public class FactoryAI extends BuildingAI {
 				ScoutingInquiryMessage handler = new ScoutingInquiryMessage(msg);
 				boolean isConstructor = handler.isConstructor();
 				
-				Direction scoutingDir = toExplore[toExploreIndex];
-				
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
 
-				msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, toExploreIndex == 2 ));
-				
-				if (isConstructor)
-					toExploreIndex = (toExploreIndex+1)%3;
+				if (toExplore[0] == null) {
+					Direction scoutingDir = toExplore[1];
+					msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir,
+							scoutingDir == Direction.NORTH || scoutingDir == Direction.SOUTH,
+							scoutingDir == Direction.NORTH || scoutingDir == Direction.EAST));
+					
+					if (isConstructor)
+						toExplore[1] = toExplore[1].rotateRight().rotateRight();
+				} else {
+					Direction scoutingDir = toExplore[toExploreIndex];
+					msgHandler.queueMessage(new ScoutingResponseMessage(handler.getSourceID(), scoutingDir, toExploreIndex == 0, toExploreIndex == 2 ));
+					
+					if (isConstructor)
+						toExploreIndex = (toExploreIndex+1)%3;
+				}
 				
 				break;
 			}
@@ -383,8 +394,12 @@ public class FactoryAI extends BuildingAI {
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				
 				if (handler.getUnitType() == UnitType.CHRONO_APOCALYPSE) {
-					msgHandler.queueMessage(new PatrolDirectionMessage(toExplore[toExploreIndex], toExploreIndex == 2));
-					toExploreIndex = (toExploreIndex+1)%3;
+					if (toExplore[0] == null) {
+						msgHandler.queueMessage(new PatrolDirectionMessage(toExplore[1], toExplore[1] == Direction.NORTH || toExplore[1] == Direction.EAST));
+					} else {
+						msgHandler.queueMessage(new PatrolDirectionMessage(toExplore[toExploreIndex], toExploreIndex == 2));
+						toExploreIndex = (toExploreIndex+1)%3;
+					}
 				}
 				
 				break;
