@@ -66,6 +66,8 @@ public class ScoutAI extends AI {
 	private boolean isFlee = false;
 	private int roundSinceLastAhh;
 	
+	private boolean scared = false;
+	
 	public ScoutAI(RobotController rc) {
 		super(rc);
 		id = rc.getRobot().getID();
@@ -106,6 +108,9 @@ public class ScoutAI extends AI {
 
 			if ( !isFlee && (controllers.distanceToNearestEnemy < 121 || attacked) && !(!isScout && !childArrived)) {
 				isFlee = true;
+				
+				if (controllers.distanceToNearestEnemy < 64 || attacked)
+					scared = true;
 				
 				// If the enemy is too faraway, scout nearby first
 				if (!attacked && controllers.distanceToNearestEnemy > 81)
@@ -153,8 +158,12 @@ public class ScoutAI extends AI {
 								break;
 							}
 						}
-//						msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
-						msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, UnitType.APOCALYPSE , true));
+						msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
+						if (types.isEmpty()) {
+							msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, UnitType.APOCALYPSE , true));
+						} else {
+							msgHandler.queueMessage(new ConstructUnitMessage(nearestRecycler, types , true));
+						}
 						roundSinceLastAhh = Clock.getRoundNum();
 				}
 			}
@@ -380,6 +389,8 @@ public class ScoutAI extends AI {
 				msgHandler.queueMessage(new GridMapMessage(borders, homeLocation, gridMap));
 				yield();
 				msgHandler.queueMessage(new MineLocationsMessage(emptyMineLocations, alliedMineLocations, enemyMineLocations) );
+				if (scared)
+					msgHandler.queueMessage(new ConstructBaseMessage(nearestRecycler, UnitType.RAILGUN_TOWER));
 				break;
 			}
 				

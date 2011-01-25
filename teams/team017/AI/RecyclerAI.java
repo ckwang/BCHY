@@ -376,6 +376,7 @@ public class RecyclerAI extends BuildingAI {
 						}	
 					}
 				}
+				break;
 			}
 			
 			case CONSTRUCT_BASE_MESSAGE:{
