@@ -44,7 +44,7 @@ public class ConstructorAI extends GroundAI {
 	public ConstructorAI(RobotController rc) {
 		super(rc);
 		navigator.updateMap();
-		combat = new CombatSystem(controllers);
+//		combat = new CombatSystem(controllers);
 	}
 	
 	public void proceed() {
